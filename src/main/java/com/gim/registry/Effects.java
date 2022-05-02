@@ -4,6 +4,7 @@ import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinMobEffect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -31,8 +32,10 @@ public class Effects {
     @ObjectHolder("elemental_hydro")
     public static final MobEffect HYDRO = null;
 
-    @ObjectHolder("elemental_vaporize")
-    public static final MobEffect VAPORIZE = null;
+    @ObjectHolder("defence_debuff")
+    public static final MobEffect DEFENCE_DEBUFF = null;
+    @ObjectHolder("frozen")
+    public static final MobEffect FROZEN = null;
 
     @SubscribeEvent
     public static void onEffectRegistry(final RegistryEvent.Register<MobEffect> event) {
@@ -68,10 +71,12 @@ public class Effects {
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_hydro"),
 
 
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.WHITE.getRGB())
+                        .addAttributeModifier(Attributes.defence, "08ba996a-1ea9-40ab-a4ea-7171d5afdf64", -0.1d, AttributeModifier.Operation.ADDITION)
+                        .setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
 
                 new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.WHITE.getRGB())
-                        .setElementalReaction(true)
-                        .setRegistryName(GenshinImpactMod.ModID, "elemental_vaporize")
+                        .setRegistryName(GenshinImpactMod.ModID, "frozen")
         );
     }
 }

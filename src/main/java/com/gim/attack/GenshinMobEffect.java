@@ -67,6 +67,10 @@ public class GenshinMobEffect extends MobEffect {
         if (this == Effects.ELECTRO) {
             spawnElementalEffects(livingEntity, ParticleTypes.ELECTRO);
         }
+
+        if (this == Effects.FROZEN) {
+            livingEntity.setTicksFrozen(15);
+        }
     }
 
     @Override

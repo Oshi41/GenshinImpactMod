@@ -9,4 +9,5 @@ public class DamageSources {
     public static final DamageSource AnemoSource = new DamageSource(String.format("%s.anemo", GenshinImpactMod.ModID));
     public static final DamageSource DendroSource = new DamageSource(String.format("%s.dendro", GenshinImpactMod.ModID));
     public static final DamageSource GeoSource = new DamageSource(String.format("%s.geo", GenshinImpactMod.ModID));
+    public static final DamageSource SuperconductSource = new DamageSource(String.format("%s.superconduct", GenshinImpactMod.ModID));
 }

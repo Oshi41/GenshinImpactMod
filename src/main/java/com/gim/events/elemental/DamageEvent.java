@@ -6,6 +6,7 @@ import com.gim.registry.DamageSources;
 import com.gim.registry.Effects;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -16,10 +17,10 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
+import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.w3c.dom.Attr;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 @OnlyIn(Dist.DEDICATED_SERVER)
@@ -50,6 +51,18 @@ public class DamageEvent {
         if (!event.getEntityLiving().hasEffect(Effects.HYDRO) && event.getSource() == DamageSources.HydroSource) {
             event.getEntityLiving().addEffect(new MobEffectInstance(Effects.HYDRO, 20 * 10));
         }
+
+        // superconduct applies cryo too
+        if (!event.getEntityLiving().hasEffect(Effects.CRYO) && event.getSource() == DamageSource.FREEZE
+                || event.getSource() == DamageSources.SuperconductSource) {
+            event.getEntityLiving().addEffect(new MobEffectInstance(Effects.CRYO, 20 * 10));
+        }
+
+        // applying debuff effect
+        if (!event.getEntityLiving().hasEffect(Effects.DEFENCE_DEBUFF) && event.getSource() == DamageSources.SuperconductSource) {
+            MobEffectInstance effectInstance = new MobEffectInstance(Effects.DEFENCE_DEBUFF, 20 * 12, 4, false, false, false);
+            event.getEntityLiving().addEffect(effectInstance);
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -63,26 +76,56 @@ public class DamageEvent {
         }
     }
 
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onExplode(ExplosionEvent.Detonate e) {
+    }
+
     // endregion
 
     // region APPLYING ELEMENTAL REACTIONS
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void applyElementalReactions(LivingDamageEvent e) {
-        if (e.getSource() == null || e.getEntityLiving() == null)
+        if (e.getSource() == null || e.getEntityLiving() == null || e.isCanceled())
             return;
 
         if (handleBonusAttack(e)) {
             GenshinImpactMod.LOGGER.debug("attack bonus applied");
         }
 
-
         if (handleOverload(e.getEntityLiving(), e.getSource())) {
+            // adding base attack damage bonus
+            e.setAmount(e.getAmount() + getLevel(e.getEntityLiving()));
             e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(), e.getAmount() * 2));
             GenshinImpactMod.LOGGER.debug("overload applied");
         }
 
+        if (handleFrozen(e.getEntityLiving(), e.getSource())) {
+            e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(), e.getAmount()));
+            GenshinImpactMod.LOGGER.debug("frozen applied");
+        }
 
+        if (handleVaporize(e.getEntityLiving(), e.getSource())) {
+            // adding base attack damage bonus
+            e.setAmount(e.getAmount() + getLevel(e.getEntityLiving()));
+            float multiplier = e.getSource().isFire() ? 2f : 1.5f;
+            e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(), e.getAmount() * multiplier));
+            GenshinImpactMod.LOGGER.debug(e.getSource().isFire() ? "" : "reverse " + "vaporize applied");
+        }
+
+        if (handleSuperconduct(e.getEntityLiving(), e.getSource())) {
+            // adding base attack damage bonus
+            e.setAmount(e.getAmount() + getLevel(e.getEntityLiving()));
+            e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(), e.getAmount() * 0.5f));
+            GenshinImpactMod.LOGGER.debug("superconduct applied");
+        }
+
+        if (handleSwirl(e.getEntityLiving(), e.getSource())) {
+            // adding base attack damage bonus
+            e.setAmount(e.getAmount() + getLevel(e.getEntityLiving()));
+            e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(), e.getAmount() * 0.6f));
+            GenshinImpactMod.LOGGER.debug("swirl applied");
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -106,23 +149,195 @@ public class DamageEvent {
 
     // endregion
 
+    // region HANDLING REACTIONS
+
+    private static boolean handleOverload(LivingEntity entity, DamageSource source) {
+        if (!entity.hasEffect(Effects.ELECTRO) && !entity.hasEffect(Effects.PYRO))
+            return false;
+
+        boolean canHandle = (entity.hasEffect(Effects.ELECTRO) && source.isFire()) ||
+                (entity.hasEffect(Effects.PYRO) && source == DamageSource.LIGHTNING_BOLT);
+
+        entity.getLevel().explode(
+                source.getDirectEntity(),
+                DamageSource.ON_FIRE,
+                null,
+                entity.getX(),
+                entity.getY(),
+                entity.getZ(),
+                5,
+                true,
+                Explosion.BlockInteraction.NONE
+        );
+
+        // removing previous effect
+        entity.removeEffect(source.isFire() ? Effects.ELECTRO : Effects.PYRO);
+
+        return canHandle;
+    }
+
+    private static boolean handleFrozen(LivingEntity entity, DamageSource source) {
+        if (!entity.hasEffect(Effects.CRYO) && !entity.hasEffect(Effects.HYDRO))
+            return false;
+
+        boolean canHandle = (entity.hasEffect(Effects.CRYO) && source == DamageSources.HydroSource) ||
+                (entity.hasEffect(Effects.HYDRO) && source == DamageSource.FREEZE);
+
+        if (canHandle) {
+            int ticks = (int) (20 * 10 * (1 * majestyBonus(source.getEntity())));
+            // adding frozen effect
+            entity.addEffect(new MobEffectInstance(Effects.FROZEN, ticks, 0, false, false, false));
+
+
+            // removing previous effect
+            entity.removeEffect(source == DamageSources.HydroSource ? Effects.CRYO : Effects.HYDRO);
+        }
+
+        return canHandle;
+    }
+
+    private static boolean handleVaporize(LivingEntity entity, DamageSource source) {
+        if (!entity.hasEffect(Effects.PYRO) && !entity.hasEffect(Effects.HYDRO))
+            return false;
+
+        boolean canHandle = (entity.hasEffect(Effects.HYDRO) && source.isFire()) ||
+                (entity.hasEffect(Effects.PYRO) && source == DamageSources.HydroSource);
+
+        if (canHandle) {
+            DamageSource currentSource = source.isFire() ? DamageSources.HydroSource : DamageSource.ON_FIRE;
+            entity.getLevel().explode(
+                    source.getEntity(),
+                    currentSource,
+                    null,
+                    entity.getX(),
+                    entity.getY(),
+                    entity.getZ(),
+                    5,
+                    currentSource.isFire(),
+                    Explosion.BlockInteraction.NONE
+            );
+
+            // removing last effect
+            entity.removeEffect(currentSource.isFire() ? Effects.HYDRO : Effects.PYRO);
+        }
+
+        return canHandle;
+    }
+
+    private static boolean handleSuperconduct(LivingEntity entity, DamageSource source) {
+        if (!entity.hasEffect(Effects.CRYO) && !entity.hasEffect(Effects.ELECTRO))
+            return false;
+
+        boolean canHandle = (entity.hasEffect(Effects.HYDRO) && source == DamageSource.FREEZE) ||
+                (entity.hasEffect(Effects.CRYO) && source == DamageSource.LIGHTNING_BOLT);
+
+        if (canHandle) {
+            entity.getLevel().explode(
+                    source.getEntity(),
+                    DamageSources.SuperconductSource,
+                    null,
+                    entity.getX(),
+                    entity.getY(),
+                    entity.getZ(),
+                    5,
+                    false,
+                    Explosion.BlockInteraction.NONE);
+
+            entity.removeEffect(Effects.ELECTRO);
+        }
+
+        return canHandle;
+    }
+
+    private static boolean handleSwirl(LivingEntity entity, DamageSource source) {
+        if (!entity.hasEffect(Effects.ANEMO) &&
+                !entity.hasEffect(Effects.PYRO) &&
+                !entity.hasEffect(Effects.CRYO) &&
+                !entity.hasEffect(Effects.HYDRO) &&
+                !entity.hasEffect(Effects.ELECTRO)) {
+            return false;
+        }
+
+        DamageSource attack = null;
+
+        if (entity.hasEffect(Effects.ANEMO)) {
+            if (source.isFire()
+                    || source == DamageSource.LIGHTNING_BOLT
+                    || source == DamageSource.FREEZE
+                    || source == DamageSources.HydroSource) {
+                attack = source;
+            }
+        } else {
+            if (entity.hasEffect(Effects.PYRO)) {
+                attack = DamageSource.ON_FIRE;
+            }
+
+            if (entity.hasEffect(Effects.ELECTRO)) {
+                attack = DamageSource.LIGHTNING_BOLT;
+            }
+
+            if (entity.hasEffect(Effects.CRYO)) {
+                attack = DamageSource.FREEZE;
+            }
+
+            if (entity.hasEffect(Effects.HYDRO)) {
+                attack = DamageSources.HydroSource;
+            }
+        }
+
+        if (attack != null) {
+            entity.getLevel().explode(
+                    source.getEntity(),
+                    attack,
+                    null,
+                    entity.getX(),
+                    entity.getY(),
+                    entity.getZ(),
+                    5,
+                    false,
+                    Explosion.BlockInteraction.NONE);
+        }
+
+        return attack != null;
+    }
+
+    // endregion
+
     // region Helping methods
+
+    private static int getLevel(LivingEntity e) {
+        if (e != null) {
+            AttributeInstance instance = e.getAttribute(Attributes.level);
+            if (instance != null) {
+                return (int) instance.getValue();
+            }
+        }
+
+        return 0;
+    }
 
     /**
      * Returns elemental majesty bonus
      * https://genshin-impact.fandom.com/wiki/Damage#Amplifying_Reaction_Damage
      *
-     * @param entity - current entity
+     * @param e - current entity
      * @return
      */
-    private static float majestyBonus(LivingEntity entity) {
-        AttributeInstance instance = entity.getAttribute(Attributes.elemental_majesty);
-        if (instance != null) {
-            double value = instance.getValue();
-            if (value > 0) {
-                return (float) (16 * value / (value + 2000) / 100);
+    private static float majestyBonus(Entity e) {
+
+        if (e instanceof LivingEntity) {
+
+            LivingEntity entity = (LivingEntity) e;
+
+            AttributeInstance instance = entity.getAttribute(Attributes.elemental_majesty);
+            if (instance != null) {
+                double value = instance.getValue();
+                if (value > 0) {
+                    return (float) (16 * value / (value + 2000) / 100);
+                }
             }
         }
+
 
         return 0;
     }
@@ -241,8 +456,9 @@ public class DamageEvent {
         if (source.getEntity() instanceof LivingEntity) {
             LivingEntity attacker = (LivingEntity) source.getEntity();
 
-            majesty += majestyBonus(attacker);
+            majesty = majestyBonus(attacker);
             elementalBonus = elementalBonus(attacker, source);
+            elementalResistance = elementalResistance(entity, source);
 
             AttributeInstance instance = attacker.getAttribute(Attributes.level);
             if (instance != null) {
@@ -254,14 +470,10 @@ public class DamageEvent {
                 double defenceRaw = instance.getValue();
                 defence = (float) (defenceRaw / (defenceRaw + 5 * level));
             }
-
-            elementalResistance = elementalResistance(entity, source);
         }
 
         return damage * level * (1 + majesty + elementalBonus) * (1 - defence) * (1 - elementalResistance - majesty);
     }
-
-    // endregion
 
     /**
      * Handle attack bonus
@@ -282,28 +494,5 @@ public class DamageEvent {
         return false;
     }
 
-    private static boolean handleOverload(LivingEntity entity, DamageSource source) {
-        if (!entity.hasEffect(Effects.ELECTRO) && !entity.hasEffect(Effects.PYRO))
-            return false;
-
-        boolean canHandle = (entity.hasEffect(Effects.ELECTRO) && source.isFire()) ||
-                (entity.hasEffect(Effects.PYRO) && source == DamageSource.LIGHTNING_BOLT);
-
-        entity.getLevel().explode(
-                source.getDirectEntity(),
-                DamageSource.ON_FIRE,
-                null,
-                entity.getX(),
-                entity.getY(),
-                entity.getZ(),
-                5,
-                true,
-                Explosion.BlockInteraction.NONE
-        );
-
-        entity.removeEffect(Effects.ELECTRO);
-        entity.removeEffect(Effects.PYRO);
-
-        return canHandle;
-    }
+    // endregion
 }
