@@ -1,18 +1,15 @@
 package com.gim.registry;
 
-import com.gim.GenshinImpactMod;
-import com.gim.particles.ElementalParticle;
+import com.gim.particle.CircleParticle;
+import com.gim.particle.ElementalParticle;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.DripParticle;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ObjectHolder;
 
-@OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(bus=Mod.EventBusSubscriber.Bus.MOD)
-@ObjectHolder(GenshinImpactMod.ModID)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT})
 public class ClientParticles {
 
     @SubscribeEvent
@@ -50,6 +47,16 @@ public class ClientParticles {
         Minecraft.getInstance().particleEngine.register(
                 ParticleTypes.CRYO,
                 ElementalParticle.Provider::new
+        );
+
+        Minecraft.getInstance().particleEngine.register(
+                ParticleTypes.FROZEN,
+                CircleParticle.Provider::new
+        );
+
+        Minecraft.getInstance().particleEngine.register(
+                ParticleTypes.DEFENCE_DEBUFF,
+                CircleParticle.Provider::new
         );
     }
 }

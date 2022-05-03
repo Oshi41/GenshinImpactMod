@@ -27,19 +27,25 @@ public class ParticleTypes {
     public static final SimpleParticleType ELECTRO = null;
     @ObjectHolder("hydro")
     public static final SimpleParticleType HYDRO = null;
+    @ObjectHolder("frozen")
+    public static final SimpleParticleType FROZEN = null;
+    @ObjectHolder("defence_debuff")
+    public static final SimpleParticleType DEFENCE_DEBUFF = null;
 
     @SubscribeEvent
     public static void onRegisterParticleTypes(RegistryEvent.Register<ParticleType<?>> event) {
         IForgeRegistry<ParticleType<?>> registry = event.getRegistry();
 
         registry.registerAll(
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "electro"),
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "cryo"),
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "pyro"),
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "geo"),
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "dendro"),
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "anemo"),
-                new SimpleParticleType(true).setRegistryName(GenshinImpactMod.ModID, "hydro")
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "electro"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "cryo"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "pyro"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "geo"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "dendro"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "anemo"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "hydro"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "frozen"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "defence_debuff")
         );
     }
 }

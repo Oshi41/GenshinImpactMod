@@ -122,6 +122,14 @@ repositories {
     // flatDir {
     //     dir 'libs'
     // }
+
+    maven {
+        name = "CurseForge"
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 dependencies {
@@ -129,6 +137,11 @@ dependencies {
     // that the dep is a ForgeGradle 'patcher' dependency, and its patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft 'net.minecraftforge:forge:1.18-38.0.17'
+
+    // The dependency format is as follows: curse.maven:<descriptor>-<projectid>:<fileids>
+    // See more here: https://www.cursemaven.com/
+    // neat 1.8-30
+    implementation fg.deobf ('curse.maven:neat-238372:3593906')
 
     // Real mod deobf dependency examples - these get remapped to your current mappings
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency

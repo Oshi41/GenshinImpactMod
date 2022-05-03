@@ -49,13 +49,13 @@ public class Attributes {
         registry.registerAll(
                 new RangedAttribute("genshin.heal_bonus", 0, 0, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "heal_bonus"),
-                new RangedAttribute("genshin.defence", 0, 0, 1)
+                new RangedAttribute("genshin.defence", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "defence"),
-                new RangedAttribute("genshin.elemental_majesty", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.elemental_majesty", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_majesty"),
-                new RangedAttribute("genshin.attack_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.attack_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "attack_bonus"),
-                new RangedAttribute("genshin.crit_rate", 0.01, 0, Double.MAX_VALUE)
+                new RangedAttribute("genshin.crit_rate", 0.05, 0, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "crit_rate"),
                 new RangedAttribute("genshin.crit_bonus", 1, 0, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "crit_bonus"),
@@ -69,34 +69,34 @@ public class Attributes {
                         .setRegistryName(GenshinImpactMod.ModID, "level"),
 
 
-                new RangedAttribute("genshin.pyro_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.pyro_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "pyro_bonus"),
-                new RangedAttribute("genshin.anemo_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.anemo_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "anemo_bonus"),
-                new RangedAttribute("genshin.hydro_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.hydro_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "hydro_bonus"),
-                new RangedAttribute("genshin.geo_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.geo_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "geo_bonus"),
-                new RangedAttribute("genshin.dendro_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.dendro_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "dendro_bonus"),
-                new RangedAttribute("genshin.cryo_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.cryo_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "cryo_bonus"),
-                new RangedAttribute("genshin.electro_bonus", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.electro_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "electro_bonus"),
 
-                new RangedAttribute("genshin.pyro_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.pyro_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "pyro_resistance"),
-                new RangedAttribute("genshin.anemo_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.anemo_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "anemo_resistance"),
-                new RangedAttribute("genshin.hydro_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.hydro_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "hydro_resistance"),
-                new RangedAttribute("genshin.geo_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.geo_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "geo_resistance"),
-                new RangedAttribute("genshin.dendro_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.dendro_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "dendro_resistance"),
-                new RangedAttribute("genshin.cryo_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.cryo_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "cryo_resistance"),
-                new RangedAttribute("genshin.electro_resistance", 0, Double.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.electro_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "electro_resistance")
         );
     }

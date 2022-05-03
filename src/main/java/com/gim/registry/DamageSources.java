@@ -10,4 +10,5 @@ public class DamageSources {
     public static final DamageSource DendroSource = new DamageSource(String.format("%s.dendro", GenshinImpactMod.ModID));
     public static final DamageSource GeoSource = new DamageSource(String.format("%s.geo", GenshinImpactMod.ModID));
     public static final DamageSource SuperconductSource = new DamageSource(String.format("%s.superconduct", GenshinImpactMod.ModID));
+    public static final DamageSource Frozen = new DamageSource(String.format("%s.frozen", GenshinImpactMod.ModID));
 }

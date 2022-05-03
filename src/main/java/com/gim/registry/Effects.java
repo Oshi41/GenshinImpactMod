@@ -16,7 +16,6 @@ import java.awt.*;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 @ObjectHolder(GenshinImpactMod.ModID)
 public class Effects {
-
     @ObjectHolder("elemental_cryo")
     public static final MobEffect CRYO = null;
     @ObjectHolder("elemental_pyro")
@@ -42,40 +41,41 @@ public class Effects {
         IForgeRegistry<MobEffect> registry = event.getRegistry();
 
         registry.registerAll(
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.WHITE.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_cryo"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.RED.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_pyro"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.GREEN.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_dendro"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.CYAN.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_anemo"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.YELLOW.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_geo"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.YELLOW.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_electro"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.YELLOW.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .setPureElemental(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_hydro"),
 
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.WHITE.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
                         .addAttributeModifier(Attributes.defence, "08ba996a-1ea9-40ab-a4ea-7171d5afdf64", -0.1d, AttributeModifier.Operation.ADDITION)
                         .setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
 
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, Color.WHITE.getRGB())
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
+                        .setElementalReaction(true)
                         .setRegistryName(GenshinImpactMod.ModID, "frozen")
         );
     }
