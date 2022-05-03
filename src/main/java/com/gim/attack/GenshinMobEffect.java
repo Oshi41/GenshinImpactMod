@@ -19,8 +19,6 @@ import java.util.stream.Stream;
 public class GenshinMobEffect extends MobEffect {
     private boolean pureElemental;
 
-    private boolean elementalReaction;
-
     public GenshinMobEffect(MobEffectCategory effectCategory, int color) {
         super(effectCategory, color);
     }
@@ -34,20 +32,13 @@ public class GenshinMobEffect extends MobEffect {
         return this;
     }
 
-    public boolean isElementalReaction() {
-        return elementalReaction;
-    }
-
-    public GenshinMobEffect setElementalReaction(boolean elementalReaction) {
-        this.elementalReaction = elementalReaction;
-        return this;
-    }
+    // region Tick
 
     @Override
     public void applyEffectTick(LivingEntity livingEntity, int amplifier) {
         super.applyEffectTick(livingEntity, amplifier);
 
-        if (livingEntity.getLevel().isClientSide() && livingEntity.tickCount % 10 == 0) {
+        if (livingEntity.getLevel().isClientSide() && livingEntity.tickCount % 5 == 0) {
             if (this == Effects.ANEMO) {
                 spawnElementalEffects(livingEntity, ParticleTypes.ANEMO);
             }
@@ -100,7 +91,7 @@ public class GenshinMobEffect extends MobEffect {
         Vec3 movement = e.getDeltaMovement();
         float yPos = (float) Mth.floor(e.getY());
 
-        for (int i = 0; (float) i < 1.0F + e.getBbWidth() * 20.0F; ++i) {
+        for (int i = 0; (float) i < 1.0F + e.getBbWidth() * 10.0F; ++i) {
             double d0 = (e.getRandom().nextDouble() * 2.0D - 1.0D) * (double) e.getBbWidth();
             double d1 = (e.getRandom().nextDouble() * 2.0D - 1.0D) * (double) e.getBbWidth();
             e.getLevel().addParticle(particle, e.getX() + d0, yPos + 1.0F, e.getZ() + d1, movement.x, movement.y - e.getRandom().nextDouble() * (double) 0.2F, movement.z);
@@ -117,9 +108,9 @@ public class GenshinMobEffect extends MobEffect {
 
         Vec3 movement = e.getDeltaMovement();
         double radius = e.getBbWidth();
-        float yPos = (float) (e.getY() + (e.getBbHeight() / 2) + index * step);
+        float yPos = (float) (e.getY() + (e.getBbHeight() / 2) + index * 0.3);
 
-        for (double t = e.getRandom().nextDouble() * step; t < 2 * Math.PI; t += step) {
+        for (double t = 0.1 * (e.tickCount % step); t < 2 * Math.PI; t += step) {
             e.getLevel().addParticle(
                     particle,
                     e.getX() + (radius * Math.cos(t)),
@@ -130,4 +121,6 @@ public class GenshinMobEffect extends MobEffect {
                     movement.z);
         }
     }
+
+    // endregion
 }

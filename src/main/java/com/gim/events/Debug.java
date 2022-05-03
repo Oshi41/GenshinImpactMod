@@ -1,18 +1,14 @@
 package com.gim.events;
 
-import com.gim.GenshinImpactMod;
-import com.gim.registry.DamageSources;
-import net.minecraft.world.damagesource.DamageSource;
+import com.gim.registry.Elementals;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.Arrays;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class Debug {
@@ -23,35 +19,38 @@ public class Debug {
             return;
 
         if (e.getSource().getEntity() instanceof LivingEntity) {
-            DamageSource source = null;
+            Elementals source = null;
             Item item = ((LivingEntity) e.getSource().getEntity()).getMainHandItem().getItem();
 
             if (item == Items.WOODEN_SWORD) {
-                source = DamageSources.AnemoSource;
+                source = Elementals.ANEMO;
             }
 
             if (item == Items.STONE_SWORD) {
-                source = DamageSources.GeoSource;
+                source = Elementals.GEO;
             }
 
             if (item == Items.IRON_SWORD) {
-                source = DamageSource.ON_FIRE;
+                source = Elementals.PYRO;
             }
 
             if (item == Items.GOLDEN_SWORD) {
-                source = DamageSource.LIGHTNING_BOLT;
+                source = Elementals.ELECTRO;
             }
 
             if (item == Items.DIAMOND_SWORD) {
-                source = DamageSource.FREEZE;
+                source = Elementals.CRYO;
             }
 
             if (item == Items.NETHERITE_SWORD) {
-                source = DamageSources.HydroSource;
+                source = Elementals.HYDRO;
             }
 
             if (source != null) {
-                e.getEntityLiving().hurt(source, 5);
+                // not elemental attack
+                if (!Arrays.stream(Elementals.values()).anyMatch(x -> x.is(e.getSource()))) {
+                    e.getEntityLiving().hurt(source.create(e.getSource().getEntity()), 5);
+                }
             }
         }
 

@@ -47,7 +47,7 @@ public class Attributes {
         IForgeRegistry<Attribute> registry = event.getRegistry();
 
         registry.registerAll(
-                new RangedAttribute("genshin.heal_bonus", 0, 0, Double.MAX_VALUE)
+                new RangedAttribute("genshin.heal_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "heal_bonus"),
                 new RangedAttribute("genshin.defence", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "defence"),
@@ -65,7 +65,7 @@ public class Attributes {
                         .setRegistryName(GenshinImpactMod.ModID, "burst_cooldown"),
                 new RangedAttribute("genshin.recharge_bonus", 1, 0, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "recharge_bonus"),
-                new RangedAttribute("genshin.level", 1, 1, 90)
+                new RangedAttribute("genshin.level", 1, 1, 8)
                         .setRegistryName(GenshinImpactMod.ModID, "level"),
 
 

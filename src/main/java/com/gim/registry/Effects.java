@@ -75,7 +75,6 @@ public class Effects {
                         .setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
 
                 new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
-                        .setElementalReaction(true)
                         .setRegistryName(GenshinImpactMod.ModID, "frozen")
         );
     }
