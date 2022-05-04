@@ -40,6 +40,7 @@ public class Attributes {
     public static final Attribute electro_resistance = null;
 
     public static final Attribute level = null;
+    public static final Attribute shield_strength = null;
 
 
     @SubscribeEvent
@@ -97,7 +98,9 @@ public class Attributes {
                 new RangedAttribute("genshin.cryo_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "cryo_resistance"),
                 new RangedAttribute("genshin.electro_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
-                        .setRegistryName(GenshinImpactMod.ModID, "electro_resistance")
+                        .setRegistryName(GenshinImpactMod.ModID, "electro_resistance"),
+                new RangedAttribute("genshin.shield_strength", 1, 0, Double.MAX_VALUE)
+                        .setRegistryName(GenshinImpactMod.ModID, "shield_strength")
         );
     }
 }

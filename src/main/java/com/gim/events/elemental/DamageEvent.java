@@ -1,10 +1,16 @@
 package com.gim.events.elemental;
 
 import com.gim.GenshinImpactMod;
+import com.gim.attack.GenshinAreaSpreading;
 import com.gim.attack.GenshinMobEffect;
+import com.gim.capability.IShield;
+import com.gim.entity.ShieldEntity;
 import com.gim.registry.Attributes;
+import com.gim.registry.Capabilities;
 import com.gim.registry.Effects;
 import com.gim.registry.Elementals;
+import com.google.common.util.concurrent.AtomicDouble;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.level.ServerLevel;
@@ -16,6 +22,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.level.Explosion;
 import net.minecraftforge.common.util.Lazy;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.PotionColorCalculationEvent;
@@ -153,22 +160,8 @@ public class DamageEvent {
         if (instance == null)
             return;
 
-        e.setDamageModifier((float) (e.getOldDamageModifier() * instance.getValue()));
+        e.setDamageModifier((float) (e.getDamageModifier() * instance.getValue()));
         GenshinImpactMod.LOGGER.debug("applied crit hit by Genshin Impact Mod");
-    }
-
-    @SubscribeEvent
-    public static void onPotionAdded(PotionColorCalculationEvent e) {
-        if (e.getEntityLiving() == null || e.getEffects().isEmpty() || e.areParticlesHidden())
-            return;
-
-        boolean shouldHide = e.getEffects().stream()
-                .map(MobEffectInstance::getEffect)
-                .anyMatch(x -> x instanceof GenshinMobEffect && ((GenshinMobEffect) x).isPureElemental());
-
-        if (shouldHide) {
-            // e.setColor(0);
-        }
     }
 
     // endregion
@@ -286,7 +279,11 @@ public class DamageEvent {
             }
 
             removeEffect(entity, crystal.getEffect());
-            // todo spawn crustal shield
+
+            entity.getLevel().addFreshEntity(
+                    new ShieldEntity(entity.getLevel(), crystal, (getLevel(source.getEntity()) + 1) * 5)
+            );
+
             return true;
         }
 
@@ -326,6 +323,13 @@ public class DamageEvent {
 
         if (actualDamage != e.getAmount()) {
             e.setAmount(actualDamage);
+
+            // reduce all damage
+            // todo think about no pushing if reducing all damage
+            if (actualDamage == 0) {
+                e.setCanceled(true);
+            }
+
             return true;
         }
 
@@ -441,8 +445,19 @@ public class DamageEvent {
         // calculating resistance for raw damage
         float resist = rawDamage * (elementalResistance + majesty);
 
-        // final result is damage without resist
-        return rawDamage - defenceValue - resist;
+        // final result is damage without resist with defence
+        AtomicDouble result = new AtomicDouble(rawDamage - defenceValue - resist);
+
+        // applying shield values
+        LazyOptional<IShield> optional = entity.getCapability(Capabilities.SHIELDS, null);
+        optional.ifPresent(iShield -> {
+            if (iShield.isAvailable()) {
+                result.set(iShield.acceptDamage(entity, source, result.floatValue()));
+            }
+        });
+
+        // returns damage result
+        return result.floatValue();
     }
 
 
@@ -450,26 +465,14 @@ public class DamageEvent {
      * Explode with current damage source according to attacker level and majesty bonus
      */
     private static void explode(Entity victim, Entity attacker, DamageSource source, MobEffect... toRemove) {
-        if (victim instanceof LivingEntity && !victim.getLevel().isClientSide()) {
-            LivingEntity victim1 = (LivingEntity) victim;
-
+        if (victim != null && !victim.getLevel().isClientSide()) {
             // removing effect before explosion
             if (toRemove != null && toRemove.length > 0) {
                 Arrays.stream(toRemove).forEach(x -> removeEffect(victim, x));
             }
 
-            victim1.getLevel().explode(
-                    attacker,
-                    source,
-                    null,
-                    victim.getX(),
-                    victim.getY(),
-                    victim.getZ(),
-                    2,
-                    // getLevel(attacker) + (3 * majestyBonus(attacker)),
-                    source.isFire(),
-                    Explosion.BlockInteraction.NONE
-            );
+            GenshinAreaSpreading areaSpreading = new GenshinAreaSpreading(victim.getLevel(), victim.position(), source, getLevel(attacker) + (3 * majestyBonus(attacker)));
+            areaSpreading.explode();
         }
     }
 
