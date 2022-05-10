@@ -21,6 +21,7 @@ public class Attributes {
     public static final Attribute crit_bonus = null;
     public static final Attribute skill_cooldown = null;
     public static final Attribute burst_cooldown = null;
+    public static final Attribute burst_cost = null;
     public static final Attribute recharge_bonus = null;
 
     public static final Attribute pyro_bonus = null;
@@ -41,6 +42,8 @@ public class Attributes {
 
     public static final Attribute level = null;
     public static final Attribute shield_strength = null;
+
+    public static final Attribute skill_level = null;
 
 
     @SubscribeEvent
@@ -100,7 +103,11 @@ public class Attributes {
                 new RangedAttribute("genshin.electro_resistance", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "electro_resistance"),
                 new RangedAttribute("genshin.shield_strength", 1, 0, Double.MAX_VALUE)
-                        .setRegistryName(GenshinImpactMod.ModID, "shield_strength")
+                        .setRegistryName(GenshinImpactMod.ModID, "shield_strength"),
+                new RangedAttribute("genshin.burst_cost", 90, 0, Double.MAX_VALUE)
+                        .setRegistryName(GenshinImpactMod.ModID, "burst_cost"),
+                new RangedAttribute("genshin.skill_level", 0, 0, 15)
+                        .setRegistryName(GenshinImpactMod.ModID, "skill_level")
         );
     }
 }

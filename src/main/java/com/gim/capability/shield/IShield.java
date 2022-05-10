@@ -1,4 +1,4 @@
-package com.gim.capability;
+package com.gim.capability.shield;
 
 import com.gim.registry.Attributes;
 import com.gim.registry.Elementals;

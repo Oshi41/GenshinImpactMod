@@ -2,36 +2,27 @@ package com.gim.events.elemental;
 
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
-import com.gim.attack.GenshinMobEffect;
-import com.gim.capability.IShield;
 import com.gim.entity.ShieldEntity;
 import com.gim.registry.Attributes;
-import com.gim.registry.Capabilities;
 import com.gim.registry.Effects;
 import com.gim.registry.Elementals;
-import com.google.common.util.concurrent.AtomicDouble;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
-import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.level.Explosion;
 import net.minecraftforge.common.util.Lazy;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.living.PotionColorCalculationEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Arrays;
+
+import static com.gim.GenshinHeler.*;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DamageEvent {
@@ -272,16 +263,14 @@ public class DamageEvent {
 
     private static boolean handleCrystalize(LivingEntity entity, DamageSource source) {
         if (canApply(entity, source, Elementals.GEO, crystalElements.get())) {
-            Elementals crystal = Elementals.GEO;
+            Elementals entityElemental = Arrays.stream(crystalElements.get()).filter(x -> x.is(entity)).findFirst().orElse(null);
+            Elementals damageElemental = Arrays.stream(crystalElements.get()).filter(x -> x.is(source)).findFirst().orElse(null);
 
-            if (!Elementals.GEO.is(entity)) {
-                crystal = Arrays.stream(crystalElements.get()).filter(x -> x.is(entity)).findFirst().orElse(null);
-            }
-
-            removeEffect(entity, crystal.getEffect());
+            removeEffect(entity, entityElemental.getEffect());
+            removeEffect(entity, damageElemental.getEffect());
 
             entity.getLevel().addFreshEntity(
-                    new ShieldEntity(entity.getLevel(), crystal, (getLevel(source.getEntity()) + 1) * 5)
+                    new ShieldEntity(entity, damageElemental, (int) ((safeGetAttribute(source.getEntity(), Attributes.level) + 1) * 5))
             );
 
             return true;
@@ -340,127 +329,6 @@ public class DamageEvent {
 
     // region Helping methods
 
-    private static int getLevel(Entity entity) {
-        if (entity instanceof LivingEntity) {
-            LivingEntity e = (LivingEntity) entity;
-            AttributeInstance instance = e.getAttribute(Attributes.level);
-            if (instance != null) {
-                return (int) instance.getValue();
-            }
-        }
-
-        return 0;
-    }
-
-    /**
-     * Returns elemental majesty bonus
-     * https://genshin-impact.fandom.com/wiki/Damage#Amplifying_Reaction_Damage
-     *
-     * @param e - current entity
-     * @return
-     */
-    private static float majestyBonus(Entity e) {
-        if (e instanceof LivingEntity) {
-
-            LivingEntity entity = (LivingEntity) e;
-
-            AttributeInstance instance = entity.getAttribute(Attributes.elemental_majesty);
-            if (instance != null) {
-                double value = instance.getValue();
-                if (value > 0) {
-                    return (float) (16 * value / (value + 2000) / 100);
-                }
-            }
-        }
-
-        return 0;
-    }
-
-    /**
-     * Calcuates main damage
-     *
-     * @param entity - victim
-     * @param source - damage source
-     * @param damage - damage amount
-     * @return
-     */
-    private static float getActualDamage(LivingEntity entity, final DamageSource source, float damage) {
-        // current attacker level
-        int level = 1;
-        // elemental majesty
-        float majesty = 0;
-        // bonus for current elemental attack. Can be zero if non elemental attack happens
-        float elementalBonus = 0;
-        // elemental resistance. Can be 0 if non elemental attack happens
-        float elementalResistance = 0;
-        // current defence bonus. Can be negative (kinda debuff, multiplying incoming damage)
-        float defence = 0;
-
-        // some null checking
-        if (source.getEntity() instanceof LivingEntity) {
-            LivingEntity attacker = (LivingEntity) source.getEntity();
-
-            // calclulated majesty for attacker
-            majesty = majestyBonus(attacker);
-
-            // get attacker level
-            AttributeInstance instance = attacker.getAttribute(Attributes.level);
-            if (instance != null) {
-                level = (int) instance.getValue();
-            }
-
-            // find elemental from attack
-            Elementals elemental = Arrays.stream(Elementals.values()).filter(x -> x.is(source)).findFirst().orElse(null);
-            // if elemental attack hapens
-            if (elemental != null) {
-                // checking possible bonus for current elemental
-                if (elemental.getBonus() != null) {
-                    instance = attacker.getAttribute(elemental.getBonus());
-                    if (instance != null) {
-                        elementalBonus = (float) instance.getValue();
-                    }
-                }
-
-                // checking possible resistance for current elemental
-                if (elemental.getResistance() != null) {
-                    instance = attacker.getAttribute(elemental.getResistance());
-                    if (instance != null) {
-                        elementalResistance = (float) instance.getValue();
-                    }
-                }
-            }
-
-            // applying defence according to victim
-            instance = entity.getAttribute(Attributes.defence);
-            if (instance != null) {
-                double defenceRaw = instance.getValue();
-                defence = (float) (defenceRaw / (defenceRaw + 5 * (1 + getLevel(entity))));
-            }
-        }
-
-        // calcuating raw damage (by level, majesty and elemental bonuses)
-        float rawDamage = damage * level * (1 + majesty + elementalBonus);
-        // calculating defence by raw damage
-        float defenceValue = rawDamage * defence;
-        // calculating resistance for raw damage
-        float resist = rawDamage * (elementalResistance + majesty);
-
-        // final result is damage without resist with defence
-        AtomicDouble result = new AtomicDouble(rawDamage - defenceValue - resist);
-
-        // applying shield values
-        LazyOptional<IShield> optional = entity.getCapability(Capabilities.SHIELDS, null);
-        optional.ifPresent(iShield -> {
-            if (iShield.isAvailable()) {
-                result.set(iShield.acceptDamage(entity, source, result.floatValue()));
-            }
-        });
-
-        // returns damage result
-        return result.floatValue();
-    }
-
-
     /**
      * Explode with current damage source according to attacker level and majesty bonus
      */
@@ -471,78 +339,15 @@ public class DamageEvent {
                 Arrays.stream(toRemove).forEach(x -> removeEffect(victim, x));
             }
 
-            GenshinAreaSpreading areaSpreading = new GenshinAreaSpreading(victim.getLevel(), victim.position(), source, getLevel(attacker) + (3 * majestyBonus(attacker)));
+            GenshinAreaSpreading areaSpreading = new GenshinAreaSpreading(victim.getLevel(), victim.position(), source,
+                    (float) (safeGetAttribute(attacker, Attributes.level) + (3 * majestyBonus(attacker))));
             areaSpreading.explode();
         }
     }
 
-    private static boolean addEffect(Entity e, MobEffectInstance effect) {
-
-        if (e instanceof LivingEntity
-                && effect != null
-                && !e.getLevel().isClientSide()
-                && ((LivingEntity) e).addEffect(effect)) {
-            ((ServerLevel) e.getLevel()).getServer().getPlayerList().broadcast(
-                    null,
-                    e.getX(),
-                    e.getY(),
-                    e.getZ(),
-                    16,
-                    e.getLevel().dimension(),
-                    new ClientboundUpdateMobEffectPacket(e.getId(), effect)
-            );
-
-            return true;
-        }
-
-        return false;
-    }
-
-    private static boolean removeEffect(Entity e, MobEffect effect) {
-        if (e instanceof LivingEntity
-                && effect != null
-                && !e.getLevel().isClientSide()
-                && ((LivingEntity) e).removeEffect(effect)) {
-            ((ServerLevel) e.getLevel()).getServer().getPlayerList().broadcast(
-                    null,
-                    e.getX(),
-                    e.getY(),
-                    e.getZ(),
-                    16,
-                    e.getLevel().dimension(),
-                    new ClientboundRemoveMobEffectPacket(e.getId(), effect)
-            );
-
-            return true;
-        }
-
-        return false;
-    }
-
     private static void setAdditiveDamage(LivingDamageEvent e, float multiplier) {
-        e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(), (e.getAmount() + getLevel(e.getSource().getEntity())) * multiplier));
-    }
-
-    private static boolean canApply(LivingEntity entity, DamageSource source, Elementals first, Elementals... other) {
-        if (entity != null && first != null && other != null && other.length > 0 && source != null) {
-            if (first.is(entity)) {
-                for (Elementals elementals : other) {
-                    if (elementals.is(source)) {
-                        return true;
-                    }
-                }
-            }
-
-            if (first.is(source)) {
-                for (Elementals elementals : other) {
-                    if (elementals.is(entity)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+        e.setAmount(getActualDamage(e.getEntityLiving(), e.getSource(),
+                (float) ((e.getAmount() + safeGetAttribute(e.getSource().getEntity(), Attributes.level)) * multiplier)));
     }
 
     // endregion

@@ -1,8 +1,8 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.capability.IShield;
-import com.gim.capability.ShieldProvider;
+import com.gim.capability.shield.IShield;
+import com.gim.capability.shield.ShieldProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
