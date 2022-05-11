@@ -6,6 +6,7 @@ import com.gim.entity.ShieldEntity;
 import com.gim.registry.Attributes;
 import com.gim.registry.Effects;
 import com.gim.registry.Elementals;
+import com.google.common.collect.Streams;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -21,6 +22,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static com.gim.GenshinHeler.*;
 
@@ -263,15 +266,28 @@ public class DamageEvent {
 
     private static boolean handleCrystalize(LivingEntity entity, DamageSource source) {
         if (canApply(entity, source, Elementals.GEO, crystalElements.get())) {
-            Elementals entityElemental = Arrays.stream(crystalElements.get()).filter(x -> x.is(entity)).findFirst().orElse(null);
-            Elementals damageElemental = Arrays.stream(crystalElements.get()).filter(x -> x.is(source)).findFirst().orElse(null);
+            Elementals onEntity = Elementals.GEO;
+            Elementals onSource = Elementals.GEO;
 
-            removeEffect(entity, entityElemental.getEffect());
-            removeEffect(entity, damageElemental.getEffect());
+            // crystals element with GEO elements
+            for (Elementals e : Streams.concat(Arrays.stream(crystalElements.get()), Stream.of(Elementals.GEO)).toList()) {
 
-            entity.getLevel().addFreshEntity(
-                    new ShieldEntity(entity, damageElemental, (int) ((safeGetAttribute(source.getEntity(), Attributes.level) + 1) * 5))
-            );
+                // Take source elemental at first
+                if (e.is(source)) {
+                    onSource = e;
+                    // than searching for element on entity
+                } else if (e.is(entity)) {
+                    onEntity = e;
+                }
+            }
+
+            // removing both elementals
+            removeEffect(entity, onEntity.getEffect());
+            removeEffect(entity, onSource.getEffect());
+
+            // calculating health for shield
+            double health = 5 * (safeGetAttribute(source.getEntity(), Attributes.level) + 1);
+            entity.getLevel().addFreshEntity(new ShieldEntity(entity, onEntity, (int) health));
 
             return true;
         }

@@ -1,11 +1,8 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.client.ShieldEntityRender;
 import com.gim.entity.ShieldEntity;
 import com.google.common.collect.ImmutableSet;
-import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -19,7 +16,7 @@ import net.minecraftforge.registries.ObjectHolder;
 @ObjectHolder(GenshinImpactMod.ModID)
 public class EntityRegistry {
 
-    public static final EntityType<? extends ShieldEntity> shield_entity_type = null;
+    public static final EntityType<ShieldEntity> shield_entity_type = null;
 
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
@@ -33,7 +30,8 @@ public class EntityRegistry {
                         ImmutableSet.<Block>builder().build(),
                         new EntityDimensions(0.5f, 0.5f, true),
                         16,
-                        5).setRegistryName(GenshinImpactMod.ModID, "shield_entity_type")
+                        5)
+                        .setRegistryName(GenshinImpactMod.ModID, "shield_entity_type")
         );
     }
 }

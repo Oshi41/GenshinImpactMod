@@ -5,9 +5,19 @@ import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
 import com.google.common.util.concurrent.AtomicDouble;
-import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
-import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
+import com.mojang.datafixers.types.Func;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.*;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -16,12 +26,25 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelData;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class GenshinHeler {
+    private static final Field playerByUuidField = ObfuscationReflectionHelper.findField(PlayerList.class, "f_11197_");
 
     /**
      * Returns elemental majesty bonus
@@ -240,10 +263,11 @@ public class GenshinHeler {
 
     /**
      * Safe getting enum value from string
+     *
      * @param clazz - enum class
-     * @param name - name of enum
+     * @param name  - name of enum
+     * @param <T>   - type of enum
      * @return - enum member or null if not exist
-     * @param <T> - type of enum
      */
     @Nullable
     public static <T extends Enum<T>> T safeGet(Class<T> clazz, String name) {
@@ -256,5 +280,116 @@ public class GenshinHeler {
         }
 
         return null;
+    }
+
+    /**
+     * retrieves field value
+     *
+     * @param field  - field value
+     * @param source - object source (null for static)
+     * @param <T>    - type of field
+     * @return field of class
+     */
+    @Nullable
+    public static <T> T safeGet(Field field, Object source) {
+        if (field != null) {
+            try {
+                return (T) field.get(source);
+            } catch (Exception e) {
+                GenshinImpactMod.LOGGER.debug(e);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Copied from Player list
+     *
+     * @param toRemove      - player to remove
+     * @param createFunc    - player create function
+     * @param saveInventory - should we save inventory
+     * @return - respawned entity
+     */
+    public static ServerPlayer respawn(ServerPlayer toRemove, Function<ServerPlayer, ServerPlayer> createFunc, boolean saveInventory) {
+
+        MinecraftServer server = toRemove.getServer();
+        PlayerList players = server.getPlayerList();
+
+        players.remove(toRemove);
+        toRemove.getLevel().removePlayerImmediately(toRemove, Entity.RemovalReason.DISCARDED);
+        BlockPos blockpos = toRemove.getRespawnPosition();
+        float f = toRemove.getRespawnAngle();
+        boolean flag = toRemove.isRespawnForced();
+        ServerLevel serverlevel = server.getLevel(toRemove.getRespawnDimension());
+        Optional<Vec3> optional;
+        if (serverlevel != null && blockpos != null) {
+            optional = Player.findRespawnPositionAndUseSpawnBlock(serverlevel, blockpos, f, flag, saveInventory);
+        } else {
+            optional = Optional.empty();
+        }
+
+        ServerLevel serverlevel1 = serverlevel != null && optional.isPresent() ? serverlevel : server.overworld();
+        ServerPlayer serverplayer = createFunc.apply(toRemove);
+        serverplayer.connection = toRemove.connection;
+        serverplayer.restoreFrom(toRemove, saveInventory);
+        serverplayer.setId(toRemove.getId());
+        serverplayer.setMainArm(toRemove.getMainArm());
+
+        for (String s : toRemove.getTags()) {
+            serverplayer.addTag(s);
+        }
+
+        boolean flag2 = false;
+        if (optional.isPresent()) {
+            BlockState blockstate = serverlevel1.getBlockState(blockpos);
+            boolean flag1 = blockstate.is(Blocks.RESPAWN_ANCHOR);
+            Vec3 vec3 = optional.get();
+            float f1;
+            if (!blockstate.is(BlockTags.BEDS) && !flag1) {
+                f1 = f;
+            } else {
+                Vec3 vec31 = Vec3.atBottomCenterOf(blockpos).subtract(vec3).normalize();
+                f1 = (float) Mth.wrapDegrees(Mth.atan2(vec31.z, vec31.x) * (double) (180F / (float) Math.PI) - 90.0D);
+            }
+
+            serverplayer.moveTo(vec3.x, vec3.y, vec3.z, f1, 0.0F);
+            serverplayer.setRespawnPosition(serverlevel1.dimension(), blockpos, f, flag, false);
+            flag2 = !saveInventory && flag1;
+        } else if (blockpos != null) {
+            serverplayer.connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.NO_RESPAWN_BLOCK_AVAILABLE, 0.0F));
+        }
+
+        while (!serverlevel1.noCollision(serverplayer) && serverplayer.getY() < (double) serverlevel1.getMaxBuildHeight()) {
+            serverplayer.setPos(serverplayer.getX(), serverplayer.getY() + 1.0D, serverplayer.getZ());
+        }
+
+        LevelData leveldata = serverplayer.level.getLevelData();
+        serverplayer.connection.send(new ClientboundRespawnPacket(serverplayer.level.dimensionType(), serverplayer.level.dimension(), BiomeManager.obfuscateSeed(serverplayer.getLevel().getSeed()), serverplayer.gameMode.getGameModeForPlayer(), serverplayer.gameMode.getPreviousGameModeForPlayer(), serverplayer.getLevel().isDebug(), serverplayer.getLevel().isFlat(), saveInventory));
+        serverplayer.connection.teleport(serverplayer.getX(), serverplayer.getY(), serverplayer.getZ(), serverplayer.getYRot(), serverplayer.getXRot());
+        serverplayer.connection.send(new ClientboundSetDefaultSpawnPositionPacket(serverlevel1.getSharedSpawnPos(), serverlevel1.getSharedSpawnAngle()));
+        serverplayer.connection.send(new ClientboundChangeDifficultyPacket(leveldata.getDifficulty(), leveldata.isDifficultyLocked()));
+        serverplayer.connection.send(new ClientboundSetExperiencePacket(serverplayer.experienceProgress, serverplayer.totalExperience, serverplayer.experienceLevel));
+        players.sendLevelInfo(serverplayer, serverlevel1);
+        players.sendPlayerPermissionLevel(serverplayer);
+        serverlevel1.addRespawnedPlayer(serverplayer);
+        players.addPlayer(serverplayer);
+
+        Map<UUID, ServerPlayer> playersByUUID = safeGet(playerByUuidField, players);
+
+        if (playersByUUID == null) {
+            CrashReport crashreport = CrashReport.forThrowable(new Throwable("Cannot retrieve playersByUUID field from PlayerList class"), "Error during field retrieve");
+            throw new ReportedException(crashreport);
+        }
+
+        playersByUUID.put(serverplayer.getUUID(), serverplayer);
+        serverplayer.initInventoryMenu();
+        serverplayer.setHealth(serverplayer.getHealth());
+        ForgeEventFactory.firePlayerRespawnEvent(serverplayer, saveInventory);
+        if (flag2) {
+            serverplayer.connection.send(new ClientboundSoundPacket(SoundEvents.RESPAWN_ANCHOR_DEPLETE, SoundSource.BLOCKS, (double) blockpos.getX(), (double) blockpos.getY(), (double) blockpos.getZ(), 1.0F, 1.0F));
+        }
+
+        return serverplayer;
     }
 }

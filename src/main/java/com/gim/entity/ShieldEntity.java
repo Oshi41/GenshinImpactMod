@@ -1,10 +1,9 @@
 package com.gim.entity;
 
 import com.gim.GenshinHeler;
-import com.gim.registry.Attributes;
-import com.gim.registry.Capabilities;
-import com.gim.registry.Elementals;
-import com.gim.registry.EntityRegistry;
+import com.gim.registry.*;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
@@ -20,6 +19,7 @@ import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 
 import java.nio.charset.Charset;
+import java.util.Random;
 
 public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
 
@@ -41,7 +41,7 @@ public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
         this.elemental = elemental;
         this.hp = hp;
 
-        Vec3 vec3 = new Vec3(source.getRandomX(1), source.getRandomY(), source.getRandomZ(1));
+        Vec3 vec3 = new Vec3(source.getRandomX(2), source.getY(), source.getRandomZ(2));
         setPos(vec3);
     }
 
@@ -53,6 +53,43 @@ public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
         // too old
         if (tickCount > 17.5 * 20) {
             discard();
+        }
+    }
+
+    @Override
+    public void onClientRemoval() {
+        SimpleParticleType type = switch (this.getElemental()) {
+            case HYDRO -> ParticleTypes.HYDRO;
+            case CRYO -> ParticleTypes.CRYO;
+            case ELECTRO -> ParticleTypes.ELECTRO;
+            case DENDRO -> ParticleTypes.DENDRO;
+            case ANEMO -> ParticleTypes.ANEMO;
+            case GEO -> ParticleTypes.GEO;
+            case PYRO -> ParticleTypes.PYRO;
+            default -> null;
+        };
+
+        if (type != null) {
+            // taken from nether portal
+            Random random = getLevel().getRandom();
+            for (int i = 0; i < 25; ++i) {
+                double d0 = getRandomX(3);
+                double d1 = getRandomY();
+                double d2 = getRandomZ(3);
+                double d3 = ((double) random.nextFloat() - 0.5D) * 0.5D;
+                double d4 = ((double) random.nextFloat() - 0.5D) * 0.5D;
+                double d5 = ((double) random.nextFloat() - 0.5D) * 0.5D;
+                int j = random.nextInt(2) * 2 - 1;
+                if (i % 2 == 0) {
+                    d0 = getX() + 0.5D + 0.25D * (double) j;
+                    d3 = random.nextFloat() * 2.0F * (float) j;
+                } else {
+                    d2 = getZ() + 0.5D + 0.25D * (double) j;
+                    d5 = random.nextFloat() * 2.0F * (float) j;
+                }
+
+                getLevel().addParticle(type, d0, d1, d2, d3, d4, d5);
+            }
         }
     }
 
