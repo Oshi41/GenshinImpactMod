@@ -3,7 +3,6 @@ package com.gim.registry;
 import com.gim.particle.CircleParticle;
 import com.gim.particle.ElementalParticle;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.DripParticle;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

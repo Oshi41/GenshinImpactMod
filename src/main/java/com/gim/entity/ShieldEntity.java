@@ -1,24 +1,24 @@
 package com.gim.entity;
 
 import com.gim.GenshinHeler;
+import com.gim.GenshinImpactMod;
+import com.gim.networking.CapabilityUpdatePackage;
 import com.gim.registry.*;
-import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.network.PacketDistributor;
 
-import java.nio.charset.Charset;
 import java.util.Random;
 
 public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
@@ -37,7 +37,7 @@ public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
     }
 
     public ShieldEntity(Entity source, Elementals elemental, int hp) {
-        this(EntityRegistry.shield_entity_type, source.getLevel());
+        this(Entities.shield_entity_type, source.getLevel());
         this.elemental = elemental;
         this.hp = hp;
 
@@ -100,6 +100,11 @@ public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
             player.getCapability(Capabilities.SHIELDS).ifPresent(iShield -> {
                 double majesty = GenshinHeler.majestyBonus(player);
                 iShield.setShield(this.hp + (this.hp * (1 + majesty)), getElemental(), 17 * 20);
+
+                if (player instanceof ServerPlayer) {
+                    GenshinImpactMod.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new CapabilityUpdatePackage(Capabilities.SHIELDS, iShield));
+                }
+
                 discard();
             });
         }

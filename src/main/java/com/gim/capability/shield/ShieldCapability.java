@@ -38,7 +38,9 @@ public class ShieldCapability implements IShield {
 
     @Override
     public void tick() {
-        ticks = Math.max(0, ticks - 1);
+        if (isAvailable()) {
+            ticks--;
+        }
     }
 
     @Override

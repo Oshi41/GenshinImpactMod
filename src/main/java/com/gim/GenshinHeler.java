@@ -5,7 +5,6 @@ import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
 import com.google.common.util.concurrent.AtomicDouble;
-import com.mojang.datafixers.types.Func;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.core.BlockPos;
@@ -39,9 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class GenshinHeler {
     private static final Field playerByUuidField = ObfuscationReflectionHelper.findField(PlayerList.class, "f_11197_");
@@ -161,7 +158,7 @@ public class GenshinHeler {
                     e.getX(),
                     e.getY(),
                     e.getZ(),
-                    16,
+                    32,
                     e.getLevel().dimension(),
                     new ClientboundUpdateMobEffectPacket(e.getId(), effect)
             );

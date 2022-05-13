@@ -2,8 +2,10 @@ package com.gim.events.elemental;
 
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
+import com.gim.capability.shield.IShield;
 import com.gim.entity.ShieldEntity;
 import com.gim.registry.Attributes;
+import com.gim.registry.Capabilities;
 import com.gim.registry.Effects;
 import com.gim.registry.Elementals;
 import com.google.common.collect.Streams;
@@ -22,7 +24,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static com.gim.GenshinHeler.*;
@@ -73,9 +74,13 @@ public class DamageEvent {
             return;
         }
 
-        if (!e.getEntityLiving().getLevel().isClientSide() && !e.getEntityLiving().hasEffect(Effects.HYDRO) && e.getEntityLiving().isInWaterOrRain()) {
-            applyElementalReactions(new LivingDamageEvent(e.getEntityLiving(), Elementals.HYDRO.create(), 0));
+        if (!e.getEntityLiving().getLevel().isClientSide() && !e.getEntityLiving().hasEffect(Elementals.HYDRO.getEffect()) && e.getEntityLiving().isInWaterOrRain()) {
+            addEffect(e.getEntityLiving(), new MobEffectInstance(Elementals.HYDRO.getEffect(), 10 * 20));
+            applyElementalReactions(new LivingDamageEvent(e.getEntityLiving(), Elementals.HYDRO.create(), Float.MIN_NORMAL));
         }
+
+        // shields ticking event
+        e.getEntityLiving().getCapability(Capabilities.SHIELDS).ifPresent(IShield::tick);
     }
 
     // endregion
@@ -176,7 +181,7 @@ public class DamageEvent {
         boolean canHandle = canApply(entity, source, Elementals.HYDRO, Elementals.CRYO);
 
         if (canHandle) {
-            int ticks = (int) (20 * 10 * (1 + majestyBonus(source.getEntity())));
+            int ticks = (int) (20 * 25 * (1 + majestyBonus(source.getEntity())));
 
             // removing both effects
             removeEffect(entity, Effects.HYDRO);

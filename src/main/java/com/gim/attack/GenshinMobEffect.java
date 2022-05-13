@@ -1,5 +1,6 @@
 package com.gim.attack;
 
+import com.gim.GenshinHeler;
 import com.gim.registry.Effects;
 import com.gim.registry.ParticleTypes;
 import com.google.common.collect.Iterators;
@@ -8,10 +9,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Map;
@@ -75,23 +74,16 @@ public class GenshinMobEffect extends MobEffect {
                 spawnCircleEffects(livingEntity, ParticleTypes.DEFENCE_DEBUFF, Math.PI * 2 / amplifier);
             }
         } else {
-            if (this == Effects.FROZEN && livingEntity instanceof Mob) {
-                GoalSelector selector = ((Mob) livingEntity).goalSelector;
-                selector.disableControlFlag(Goal.Flag.MOVE);
-                selector.disableControlFlag(Goal.Flag.TARGET);
-                selector.disableControlFlag(Goal.Flag.JUMP);
+            if (this == Effects.FROZEN) {
+                GenshinHeler.addEffect(livingEntity, new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 10, 5));
+                GenshinHeler.addEffect(livingEntity, new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 10, 5));
+                GenshinHeler.addEffect(livingEntity, new MobEffectInstance(MobEffects.WEAKNESS, 10, 5));
             }
         }
     }
 
     // Server side
     public void endEffect(LivingEntity livingEntity, int amplifier) {
-        if (this == Effects.FROZEN && livingEntity instanceof Mob) {
-            GoalSelector selector = ((Mob) livingEntity).goalSelector;
-            selector.enableControlFlag(Goal.Flag.MOVE);
-            selector.enableControlFlag(Goal.Flag.TARGET);
-            selector.enableControlFlag(Goal.Flag.JUMP);
-        }
     }
 
     @Override

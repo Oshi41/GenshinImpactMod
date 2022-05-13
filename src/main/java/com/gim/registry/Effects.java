@@ -11,8 +11,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.ObjectHolder;
 
-import java.awt.*;
-
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 @ObjectHolder(GenshinImpactMod.ModID)
 public class Effects {
@@ -35,6 +33,8 @@ public class Effects {
     public static final MobEffect DEFENCE_DEBUFF = null;
     @ObjectHolder("frozen")
     public static final MobEffect FROZEN = null;
+    @ObjectHolder("charged")
+    public static final MobEffect CHARGED = null;
 
     @SubscribeEvent
     public static void onEffectRegistry(final RegistryEvent.Register<MobEffect> event) {
@@ -75,7 +75,10 @@ public class Effects {
                         .setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
 
                 new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
-                        .setRegistryName(GenshinImpactMod.ModID, "frozen")
+                        .setRegistryName(GenshinImpactMod.ModID, "frozen"),
+
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
+                        .setRegistryName(GenshinImpactMod.ModID, "charged")
         );
     }
 }

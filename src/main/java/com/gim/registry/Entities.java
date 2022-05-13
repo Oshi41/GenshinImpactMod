@@ -14,7 +14,7 @@ import net.minecraftforge.registries.ObjectHolder;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 @ObjectHolder(GenshinImpactMod.ModID)
-public class EntityRegistry {
+public class Entities {
 
     public static final EntityType<ShieldEntity> shield_entity_type = null;
 
