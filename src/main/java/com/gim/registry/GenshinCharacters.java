@@ -1,8 +1,6 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.capability.genshin.GenshinInfo;
-import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.players.AnemoTraveler;
 import com.gim.players.base.IGenshinPlayer;
 import net.minecraftforge.event.RegistryEvent;
@@ -10,10 +8,11 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ObjectHolder;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 @ObjectHolder(GenshinImpactMod.ModID)
 public class GenshinCharacters {
-    public static final IGenshinPlayer anemo_traveler = null;
+    @ObjectHolder("anemo_traveler")
+    public static final IGenshinPlayer ANEMO_TRAVELER = null;
 
     @SubscribeEvent
     public static void onRegister(RegistryEvent.Register<IGenshinPlayer> e) {

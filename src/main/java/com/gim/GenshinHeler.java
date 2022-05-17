@@ -40,6 +40,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
@@ -308,5 +309,16 @@ public class GenshinHeler {
 
     public static <T> int indexOf(Collection<T> collection, T item) {
         return Iterators.indexOf(collection.iterator(), input -> input == item);
+    }
+
+    /**
+     * Setting transparency to color
+     *
+     * @param source - color source
+     * @param alpha  - [0-255]
+     * @return
+     */
+    public static Color withAlpha(Color source, float alpha) {
+        return new Color(source.getRed() / 255f, source.getGreen() / 255f, source.getBlue() / 255f, alpha / 255f);
     }
 }

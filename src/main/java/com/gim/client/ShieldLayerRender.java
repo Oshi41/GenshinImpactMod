@@ -43,7 +43,7 @@ public class ShieldLayerRender<T extends LivingEntity, M extends EntityModel<T>>
         float scale = 1.2f;
         poseStack.scale(scale, scale, scale);
 
-        float[] floats = getColor(shield.getElement());
+        float[] floats = getFloats(shield.getElement());
 
         getParentModel().prepareMobModel(entity, p_117474_, p_117475_, p_117476_);
         getParentModel().setupAnim(entity, p_117474_, p_117475_, p_117477_, p_117478_, p_117479_);
@@ -52,7 +52,7 @@ public class ShieldLayerRender<T extends LivingEntity, M extends EntityModel<T>>
                 floats[0], floats[1], floats[2], 0.15f);
     }
 
-    private float[] getColor(Elementals e) {
+    public static Color getColor(Elementals e) {
         Color c = switch (e) {
             case PYRO -> Color.RED;
             case HYDRO -> Color.BLUE;
@@ -64,6 +64,11 @@ public class ShieldLayerRender<T extends LivingEntity, M extends EntityModel<T>>
             default -> Color.GRAY;
         };
 
+        return c;
+    }
+
+    public static float[] getFloats(Elementals e) {
+        Color c = getColor(e);
         return new float[]{
                 c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f
         };

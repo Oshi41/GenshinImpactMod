@@ -4,7 +4,6 @@ import com.gim.attack.GenshinDamageSource;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.GenshinCharacters;
 import com.gim.registry.Registries;
-import jdk.jshell.spi.ExecutionControl;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.CombatEntry;
@@ -24,15 +23,15 @@ public class GenshinInfo implements IGenshinInfo {
     private long nextSwitch;
 
     public GenshinInfo(@Nullable LivingEntity entity) {
-        allPlayers.add(GenshinCharacters.anemo_traveler);
+        allPlayers.add(GenshinCharacters.ANEMO_TRAVELER);
         GenshinEntityData entityData = new GenshinEntityData(
-                new AttributeMap(GenshinCharacters.anemo_traveler.getAttributes().build()),
+                new AttributeMap(GenshinCharacters.ANEMO_TRAVELER.getAttributes().build()),
                 entity.getActiveEffects(),
                 entity.getHealth(),
                 0,
-                GenshinCharacters.anemo_traveler
+                GenshinCharacters.ANEMO_TRAVELER
         );
-        team.put(GenshinCharacters.anemo_traveler, entityData);
+        team.put(GenshinCharacters.ANEMO_TRAVELER, entityData);
     }
 
     @Override

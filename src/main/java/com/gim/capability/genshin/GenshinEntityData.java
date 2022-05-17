@@ -20,6 +20,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GenshinEntityData implements INBTSerializable<CompoundTag> {
 
@@ -51,16 +52,16 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
             }
         }
 
-        return GenshinCharacters.anemo_traveler;
+        return GenshinCharacters.ANEMO_TRAVELER;
     }
 
     public GenshinEntityData() {
-        this(new AttributeMap(AttributeSupplier.builder().build()), new ArrayList<>(), 0, 0, GenshinCharacters.anemo_traveler);
+        this(new AttributeMap(AttributeSupplier.builder().build()), new ArrayList<>(), 0, 0, GenshinCharacters.ANEMO_TRAVELER);
     }
 
     public GenshinEntityData(AttributeMap map, Collection<MobEffectInstance> effects, float health, float energy, IGenshinPlayer assotiatedPlayer) {
         this.map = map;
-        this.effects = effects.stream().filter(x -> x.getEffect().getRegistryName().getNamespace().equals(GenshinImpactMod.ModID)).toList();
+        this.effects = effects.stream().filter(x -> x.getEffect().getRegistryName().getNamespace().equals(GenshinImpactMod.ModID)).collect(Collectors.toList());
         this.health = health;
         this.energy = energy;
         this.assotiatedPlayer = assotiatedPlayer;
