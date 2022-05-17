@@ -31,6 +31,8 @@ public class ParticleTypes {
     public static final SimpleParticleType FROZEN = null;
     @ObjectHolder("defence_debuff")
     public static final SimpleParticleType DEFENCE_DEBUFF = null;
+    @ObjectHolder("lightning")
+    public static final SimpleParticleType LIGHTNING = null;
 
     @SubscribeEvent
     public static void onRegisterParticleTypes(RegistryEvent.Register<ParticleType<?>> event) {
@@ -45,7 +47,8 @@ public class ParticleTypes {
                 new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "anemo"),
                 new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "hydro"),
                 new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "frozen"),
-                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "defence_debuff")
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
+                new SimpleParticleType(false).setRegistryName(GenshinImpactMod.ModID, "lightning")
         );
     }
 }

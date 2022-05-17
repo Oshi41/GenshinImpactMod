@@ -1,6 +1,7 @@
 package com.gim;
 
 import com.gim.registry.Network;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -70,6 +71,12 @@ public class GenshinImpactMod {
     }
 
     public void onClientStarting(final FMLClientSetupEvent event) {
+        com.gim.registry.KeyMappings.registerKeys();
+
+        net.minecraftforge.client.gui.OverlayRegistry.registerOverlayTop(
+                new ResourceLocation(GenshinImpactMod.ModID, "genshin").toString(),
+                new com.gim.client.GenshinRender());
+
         // net.minecraftforge.client.model.obj.OBJLoader.INSTANCE.loadMaterialLibrary(new ResourceLocation(GenshinImpactMod.ModID));
     }
 }

@@ -2,6 +2,7 @@ package com.gim.events.elemental;
 
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
+import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.capability.shield.IShield;
 import com.gim.entity.ShieldEntity;
 import com.gim.registry.Attributes;
@@ -78,9 +79,6 @@ public class DamageEvent {
             addEffect(e.getEntityLiving(), new MobEffectInstance(Elementals.HYDRO.getEffect(), 10 * 20));
             applyElementalReactions(new LivingDamageEvent(e.getEntityLiving(), Elementals.HYDRO.create(), Float.MIN_NORMAL));
         }
-
-        // shields ticking event
-        e.getEntityLiving().getCapability(Capabilities.SHIELDS).ifPresent(IShield::tick);
     }
 
     // endregion
@@ -125,7 +123,6 @@ public class DamageEvent {
         }
 
         if (handleElectroCharged(e.getEntityLiving(), e.getSource())) {
-            setAdditiveDamage(e, 1.2f);
             GenshinImpactMod.LOGGER.debug("electro-charged applied");
         }
 
@@ -245,12 +242,7 @@ public class DamageEvent {
     }
 
     private static boolean handleElectroCharged(LivingEntity entity, DamageSource source) {
-        if (canApply(entity, source, Elementals.ELECTRO, Elementals.HYDRO)) {
-            // todo think about constant electro damage recive
-            return true;
-        }
-
-        return false;
+        return canApply(entity, source, Elementals.ELECTRO, Elementals.HYDRO);
     }
 
     private static boolean handleBurning(LivingEntity entity, DamageSource source) {

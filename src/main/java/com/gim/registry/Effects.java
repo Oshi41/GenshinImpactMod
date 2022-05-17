@@ -33,8 +33,6 @@ public class Effects {
     public static final MobEffect DEFENCE_DEBUFF = null;
     @ObjectHolder("frozen")
     public static final MobEffect FROZEN = null;
-    @ObjectHolder("charged")
-    public static final MobEffect CHARGED = null;
 
     @SubscribeEvent
     public static void onEffectRegistry(final RegistryEvent.Register<MobEffect> event) {
@@ -75,10 +73,7 @@ public class Effects {
                         .setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
 
                 new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
-                        .setRegistryName(GenshinImpactMod.ModID, "frozen"),
-
-                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
-                        .setRegistryName(GenshinImpactMod.ModID, "charged")
+                        .setRegistryName(GenshinImpactMod.ModID, "frozen")
         );
     }
 }

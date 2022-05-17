@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -32,6 +33,7 @@ public class Entities {
                         16,
                         5)
                         .setRegistryName(GenshinImpactMod.ModID, "shield_entity_type")
+
         );
     }
 }

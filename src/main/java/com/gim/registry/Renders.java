@@ -2,6 +2,8 @@ package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
 import com.gim.client.CustomTextureRender;
+import com.gim.client.GenshinClientHooks;
+import com.gim.client.IceRender;
 import com.gim.client.ShieldLayerRender;
 import com.gim.entity.ShieldEntity;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -64,8 +66,10 @@ public class Renders {
             try {
                 LivingEntityRenderer renderer = event.getSkin(skin);
 
-                if (renderer != null)
+                if (renderer != null) {
                     renderer.addLayer(new ShieldLayerRender(renderer));
+                    renderer.addLayer(new IceRender(renderer));
+                }
             } catch (Exception e) {
                 GenshinImpactMod.LOGGER.debug(e);
             }
@@ -77,11 +81,14 @@ public class Renders {
                 LivingEntityRenderer renderer = event.getRenderer(entityType);
                 if (renderer != null) {
                     renderer.addLayer(new ShieldLayerRender(renderer));
+                    renderer.addLayer(new IceRender(renderer));
                 }
             } catch (Exception e) {
                 GenshinImpactMod.LOGGER.debug(e);
             }
         }
-    }
 
+        // some hack here
+        GenshinClientHooks.getPlayerRenders.reload();
+    }
 }

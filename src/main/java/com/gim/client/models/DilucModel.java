@@ -1,4 +1,4 @@
-package com.gim.client;
+package com.gim.client.models;
 
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;

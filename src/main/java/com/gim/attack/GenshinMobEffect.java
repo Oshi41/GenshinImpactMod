@@ -1,19 +1,30 @@
 package com.gim.attack;
 
 import com.gim.GenshinHeler;
+import com.gim.registry.Attributes;
 import com.gim.registry.Effects;
+import com.gim.registry.Elementals;
 import com.gim.registry.ParticleTypes;
 import com.google.common.collect.Iterators;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.util.ParticleUtils;
+import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.entity.EntityTypeTest;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Map;
+import java.util.Random;
 
 public class GenshinMobEffect extends MobEffect {
     private boolean pureElemental;
@@ -38,52 +49,97 @@ public class GenshinMobEffect extends MobEffect {
         super.applyEffectTick(livingEntity, amplifier);
 
         if (livingEntity.getLevel().isClientSide() && livingEntity.tickCount % 5 == 0) {
-            if (this == Effects.ANEMO) {
+            if (this.equals(Elementals.ANEMO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.ANEMO);
             }
 
-            if (this == Effects.HYDRO) {
+            if (this.equals(Elementals.HYDRO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.HYDRO);
             }
 
-            if (this == Effects.PYRO) {
+            if (this.equals(Elementals.PYRO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.PYRO);
             }
 
-            if (this == Effects.CRYO) {
+            if (this.equals(Elementals.CRYO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.CRYO);
             }
 
-            if (this == Effects.DENDRO) {
+            if (this.equals(Elementals.DENDRO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.DENDRO);
             }
 
-            if (this == Effects.GEO) {
+            if (this.equals(Elementals.GEO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.GEO);
             }
 
-            if (this == Effects.ELECTRO) {
+            if (this.equals(Elementals.ELECTRO.getEffect())) {
                 spawnElementalEffects(livingEntity, ParticleTypes.ELECTRO);
             }
 
-            if (this == Effects.FROZEN) {
-                spawnCircleEffects(livingEntity, ParticleTypes.FROZEN, 0.3);
+            // handle electro changed particles
+            if (this.equals(Elementals.HYDRO.getEffect()) && Elementals.ELECTRO.is(livingEntity)
+                    ||
+                    (this.equals(Elementals.ELECTRO.getEffect()) && Elementals.HYDRO.is(livingEntity))) {
+                Random random = livingEntity.getRandom();
+
+                for (int j = 0; j < 16; ++j) {
+                    double d0 = (double) j / 127.0D;
+                    float f = (random.nextFloat() - 0.5F) * 0.2F;
+                    float f1 = (random.nextFloat() - 0.5F) * 0.2F;
+                    float f2 = (random.nextFloat() - 0.5F) * 0.2F;
+                    double d1 = Mth.lerp(d0, livingEntity.xo, livingEntity.getX()) + (random.nextDouble() - 0.5D) * (double) livingEntity.getBbWidth() * 2.0D;
+                    double d2 = Mth.lerp(d0, livingEntity.yo, livingEntity.getY()) + random.nextDouble() * (double) livingEntity.getBbHeight();
+                    double d3 = Mth.lerp(d0, livingEntity.zo, livingEntity.getZ()) + (random.nextDouble() - 0.5D) * (double) livingEntity.getBbWidth() * 2.0D;
+                    livingEntity.getLevel().addParticle(net.minecraft.core.particles.ParticleTypes.ELECTRIC_SPARK, d1, d2, d3, f, f1, f2);
+                }
             }
 
-            if (this == Effects.DEFENCE_DEBUFF) {
+            if (this.equals(Effects.DEFENCE_DEBUFF)) {
                 spawnCircleEffects(livingEntity, ParticleTypes.DEFENCE_DEBUFF, Math.PI * 2 / amplifier);
             }
         } else {
-            if (this == Effects.FROZEN) {
+            if (this.equals(Effects.FROZEN)) {
                 GenshinHeler.addEffect(livingEntity, new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 10, 5));
                 GenshinHeler.addEffect(livingEntity, new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 10, 5));
                 GenshinHeler.addEffect(livingEntity, new MobEffectInstance(MobEffects.WEAKNESS, 10, 5));
+            }
+
+            // handle electro changed
+            if (this.equals(Elementals.HYDRO.getEffect()) && Elementals.ELECTRO.is(livingEntity)
+                    ||
+                    (this.equals(Elementals.ELECTRO.getEffect()) && Elementals.HYDRO.is(livingEntity))) {
+                // every second performing to charge hit
+                if (livingEntity.tickCount % 20 == 0) {
+
+                    AABB aabb = livingEntity.getBoundingBox()
+                            .expandTowards(-3, -1, -3)
+                            .expandTowards(3, 1, 3);
+
+                    int level = (int) ((GenshinHeler.safeGetAttribute(livingEntity, Attributes.level) + 1) * 1.5);
+
+                    for (LivingEntity entity : livingEntity.getLevel().getEntities(EntityTypeTest.forClass(LivingEntity.class),
+                            aabb, Elementals.HYDRO::is)) {
+                        entity.hurt(new GenshinDamageSource(DamageSource.LIGHTNING_BOLT, livingEntity), level);
+                    }
+                }
             }
         }
     }
 
     // Server side
     public void endEffect(LivingEntity livingEntity, int amplifier) {
+        if (!livingEntity.getLevel().isClientSide()) {
+            ((ServerLevel) livingEntity.getLevel()).getServer().getPlayerList().broadcast(
+                    null,
+                    livingEntity.getX(),
+                    livingEntity.getY(),
+                    livingEntity.getZ(),
+                    32,
+                    livingEntity.getLevel().dimension(),
+                    new ClientboundRemoveMobEffectPacket(livingEntity.getId(), this)
+            );
+        }
     }
 
     @Override
@@ -107,7 +163,7 @@ public class GenshinMobEffect extends MobEffect {
 
         Map<MobEffect, MobEffectInstance> map = e.getActiveEffectsMap();
         if (map.size() > 1) {
-            index = Iterators.indexOf(map.keySet().iterator(), x -> x == this);
+            index = Iterators.indexOf(map.keySet().iterator(), x -> x.equals(this));
         }
 
         Vec3 movement = e.getDeltaMovement();

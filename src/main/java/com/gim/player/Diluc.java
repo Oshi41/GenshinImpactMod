@@ -18,7 +18,7 @@ import java.util.UUID;
 import static com.gim.GenshinHeler.safeAddModifier;
 import static com.gim.GenshinHeler.safeGetAttribute;
 
-public class Diluc {
+public class    Diluc {
 
     public final Map<Attribute, Double> initAttributes = new HashMap<>() {{
         put(Attributes.attack_bonus, 7d);
