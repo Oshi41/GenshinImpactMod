@@ -12,6 +12,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.BadRespawnPointDamage;
 import net.minecraft.world.damagesource.CombatEntry;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.player.Player;
@@ -25,20 +27,17 @@ public class AnemoTraveler extends GenshinPlayerBase {
     public AnemoTraveler() {
         super(
                 new TranslatableComponent(GenshinImpactMod.ModID + ".traveler.name"),
-                new ResourceLocation(GenshinImpactMod.ModID, "textures/players/anemo_traveler/burst.png"),
+                new ResourceLocation(GenshinImpactMod.ModID, "players/anemo_traveler/burst"),
                 new ResourceLocation(GenshinImpactMod.ModID, "textures/players/anemo_traveler/icon.png"),
                 null,
-                new ResourceLocation(GenshinImpactMod.ModID, "textures/players/anemo_traveler/skill.png"));
-    }
-
-    @Override
-    public AttributeSupplier.Builder getAttributes() {
-        return Player.createAttributes()
-                .add(Attributes.defence, 3)
-                .add(Attributes.attack_bonus, 2)
-                .add(Attributes.burst_cost, 60d)
-                .add(Attributes.burst_cooldown, 20 * 15)
-                .add(Attributes.skill_cooldown, 20 * 8);
+                new ResourceLocation(GenshinImpactMod.ModID, "players/anemo_traveler/skill"),
+                () -> AttributeSupplier.builder()
+                        .add(Attributes.defence, 3)
+                        .add(Attributes.attack_bonus, 2)
+                        .add(Attributes.burst_cost, 60d)
+                        .add(Attributes.burst_cooldown, 20 * 15)
+                        .add(Attributes.skill_cooldown, 20 * 8)
+                        .build());
     }
 
     @Override
@@ -53,6 +52,8 @@ public class AnemoTraveler extends GenshinPlayerBase {
 
     @Override
     public void onSkill(LivingEntity holder, GenshinEntityData data, List<CombatEntry> currentAttacks) {
+        super.onSkill(holder, data, currentAttacks);
+
         // only on server
         if (!holder.getLevel().isClientSide()) {
             GenshinDamageSource source = ((GenshinDamageSource) getElemental().create(holder)).bySkill();
@@ -61,8 +62,11 @@ public class AnemoTraveler extends GenshinPlayerBase {
             spreading.explode();
         }
 
+        currentAttacks.add(new CombatEntry(((GenshinDamageSource) getElemental().create(holder)).bySkill(),
+                holder.tickCount, 0, holder.getHealth(), null, holder.fallDistance));
+
         holder.animationSpeed = 0.5f;
-        super.onSkill(holder, data, currentAttacks);
+
     }
 
     @Override

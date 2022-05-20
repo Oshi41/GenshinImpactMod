@@ -2,11 +2,8 @@ package com.gim.events.elemental;
 
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
-import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.capability.shield.IShield;
 import com.gim.entity.ShieldEntity;
 import com.gim.registry.Attributes;
-import com.gim.registry.Capabilities;
 import com.gim.registry.Effects;
 import com.gim.registry.Elementals;
 import com.google.common.collect.Streams;
@@ -223,7 +220,7 @@ public class DamageEvent {
         return canHandle;
     }
 
-    private static final Lazy<Elementals[]> swirlElements = () -> new Elementals[]{Elementals.PYRO, Elementals.HYDRO, Elementals.ELECTRO, Elementals.CRYO, Elementals.FROZEN};
+    private static final Lazy<Elementals[]> swirlElements = Lazy.of(() -> new Elementals[]{Elementals.PYRO, Elementals.HYDRO, Elementals.ELECTRO, Elementals.CRYO, Elementals.FROZEN});
 
     private static boolean handleSwirl(LivingEntity entity, DamageSource source) {
 
@@ -259,7 +256,7 @@ public class DamageEvent {
         return false;
     }
 
-    private static final Lazy<Elementals[]> crystalElements = () -> new Elementals[]{Elementals.PYRO, Elementals.HYDRO, Elementals.ELECTRO, Elementals.CRYO};
+    private static final Lazy<Elementals[]> crystalElements = Lazy.of(() -> new Elementals[]{Elementals.PYRO, Elementals.HYDRO, Elementals.ELECTRO, Elementals.CRYO});
 
     private static boolean handleCrystalize(LivingEntity entity, DamageSource source) {
         if (canApply(entity, source, Elementals.GEO, crystalElements.get())) {

@@ -1,6 +1,5 @@
 package com.gim.events;
 
-import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.capability.shield.IShield;
 import com.gim.registry.Capabilities;
 import net.minecraft.world.damagesource.CombatEntry;

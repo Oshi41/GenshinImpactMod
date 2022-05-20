@@ -37,8 +37,7 @@ public class GenshinProvider implements ICapabilitySerializable<CompoundTag> {
     public void deserializeNBT(CompoundTag nbt) {
         LivingEntity living = reference.get();
         if (living != null) {
-            Level level = living.getLevel();
-            instance.orElseThrow(NullPointerException::new).deserializeNBT(nbt, level);
+            instance.orElseThrow(NullPointerException::new).deserializeNBT(nbt, living);
         } else {
             throw new IllegalArgumentException("Capability is not attached to entity");
         }

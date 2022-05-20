@@ -1,13 +1,16 @@
 package com.gim.networking;
 
+import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
 import com.google.common.collect.Iterators;
+import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -32,10 +35,16 @@ public class SwitchToPlayerMsg {
         NetworkEvent.Context context = supplier.get();
 
         if (context.getDirection().getReceptionSide() == LogicalSide.SERVER) {
-            return updatePlayer(context.getSender(), index);
+            if (updatePlayer(context.getSender(), index)) {
+                GenshinImpactMod.CHANNEL.sendTo(this, context.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+                return true;
+            }
+        } else {
+            updatePlayer(net.minecraft.client.Minecraft.getInstance().player, index);
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**

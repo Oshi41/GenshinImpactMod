@@ -32,9 +32,9 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
     /**
      * Returns attributes of current entity
      *
-     * @return
+     * @return the same instance! Should be used with wisdom
      */
-    AttributeSupplier.Builder getAttributes();
+    AttributeSupplier getAttributes();
 
     /**
      * Player icon
@@ -55,6 +55,7 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
 
     /**
      * Skill icon
+     * Should be animated picture!
      *
      * @return
      */
@@ -63,6 +64,9 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
 
     /**
      * Burst icon
+     * Should be animated picture!
+     * Example: minecraft:icons/image
+     * Will be translated to: minecraft:textures/icons.image.png
      *
      * @return
      */
@@ -98,20 +102,7 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param info    - entity info
      * @param attacks - current attack list
      */
-    default int ticksTillBurst(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks) {
-        CombatEntry burstUsages = attacks.stream()
-                .filter(x -> x.getSource() instanceof GenshinDamageSource && ((GenshinDamageSource) x.getSource()).isBurst())
-                .max(Comparator.comparingInt(CombatEntry::getTime))
-                .orElse(null);
-
-        if (burstUsages == null) {
-            return 0;
-        }
-
-        double cooldown = GenshinHeler.safeGetAttribute(entity, Attributes.burst_cooldown);
-
-        return (int) Math.max(0, burstUsages.getTime() + cooldown - entity.tickCount);
-    }
+    int ticksTillBurst(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks);
 
     /**
      * Calculates time for next skill attacks
@@ -121,20 +112,7 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param attacks
      * @return
      */
-    default int ticksTillSkill(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks) {
-        CombatEntry skillUsages = attacks.stream()
-                .filter(x -> x.getSource() instanceof GenshinDamageSource && ((GenshinDamageSource) x.getSource()).isSkill())
-                .max(Comparator.comparingInt(CombatEntry::getTime))
-                .orElse(null);
-
-        if (skillUsages == null) {
-            return 0;
-        }
-
-        double cooldown = GenshinHeler.safeGetAttribute(entity, Attributes.skill_cooldown);
-
-        return (int) Math.max(0, skillUsages.getTime() + cooldown - entity.tickCount);
-    }
+    int ticksTillSkill(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks);
 
     /**
      * Called to perform attack

@@ -7,6 +7,7 @@ import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.damagesource.IndirectEntityDamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.Lazy;
 import org.antlr.v4.runtime.misc.EqualityComparator;
@@ -17,19 +18,17 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class CombatEntrySerializable {
-    private static final Lazy<List<DamageSource>> loadDefaults = Lazy.of(() -> {
-        return Arrays.stream(DamageSource.class.getDeclaredFields()).filter(x -> Modifier.isStatic(x.getModifiers()) && Modifier.isFinal(x.getModifiers()))
-                .map(x -> {
-                    try {
-                        return x.get(null);
-                    } catch (IllegalAccessException e) {
-                        GenshinImpactMod.LOGGER.debug(e);
-                        return null;
-                    }
-                }).filter(x -> x instanceof DamageSource)
-                .map(x -> ((DamageSource) x))
-                .toList();
-    });
+    private static final Lazy<List<DamageSource>> loadDefaults = Lazy.of(() -> Arrays.stream(DamageSource.class.getDeclaredFields()).filter(x -> Modifier.isStatic(x.getModifiers()) && Modifier.isFinal(x.getModifiers()))
+            .map(x -> {
+                try {
+                    return x.get(null);
+                } catch (IllegalAccessException e) {
+                    GenshinImpactMod.LOGGER.debug(e);
+                    return null;
+                }
+            }).filter(x -> x instanceof DamageSource)
+            .map(x -> ((DamageSource) x))
+            .toList());
 
     private static boolean equals(DamageSource x, DamageSource y) {
         if (x == null && y == null)
@@ -65,28 +64,69 @@ public class CombatEntrySerializable {
             damageSourceTag.putInt("DirectEntity", source.getDirectEntity().getId());
         }
 
-        damageSourceTag.putBoolean("Fire", source.isFire());
-        damageSourceTag.putBoolean("Magic", source.isMagic());
-        damageSourceTag.putBoolean("Helmet", source.isDamageHelmet());
-        damageSourceTag.putBoolean("Bypass", source.isBypassArmor());
-        damageSourceTag.putBoolean("BypassInvul", source.isBypassInvul());
-        damageSourceTag.putBoolean("Explosion", source.isExplosion());
-        damageSourceTag.putBoolean("Fall", source.isFall());
-        damageSourceTag.putBoolean("NoAggro", source.isNoAggro());
-        damageSourceTag.putBoolean("Projectile", source.isProjectile());
-        damageSourceTag.putBoolean("Scale", source.scalesWithDifficulty());
+        if (source.isFire()) {
+            damageSourceTag.putBoolean("Fire", true);
+        }
+
+        if (source.isMagic()) {
+            damageSourceTag.putBoolean("Magic", true);
+        }
+
+        if (source.isDamageHelmet()) {
+            damageSourceTag.putBoolean("Helmet", true);
+        }
+
+        if (source.isBypassArmor()) {
+            damageSourceTag.putBoolean("Bypass", true);
+        }
+
+        if (source.isBypassMagic()) {
+            damageSourceTag.putBoolean("BypassMagic", true);
+        }
+
+        if (source.isBypassInvul()) {
+            damageSourceTag.putBoolean("BypassInvul", true);
+        }
+
+        if (source.isExplosion()) {
+            damageSourceTag.putBoolean("Explosion", true);
+        }
+
+        if (source.isFall()) {
+            damageSourceTag.putBoolean("Fall", true);
+        }
+
+        if (source.isNoAggro()) {
+            damageSourceTag.putBoolean("NoAggro", true);
+        }
+
+        if (source.isProjectile()) {
+            damageSourceTag.putBoolean("Projectile", true);
+        }
+
+        if (source.scalesWithDifficulty()) {
+            damageSourceTag.putBoolean("Scale", true);
+        }
 
         if (source instanceof GenshinDamageSource) {
-            damageSourceTag.putBoolean("Skill", ((GenshinDamageSource) source).isSkill());
-            damageSourceTag.putBoolean("Burst", ((GenshinDamageSource) source).isBurst());
-            damageSourceTag.putBoolean("IgnoreBonus", ((GenshinDamageSource) source).shouldIgnoreBonus());
-            damageSourceTag.putBoolean("IgnoreResist", ((GenshinDamageSource) source).shouldIgnoreResistance());
+            if (((GenshinDamageSource) source).isSkill())
+                damageSourceTag.putBoolean("Skill", true);
+
+            if (((GenshinDamageSource) source).isBurst())
+                damageSourceTag.putBoolean("Burst", true);
+
+            if (((GenshinDamageSource) source).shouldIgnoreBonus())
+                damageSourceTag.putBoolean("IgnoreBonus", true);
+
+            if (((GenshinDamageSource) source).shouldIgnoreResistance())
+                damageSourceTag.putBoolean("IgnoreResist", true);
 
             damageSourceTag.put("InnerSource", serialize(((GenshinDamageSource) source).getInnerSource()));
         }
 
         if (source instanceof EntityDamageSource) {
-            damageSourceTag.putBoolean("Thorns", ((EntityDamageSource) source).isThorns());
+            if (((EntityDamageSource) source).isThorns())
+                damageSourceTag.putBoolean("Thorns", true);
         }
 
         return damageSourceTag;
@@ -95,8 +135,16 @@ public class CombatEntrySerializable {
     public static DamageSource deserializeDamageSource(Level level, CompoundTag nbt) {
         Class<? extends DamageSource> damageSourceClass = DamageSource.class;
         String msg = nbt.getString("DamageSource");
-        int entity = nbt.getInt("Entity");
-        int directEntity = nbt.getInt("DirectEntity");
+        Entity entity = null;
+        Entity directEntity = null;
+
+        if (nbt.contains("Entity")) {
+            entity = level.getEntity(nbt.getInt("Entity"));
+        }
+
+        if (nbt.contains("DirectEntity")) {
+            directEntity = level.getEntity(nbt.getInt("DirectEntity"));
+        }
 
         DamageSource source = new DamageSource(msg);
 
@@ -107,7 +155,7 @@ public class CombatEntrySerializable {
         }
 
         if (damageSourceClass.equals(EntityDamageSource.class)) {
-            EntityDamageSource entityDamageSource = new EntityDamageSource(msg, level.getEntity(entity));
+            EntityDamageSource entityDamageSource = new EntityDamageSource(msg, entity);
             if (nbt.getBoolean("Thorns")) {
                 entityDamageSource.setThorns();
             }
@@ -115,11 +163,11 @@ public class CombatEntrySerializable {
         }
 
         if (damageSourceClass.equals(IndirectEntityDamageSource.class)) {
-            source = new IndirectEntityDamageSource(msg, level.getEntity(directEntity), level.getEntity(entity));
+            source = new IndirectEntityDamageSource(msg, directEntity, entity);
         }
 
         if (damageSourceClass.equals(GenshinDamageSource.class)) {
-            GenshinDamageSource genshinDamageSource = new GenshinDamageSource(deserializeDamageSource(level, nbt.getCompound("InnerSource")), level.getEntity(entity));
+            GenshinDamageSource genshinDamageSource = new GenshinDamageSource(deserializeDamageSource(level, nbt.getCompound("InnerSource")), entity);
 
             if (nbt.getBoolean("Skill")) {
                 genshinDamageSource.bySkill();
@@ -156,6 +204,10 @@ public class CombatEntrySerializable {
             source.bypassArmor();
         }
 
+        if (nbt.getBoolean("BypassMagic")) {
+            source.bypassMagic();
+        }
+
         if (nbt.getBoolean("BypassInvul")) {
             source.bypassInvul();
         }
@@ -180,9 +232,14 @@ public class CombatEntrySerializable {
             source.setScalesWithDifficulty();
         }
 
-        final DamageSource toCompare = source;
+        // checking for same static instance. Usually DamageSource is using by compare it by references
+        if (damageSourceClass.equals(DamageSource.class)) {
+            final DamageSource toCompare = source;
 
-        return loadDefaults.get().stream().filter(x -> equals(x, toCompare)).findFirst().orElse(source);
+            return loadDefaults.get().stream().filter(x -> equals(x, toCompare)).findFirst().orElse(source);
+        }
+
+        return source;
     }
 
 

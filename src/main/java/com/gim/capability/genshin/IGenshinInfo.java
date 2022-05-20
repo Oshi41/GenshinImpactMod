@@ -1,11 +1,11 @@
 package com.gim.capability.genshin;
 
 import com.gim.players.base.IGenshinPlayer;
+import com.gim.registry.Attributes;
 import com.google.common.collect.Iterators;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.Collection;
@@ -110,7 +110,10 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @param id     - personage ID
      */
     default boolean isSkillEnabled(LivingEntity holder, IGenshinPlayer id) {
-        return id != null && currentStack().contains(id) && getPersonInfo(id).getHealth() > 0 && ticksTillSkill(holder, id) <= 0;
+        return id != null
+                && currentStack().contains(id)
+                && getPersonInfo(id).getHealth() > 0
+                && ticksTillSkill(holder, id) <= 0;
     }
 
     /**
@@ -120,7 +123,14 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @param id     - personage id
      */
     default boolean isBurstEnabled(LivingEntity holder, IGenshinPlayer id) {
-        return id != null && currentStack().contains(id) && getPersonInfo(id).getHealth() > 0 && ticksTillSwitch(holder) <= 0;
+        if (holder != null && id != null && currentStack().contains(id)) {
+            GenshinEntityData data = getPersonInfo(id);
+            if (data != null && data.getHealth() > 0 && ticksTillBurst(holder, id) <= 0) {
+                return data.getEnergy() >= id.getAttributes().getValue(Attributes.burst_cost);
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -155,5 +165,9 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      */
     void updateByHolder(LivingEntity entity);
 
-    void deserializeNBT(CompoundTag nbt, Level level);
+    void deserializeNBT(CompoundTag nbt, LivingEntity holder);
+
+    void onSkill(LivingEntity holder);
+
+    void onBurst(LivingEntity holder);
 }

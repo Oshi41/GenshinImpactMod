@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,7 +25,7 @@ public class GenshinInfo implements IGenshinInfo {
     public GenshinInfo(@Nullable LivingEntity entity) {
         allPlayers.add(GenshinCharacters.ANEMO_TRAVELER);
         GenshinEntityData entityData = new GenshinEntityData(
-                new AttributeMap(GenshinCharacters.ANEMO_TRAVELER.getAttributes().build()),
+                new AttributeMap(new AttributeSupplier.Builder(GenshinCharacters.ANEMO_TRAVELER.getAttributes()).build()),
                 entity.getActiveEffects(),
                 entity.getHealth(),
                 0,
@@ -36,11 +36,18 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public void tick(LivingEntity entity) {
-        if (!entity.getCombatTracker().isInCombat()) {
+        if (!entity.getCombatTracker().isInCombat() && history.size() > 0) {
             // removing all attacks except for burst and skill
-            history.removeIf(x -> !(x.getSource() instanceof GenshinDamageSource)
-                    || !((GenshinDamageSource) x.getSource()).isBurst()
-                    || !((GenshinDamageSource) x.getSource()).isSkill());
+            history.removeIf(x -> {
+                if (x.getSource() instanceof GenshinDamageSource) {
+                    if (((GenshinDamageSource) x.getSource()).isBurst() || ((GenshinDamageSource) x.getSource()).isSkill()) {
+                        // no need to delete this
+                        return false;
+                    }
+                }
+
+                return true;
+            });
         }
 
         team.forEach((iGenshinPlayer, data) -> iGenshinPlayer.onTick(entity, this, history));
@@ -61,7 +68,7 @@ public class GenshinInfo implements IGenshinInfo {
         IGenshinPlayer old = current();
 
         this.index = newIndex;
-        this.nextSwitch = holder.tickCount + (5 * 20);
+        this.nextSwitch = holder.tickCount + (20);
 
         IGenshinPlayer current = current();
 
@@ -147,7 +154,7 @@ public class GenshinInfo implements IGenshinInfo {
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt, Level level) {
+    public void deserializeNBT(CompoundTag nbt, LivingEntity holder) {
         index = nbt.getInt("Index");
         nextSwitch = nbt.getInt("NextSwitch");
 
@@ -172,8 +179,24 @@ public class GenshinInfo implements IGenshinInfo {
         end = nbt.getInt("HistoryCount");
         for (int i = 0; i < end; i++) {
             CompoundTag tag = nbt.getCompound("History_" + i);
-            CombatEntry entry = CombatEntrySerializable.deserializeCombatEntry(level, nbt);
+            CombatEntry entry = CombatEntrySerializable.deserializeCombatEntry(holder.getLevel(), nbt);
             history.add(entry);
         }
+
+        getPersonInfo(current()).applyToEntity(holder);
+
+        // applying attributes
+        onSwitchToIndex(holder, index);
+    }
+
+    @Override
+    public void onSkill(LivingEntity holder) {
+        current().onSkill(holder, getPersonInfo(current()), history);
+    }
+
+    @Override
+    public void onBurst(LivingEntity holder) {
+        GenshinEntityData data = getPersonInfo(current());
+        current().onBurst(holder, data, history);
     }
 }

@@ -40,7 +40,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
                 entity.getAttributes(),
                 entity.getActiveEffects(),
                 entity.getHealth(),
-                0,
+                90,
                 getCurrent(entity));
     }
 
@@ -142,7 +142,8 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         }
 
         this.assotiatedPlayer = Registries.CHARACTERS.get().getValue(new ResourceLocation(nbt.getString("Character")));
-        this.map = new AttributeMap(assotiatedPlayer.getAttributes().build());
+        // new instance
+        this.map = new AttributeMap(new AttributeSupplier.Builder(assotiatedPlayer.getAttributes()).build());
         this.map.load(nbt.getList("Attributes", 0));
     }
 

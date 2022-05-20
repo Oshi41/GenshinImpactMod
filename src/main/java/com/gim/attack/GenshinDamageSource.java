@@ -44,8 +44,9 @@ public class GenshinDamageSource extends EntityDamageSource {
 
     @Override
     public boolean equals(Object o) {
-        if (Objects.equals(o, getInnerSource()) || this == o)
+        if (Objects.equals(o, getInnerSource()) || this == o) {
             return true;
+        }
 
         if (o == null || getClass() != o.getClass())
             return false;

@@ -1,6 +1,7 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
+import com.gim.attack.GenshinDamageSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -41,12 +42,23 @@ public enum Elementals {
         return e != null && e.hasEffect(this.getEffect());
     }
 
+    /**
+     * Created damage source for current elemental
+     *
+     * @param attacker - possible attacker
+     * @return DamageSource/GenshinDamageSource if attacker is not null
+     */
     public DamageSource create(@Nullable Entity attacker) {
-        return transform.apply(
-                attacker == null
-                        ? new DamageSource(id)
-                        : new EntityDamageSource(id, attacker)
-        );
+        DamageSource source = new DamageSource(id);
+        if (attacker != null) {
+            source = new GenshinDamageSource(source, attacker);
+        }
+
+        if (transform != null) {
+            source = transform.apply(source);
+        }
+
+        return source;
     }
 
     public DamageSource create() {
