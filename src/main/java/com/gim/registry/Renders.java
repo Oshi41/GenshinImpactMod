@@ -5,8 +5,10 @@ import com.gim.client.CustomTextureRender;
 import com.gim.client.GenshinClientHooks;
 import com.gim.client.IceRender;
 import com.gim.client.ShieldLayerRender;
+import com.gim.client.models.AnemoTravelerModel;
 import com.gim.entity.ShieldEntity;
 import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -18,17 +20,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 @OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class Renders {
 
-    private static ModelLayerLocation create(String name) {
-        return new ModelLayerLocation(new ResourceLocation(GenshinImpactMod.ModID, name), name);
-    }
 
-    @SubscribeEvent
-    public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions e) {
-        // e.registerLayerDefinition();
-    }
+
 
     @SubscribeEvent
     public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers e) {
@@ -70,6 +66,7 @@ public class Renders {
                     renderer.addLayer(new ShieldLayerRender(renderer));
                     renderer.addLayer(new IceRender(renderer));
                 }
+
             } catch (Exception e) {
                 GenshinImpactMod.LOGGER.debug(e);
             }

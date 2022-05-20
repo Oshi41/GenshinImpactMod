@@ -191,12 +191,11 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public void onSkill(LivingEntity holder) {
-        current().onSkill(holder, getPersonInfo(current()), history);
+        current().performSkill(holder, this, history);
     }
 
     @Override
     public void onBurst(LivingEntity holder) {
-        GenshinEntityData data = getPersonInfo(current());
-        current().onBurst(holder, data, history);
+        current().performBurst(holder, this, history);
     }
 }

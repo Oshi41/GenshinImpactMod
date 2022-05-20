@@ -5,6 +5,8 @@ import com.gim.registry.Capabilities;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fml.LogicalSide;
@@ -43,19 +45,18 @@ public class CapabilityUpdatePackage {
     public boolean consume(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
 
-        return context.getDirection().getReceptionSide() == LogicalSide.CLIENT
-                ? consumeClient(context)
-                : consumeSerer(context);
+        if (context.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+            updateClientCap();
+        } else {
+            updateCap(context.getSender());
+        }
+
+        return true;
     }
 
-    private boolean consumeClient(NetworkEvent.Context ctx) {
+    @OnlyIn(Dist.CLIENT)
+    private void updateClientCap() {
         updateCap(net.minecraft.client.Minecraft.getInstance().player);
-        return true;
-    }
-
-    private boolean consumeSerer(NetworkEvent.Context ctx) {
-        updateCap(ctx.getSender());
-        return true;
     }
 
     private void updateCap(LivingEntity entity) {

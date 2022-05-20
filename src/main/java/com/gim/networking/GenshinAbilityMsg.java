@@ -6,6 +6,8 @@ import com.gim.registry.Capabilities;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
@@ -38,11 +40,15 @@ public class GenshinAbilityMsg {
                 }
             }
         } else {
-            onUse(net.minecraft.client.Minecraft.getInstance().player, type);
-            return true;
+            return handleClient(type);
         }
 
         return false;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean handleClient(Abilities type) {
+        return onUse(net.minecraft.client.Minecraft.getInstance().player, type);
     }
 
     public static boolean onUse(LivingEntity entity, Abilities type) {

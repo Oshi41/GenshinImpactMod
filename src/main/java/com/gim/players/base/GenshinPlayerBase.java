@@ -1,12 +1,10 @@
 package com.gim.players.base;
 
-import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Attributes;
-import com.google.common.collect.Iterables;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.chat.BaseComponent;
@@ -17,12 +15,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Lazy;
-import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -67,23 +63,17 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
 
             return supplier;
         });
+    }
 
-        if (FMLLoader.getDist().isClient()) {
-            initClient();
-        }
+    @OnlyIn(Dist.CLIENT)
+    protected net.minecraft.client.model.Model createModel() {
+        return null;
     }
 
     @Override
     public AttributeSupplier getAttributes() {
 
         return attributes.get();
-    }
-
-    /**
-     * Do some client stuff here
-     */
-    protected void initClient() {
-
     }
 
     @Override
@@ -120,6 +110,10 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
     @Override
     @OnlyIn(Dist.CLIENT)
     public final net.minecraft.client.model.Model getModel() {
+        if (model == null) {
+            model = createModel();
+        }
+
         return model;
     }
 
@@ -131,8 +125,9 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
      * @param currentAttacks - attacks history
      */
     @Override
-    public void onSkill(LivingEntity holder, GenshinEntityData data, List<CombatEntry> currentAttacks) {
+    public void performSkill(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks) {
         currentAttacks.removeIf(x -> x.getSource() instanceof GenshinDamageSource && ((GenshinDamageSource) x.getSource()).isSkill());
+        onSkillTick(holder, data, currentAttacks, GenshinPhase.START);
     }
 
     @Override
@@ -159,8 +154,9 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
      * @param currentAttacks - attacks history
      */
     @Override
-    public void onBurst(LivingEntity holder, GenshinEntityData data, List<CombatEntry> currentAttacks) {
+    public void performBurst(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks) {
         currentAttacks.removeIf(x -> x.getSource() instanceof GenshinDamageSource && ((GenshinDamageSource) x.getSource()).isBurst());
+        onBurstTick(holder, data, currentAttacks, GenshinPhase.START);
     }
 
     @Override
@@ -180,11 +176,50 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
 
     @Override
     public void onTick(LivingEntity holder, IGenshinInfo info, List<CombatEntry> currentAttacks) {
+        GenshinEntityData data = info.getPersonInfo(this);
+        if (data != null) {
+            if (data.getBurstTicksAnim() > 0) {
+                onBurstTick(holder, info, currentAttacks, GenshinPhase.TICK);
+                data.setBurstTicksAnim(data.getBurstTicksAnim() - 1);
 
+                if (data.getBurstTicksAnim() == 0) {
+                    onBurstTick(holder, info, currentAttacks, GenshinPhase.END);
+                }
+            }
+
+            if (data.getSkillTicksAnim() > 0) {
+                onSkillTick(holder, info, currentAttacks, GenshinPhase.TICK);
+                data.setSkillTicksAnim(data.getSkillTicksAnim() - 1);
+
+                if (data.getSkillTicksAnim() == 0) {
+                    onSkillTick(holder, info, currentAttacks, GenshinPhase.END);
+                }
+            }
+        }
     }
 
     @Override
     public void onSwitch(LivingEntity holder, IGenshinInfo info, List<CombatEntry> currentAttacks, boolean isActive) {
 
     }
+
+    /**
+     * Called on every tick for player using skill
+     *
+     * @param entity         - current entity
+     * @param info           - player info
+     * @param currentAttacks - attack history
+     * @param phase          - current tick phase
+     */
+    protected abstract void onSkillTick(LivingEntity entity, IGenshinInfo info, List<CombatEntry> currentAttacks, GenshinPhase phase);
+
+    /**
+     * Called on every tick for player using burst
+     *
+     * @param entity         - current entity
+     * @param info           - player info
+     * @param currentAttacks - attack history
+     * @param phase          - current tick phase
+     */
+    protected abstract void onBurstTick(LivingEntity entity, IGenshinInfo info, List<CombatEntry> currentAttacks, GenshinPhase phase);
 }

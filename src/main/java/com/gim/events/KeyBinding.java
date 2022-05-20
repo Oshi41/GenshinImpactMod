@@ -21,7 +21,7 @@ import javax.swing.*;
 import java.util.function.*;
 
 @OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class KeyBinding {
 
     @SubscribeEvent

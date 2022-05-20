@@ -9,6 +9,8 @@ import com.google.common.collect.Iterators;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
@@ -40,11 +42,15 @@ public class SwitchToPlayerMsg {
                 return true;
             }
         } else {
-            updatePlayer(net.minecraft.client.Minecraft.getInstance().player, index);
-            return true;
+            return updateLocal(index);
         }
 
         return false;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private boolean updateLocal(int index) {
+        return updatePlayer(net.minecraft.client.Minecraft.getInstance().player, index);
     }
 
     /**

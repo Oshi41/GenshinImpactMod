@@ -75,18 +75,4 @@ public class GenshinClientHooks {
 
         return model;
     }
-
-    public static void drawAnimationRect(PoseStack mStack, int x, int y, int boundsWidth, int boundsHeight, int rectWidth, int rectHeight) {
-        if (rectWidth * boundsHeight > rectHeight * boundsWidth) {
-            int h = boundsHeight;
-            boundsHeight = (int) (boundsWidth * ((double) rectHeight / rectWidth));
-            y += (h - boundsHeight) / 2;
-        } else {
-            int w = boundsWidth;
-            boundsWidth = (int) (boundsHeight * ((double) rectWidth / rectHeight));
-            x += (w - boundsWidth) / 2;
-        }
-
-        GuiComponent.blit(mStack, x, y, boundsWidth, boundsHeight, 0.0f, 0.0f, rectWidth, rectHeight, rectWidth, rectHeight);
-    }
 }

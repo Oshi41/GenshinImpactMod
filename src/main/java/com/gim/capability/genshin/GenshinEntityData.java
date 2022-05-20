@@ -30,6 +30,9 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     private float energy;
     private IGenshinPlayer assotiatedPlayer;
 
+    private int skillTicksAnim;
+    private int burstTicksAnim;
+
     public GenshinEntityData(LivingEntity entity, GenshinEntityData source) {
         this(entity);
         deserializeNBT(source.serializeNBT());
@@ -117,6 +120,8 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         tag.put("Attributes", map.save());
         tag.putFloat("Health", health);
         tag.putString("Character", assotiatedPlayer.getRegistryName().toString());
+        tag.putInt("SkillAnim", getSkillTicksAnim());
+        tag.putInt("BurstAnim", getBurstTicksAnim());
 
         if (!this.effects.isEmpty()) {
             ListTag listtag = new ListTag();
@@ -145,6 +150,9 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         // new instance
         this.map = new AttributeMap(new AttributeSupplier.Builder(assotiatedPlayer.getAttributes()).build());
         this.map.load(nbt.getList("Attributes", 0));
+
+        this.burstTicksAnim = nbt.getInt("BurstAnim");
+        this.skillTicksAnim = nbt.getInt("SkillAnim");
     }
 
     public void applyToEntity(LivingEntity entity) {
@@ -179,5 +187,41 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
                 old.setBaseValue(replacing.getBaseValue());
             }
         }
+    }
+
+    /**
+     * Returns amount of ticks to perform skill animation
+     *
+     * @return
+     */
+    public int getSkillTicksAnim() {
+        return skillTicksAnim;
+    }
+
+    /**
+     * Setting skill animation length
+     *
+     * @param skillTicksAnim - animation length in ticks
+     */
+    public void setSkillTicksAnim(int skillTicksAnim) {
+        this.skillTicksAnim = skillTicksAnim;
+    }
+
+    /**
+     * Returns length of burst animation
+     *
+     * @return
+     */
+    public int getBurstTicksAnim() {
+        return burstTicksAnim;
+    }
+
+    /**
+     * Change burst animation length here
+     *
+     * @param burstTicksAnim
+     */
+    public void setBurstTicksAnim(int burstTicksAnim) {
+        this.burstTicksAnim = burstTicksAnim;
     }
 }

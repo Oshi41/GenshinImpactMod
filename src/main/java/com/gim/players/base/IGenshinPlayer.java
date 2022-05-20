@@ -1,10 +1,7 @@
 package com.gim.players.base;
 
-import com.gim.GenshinHeler;
-import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.registry.Attributes;
 import com.gim.registry.Elementals;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +14,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Comparator;
 import java.util.List;
 
 public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
@@ -121,7 +117,7 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param data           - current character data
      * @param currentAttacks - attacks history
      */
-    void onSkill(LivingEntity holder, GenshinEntityData data, List<CombatEntry> currentAttacks);
+    void performSkill(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks);
 
     /**
      * Called to perform a burst attack
@@ -130,7 +126,7 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param data           - entity data
      * @param currentAttacks - attacks history
      */
-    void onBurst(LivingEntity holder, GenshinEntityData data, List<CombatEntry> currentAttacks);
+    void performBurst(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks);
 
     /**
      * Called every tick for current team

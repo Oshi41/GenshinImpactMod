@@ -11,9 +11,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.IForgeRegistry;
 
 @OnlyIn(Dist.CLIENT)
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class Animations {
-
 
     @SubscribeEvent
     public static void onAtlasLoading(TextureStitchEvent.Pre event) {
