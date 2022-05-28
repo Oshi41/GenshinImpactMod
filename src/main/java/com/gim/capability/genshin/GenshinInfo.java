@@ -10,6 +10,7 @@ import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.player.Player;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,6 +79,11 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public int ticksTillSwitch(LivingEntity holder) {
+
+        if (holder instanceof Player && ((Player) holder).isCreative()) {
+            return 0;
+        }
+
         long diff = nextSwitch - holder.tickCount;
         return (int) Math.max(0, diff);
     }

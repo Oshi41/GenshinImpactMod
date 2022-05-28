@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Lazy;
@@ -26,21 +27,10 @@ import java.util.stream.Stream;
 public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlayer> implements IGenshinPlayer {
 
     protected BaseComponent name;
-    protected ResourceLocation burstIcon;
-    protected ResourceLocation icon;
-    protected ResourceLocation skin;
-    protected ResourceLocation skillIcon;
-
-    @OnlyIn(Dist.CLIENT)
-    protected net.minecraft.client.model.Model model;
     protected Lazy<AttributeSupplier> attributes;
 
-    protected GenshinPlayerBase(BaseComponent name, ResourceLocation burstIcon, ResourceLocation icon, ResourceLocation skin, ResourceLocation skillIcon, Supplier<AttributeSupplier> attributes) {
+    protected GenshinPlayerBase(BaseComponent name, Supplier<AttributeSupplier> attributes) {
         this.name = name;
-        this.burstIcon = burstIcon;
-        this.icon = icon;
-        this.skin = skin;
-        this.skillIcon = skillIcon;
         this.attributes = Lazy.of(() -> {
             AttributeSupplier supplier = attributes.get();
 
@@ -81,42 +71,6 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
         return name;
     }
 
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public final ResourceLocation getIcon() {
-        return icon;
-    }
-
-    @Override
-    @Nullable
-    @OnlyIn(Dist.CLIENT)
-    public final ResourceLocation getSkin() {
-        return skin;
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public final ResourceLocation getSkillIcon() {
-        return skillIcon;
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public final ResourceLocation getBurstIcon() {
-        return burstIcon;
-    }
-
-    @Nullable
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public final net.minecraft.client.model.Model getModel() {
-        if (model == null) {
-            model = createModel();
-        }
-
-        return model;
-    }
-
     /**
      * Removing previous skill attack history
      *
@@ -132,6 +86,10 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
 
     @Override
     public int ticksTillSkill(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks) {
+        if (entity instanceof Player && ((Player) entity).isCreative()) {
+            return 0;
+        }
+
         CombatEntry skillUsages = attacks.stream()
                 .filter(x -> x.getSource() instanceof GenshinDamageSource && ((GenshinDamageSource) x.getSource()).isSkill())
                 .max(Comparator.comparingInt(CombatEntry::getTime))
@@ -161,6 +119,10 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
 
     @Override
     public int ticksTillBurst(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks) {
+        if (entity instanceof Player && ((Player) entity).isCreative()) {
+            return 0;
+        }
+
         CombatEntry burstUsages = attacks.stream()
                 .filter(x -> x.getSource() instanceof GenshinDamageSource && ((GenshinDamageSource) x.getSource()).isBurst())
                 .max(Comparator.comparingInt(CombatEntry::getTime))

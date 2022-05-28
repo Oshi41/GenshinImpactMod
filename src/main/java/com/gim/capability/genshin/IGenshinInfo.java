@@ -6,6 +6,7 @@ import com.google.common.collect.Iterators;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.Collection;
@@ -52,6 +53,10 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
         IGenshinPlayer player = Iterators.get(currentStack().iterator(), playerIndex);
         if (player == null || getPersonInfo(player).getHealth() <= 0) {
             return false;
+        }
+
+        if (holder instanceof Player && ((Player) holder).isCreative()) {
+            return true;
         }
 
         return ticksTillSwitch(holder) <= 0;
@@ -110,10 +115,24 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @param id     - personage ID
      */
     default boolean isSkillEnabled(LivingEntity holder, IGenshinPlayer id) {
-        return id != null
-                && currentStack().contains(id)
-                && getPersonInfo(id).getHealth() > 0
-                && ticksTillSkill(holder, id) <= 0;
+        // null checks
+        if (holder != null && id != null
+                // character in main team
+                && currentStack().contains(id)) {
+            GenshinEntityData info = getPersonInfo(id);
+            // character is alive and not in animation
+            if (info != null && info.getHealth() > 0 && info.getSkillTicksAnim() <= 0) {
+
+                if (holder instanceof Player && ((Player) holder).isCreative()) {
+                    return true;
+                }
+
+                // countdown is over
+                return ticksTillSkill(holder, id) <= 0;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -123,9 +142,25 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @param id     - personage id
      */
     default boolean isBurstEnabled(LivingEntity holder, IGenshinPlayer id) {
-        if (holder != null && id != null && currentStack().contains(id)) {
+        // null checks
+        if (holder != null && id != null
+                // character in main team
+                && currentStack().contains(id)) {
             GenshinEntityData data = getPersonInfo(id);
-            if (data != null && data.getHealth() > 0 && ticksTillBurst(holder, id) <= 0) {
+
+            if (data != null
+                    // character is alive
+                    && data.getHealth() > 0
+                    // cooldown is finished
+                    && ticksTillBurst(holder, id) <= 0
+                    // burst animation is finished
+                    && data.getBurstTicksAnim() <= 0) {
+
+                if (holder instanceof Player && ((Player) holder).isCreative()) {
+                    return true;
+                }
+
+                // enough energy
                 return data.getEnergy() >= id.getAttributes().getValue(Attributes.burst_cost);
             }
         }

@@ -1,7 +1,9 @@
 package com.gim.registry;
 
+import com.gim.GenshinImpactMod;
 import com.gim.players.base.IGenshinPlayer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -18,13 +20,14 @@ public class Animations {
     public static void onAtlasLoading(TextureStitchEvent.Pre event) {
         TextureAtlas atlas = event.getAtlas();
         if (atlas.location().equals(InventoryMenu.BLOCK_ATLAS)) {
-
             IForgeRegistry<IGenshinPlayer> registry = Registries.CHARACTERS.get();
 
             if (registry != null) {
                 registry.getValues().forEach(player -> {
-                    event.addSprite(player.getBurstIcon());
-                    event.addSprite(player.getSkillIcon());
+                    ResourceLocation location = player.getRegistryName();
+
+                    event.addSprite(new ResourceLocation(location.getNamespace(), String.format("players/%s/burst", location.getPath())));
+                    event.addSprite(new ResourceLocation(location.getNamespace(), String.format("players/%s/skill", location.getPath())));
                 });
             }
         }

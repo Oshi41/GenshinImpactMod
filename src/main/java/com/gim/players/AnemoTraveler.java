@@ -10,7 +10,6 @@ import com.gim.players.base.GenshinPhase;
 import com.gim.players.base.GenshinPlayerBase;
 import com.gim.registry.Attributes;
 import com.gim.registry.Elementals;
-import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -31,10 +30,6 @@ public class AnemoTraveler extends GenshinPlayerBase {
     public AnemoTraveler() {
         super(
                 new TranslatableComponent(GenshinImpactMod.ModID + ".traveler.name"),
-                new ResourceLocation(GenshinImpactMod.ModID, "players/anemo_traveler/burst"),
-                new ResourceLocation(GenshinImpactMod.ModID, "textures/players/anemo_traveler/icon.png"),
-                null,
-                new ResourceLocation(GenshinImpactMod.ModID, "players/anemo_traveler/skill"),
                 () -> AttributeSupplier.builder()
                         .add(Attributes.defence, 3)
                         .add(Attributes.attack_bonus, 2)
@@ -42,12 +37,6 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         .add(Attributes.burst_cooldown, 20 * 15)
                         .add(Attributes.skill_cooldown, 20 * 8)
                         .build());
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    @Override
-    protected net.minecraft.client.model.Model createModel() {
-        return new com.gim.client.models.AnemoTravelerModel();
     }
 
     @Override
@@ -61,33 +50,20 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    public void performSkill(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks) {
-        super.performSkill(holder, data, currentAttacks);
-        GenshinEntityData personInfo = data.getPersonInfo(this);
-        if (personInfo != null) {
-            personInfo.setSkillTicksAnim(20 * 2);
-        }
-    }
-
-    @Override
-    public void performBurst(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks) {
-        super.performBurst(holder, data, currentAttacks);
-
-        GenshinEntityData personInfo = data.getPersonInfo(this);
-        if (personInfo != null) {
-            personInfo.setBurstTicksAnim(20 * 3);
-        }
-    }
-
-    @Override
     protected void onSkillTick(LivingEntity holder, IGenshinInfo info, List<CombatEntry> currentAttacks, GenshinPhase phase) {
         double skillAdditive = GenshinHeler.safeGetAttribute(holder, Attributes.skill_level) / 8f;
         double range = 3f + skillAdditive;
 
         switch (phase) {
+            // starting skill animation
             case START:
+                GenshinEntityData personInfo = info.getPersonInfo(this);
+                if (personInfo != null) {
+                    personInfo.setSkillTicksAnim(20 * 2);
+                }
                 break;
 
+            // sucking entities
             case TICK:
                 if (!holder.getLevel().isClientSide()) {
                     Vec3 center = holder.position().add(0, 1, 0);
@@ -119,6 +95,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 }
                 break;
 
+            // final exploding
             case END:
                 // only on client
                 if (holder.getLevel().isClientSide()) {
@@ -166,5 +143,20 @@ public class AnemoTraveler extends GenshinPlayerBase {
     @Override
     protected void onBurstTick(LivingEntity entity, IGenshinInfo info, List<CombatEntry> currentAttacks, GenshinPhase phase) {
 
+        switch (phase) {
+            case START:
+                GenshinEntityData personInfo = info.getPersonInfo(this);
+                if (personInfo != null) {
+                    personInfo.setBurstTicksAnim(20 * 3);
+                }
+                break;
+
+            case TICK:
+                entity.setYRot(entity.getYRot() + 1);
+                break;
+
+            case END:
+                break;
+        }
     }
 }

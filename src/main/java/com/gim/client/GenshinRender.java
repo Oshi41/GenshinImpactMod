@@ -115,7 +115,7 @@ public class GenshinRender implements IIngameOverlay {
                 }
 
                 // render character icon
-                RenderSystem.setShaderTexture(0, genshinPlayer.getIcon());
+                RenderSystem.setShaderTexture(0, getSource(genshinPlayer, "icon", false));
                 GuiUtils.drawInscribedRect(mStack, xPos, yPos, 18, 18, 18, 18);
 
                 // spacing with longest name lenght
@@ -128,18 +128,18 @@ public class GenshinRender implements IIngameOverlay {
                         Color.WHITE.getRGB());
 
                 // space between player name and icons
-                xPos -= 4;
+                xPos -= 16;
 
                 // icon size + space
                 xPos -= 28;
-                if (info.ticksTillBurst(player, genshinPlayer) <= 0 && info.getPersonInfo(genshinPlayer).getEnergy() >= GenshinHeler.safeGetAttribute(player, Attributes.burst_cost)) {
-                    renderAnimation(mStack, xPos, yPos - 4, 24, 24, info.current().getBurstIcon());
+                if (info.isBurstEnabled(player, genshinPlayer)) {
+                    renderAnimation(mStack, xPos, yPos - 4, 24, 24, getSource(genshinPlayer, "burst", true));
                 }
 
                 // icon size + space
                 xPos -= 28;
-                if (info.ticksTillSkill(player, genshinPlayer) <= 0) {
-                    renderAnimation(mStack, xPos, yPos - 4, 24, 24, info.current().getSkillIcon());
+                if (info.isSkillEnabled(player, genshinPlayer)) {
+                    renderAnimation(mStack, xPos, yPos - 4, 24, 24, getSource(genshinPlayer, "skill", true));
                 }
             }
         }
@@ -150,10 +150,12 @@ public class GenshinRender implements IIngameOverlay {
             xStart = width - size - 12; // 12 - margin from screen edges
             y = height - size - 12; // 12 - margin from screen edges
 
+            ResourceLocation burst = getSource(info.current(), "burst", true);
+
             if (info.canUseBurst(player)) {
-                renderAnimation(mStack, xStart, y, size, size, info.current().getBurstIcon());
+                renderAnimation(mStack, xStart, y, size, size, burst);
             } else {
-                renderStill(mStack, xStart, y, size, size, info.current().getBurstIcon());
+                renderStill(mStack, xStart, y, size, size, burst);
 
                 // render ticks delay
                 int ticks = info.ticksTillBurst(player, info.current());
@@ -195,13 +197,15 @@ public class GenshinRender implements IIngameOverlay {
             size = 28;
             y += (48 - size);
 
+            ResourceLocation skill = getSource(info.current(), "skill", true);
+
             // if can use skill
             if (info.canUseSkill(player)) {
                 // render animation
-                renderAnimation(mStack, xStart, y, size, size, info.current().getSkillIcon());
+                renderAnimation(mStack, xStart, y, size, size, skill);
             } else {
                 // otherwise render still icon
-                renderStill(mStack, xStart, y, size, size, info.current().getSkillIcon());
+                renderStill(mStack, xStart, y, size, size, skill);
 
                 // render ticks delay
                 int ticks = info.ticksTillSkill(player, info.current());
@@ -263,14 +267,11 @@ public class GenshinRender implements IIngameOverlay {
         if (sprite == null)
             return;
 
-        RenderSystem.setShaderTexture(0, getResourceLocation(location));
+        RenderSystem.setShaderTexture(0, location);
         RenderSystem.setShaderColor(1, 1, 1, 0.5f);
         GuiComponent.blit(stack, x, y, 0, 0, 0, width, height, width, height * sprite.getFrameCount());
     }
 
-    private ResourceLocation getResourceLocation(ResourceLocation p_118325_) {
-        return new ResourceLocation(p_118325_.getNamespace(), String.format("textures/%s%s", p_118325_.getPath(), ".png"));
-    }
 
     private static void innerBlit(Matrix4f p_93113_, int x1, int x2, int x3, int x4, int x5, float x6, float x7, float x8, float x9, float red, float green, float blue, float alpha) {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
@@ -282,5 +283,23 @@ public class GenshinRender implements IIngameOverlay {
         bufferbuilder.vertex(p_93113_, (float) x1, (float) x3, (float) x5).uv(x6, x8).color(red, green, blue, alpha).endVertex();
         bufferbuilder.end();
         BufferUploader.end(bufferbuilder);
+    }
+
+    /**
+     * Find specific icons location for player
+     *
+     * @param player   - current character
+     * @param picture  - String of resource. Could be 'icon', 'burst', 'skill' or 'skin'
+     * @param animated - should icon be animated.
+     * @return - location to image. 'burst' and 'skill' must be animated
+     */
+    private ResourceLocation getSource(IGenshinPlayer player, String picture, boolean animated) {
+        ResourceLocation source = player.getRegistryName();
+        String formattedString = "players/%s/%s";
+        if (!animated) {
+            formattedString = "textures/" + formattedString + ".png";
+        }
+
+        return new ResourceLocation(source.getNamespace(), String.format(formattedString, source.getPath(), picture));
     }
 }

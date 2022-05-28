@@ -33,52 +33,6 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
     AttributeSupplier getAttributes();
 
     /**
-     * Player icon
-     *
-     * @return
-     */
-    @OnlyIn(Dist.CLIENT)
-    ResourceLocation getIcon();
-
-    /**
-     * returns character skin
-     *
-     * @return
-     */
-    @OnlyIn(Dist.CLIENT)
-    @Nullable
-    ResourceLocation getSkin();
-
-    /**
-     * Skill icon
-     * Should be animated picture!
-     *
-     * @return
-     */
-    @OnlyIn(Dist.CLIENT)
-    ResourceLocation getSkillIcon();
-
-    /**
-     * Burst icon
-     * Should be animated picture!
-     * Example: minecraft:icons/image
-     * Will be translated to: minecraft:textures/icons.image.png
-     *
-     * @return
-     */
-    @OnlyIn(Dist.CLIENT)
-    ResourceLocation getBurstIcon();
-
-    /**
-     * Model of current player
-     *
-     * @return
-     */
-    @OnlyIn(Dist.CLIENT)
-    @Nullable
-    net.minecraft.client.model.Model getModel();
-
-    /**
      * Is current stack applicable to character weapon
      *
      * @param entity - current entity
