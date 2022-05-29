@@ -13,37 +13,37 @@ import net.minecraftforge.registries.ObjectHolder;
 @ObjectHolder(GenshinImpactMod.ModID)
 public class Attributes {
 
-    public static final Attribute heal_bonus = null;
-    public static final Attribute defence = null;
-    public static final Attribute elemental_majesty = null;
-    public static final Attribute attack_bonus = null;
-    public static final Attribute crit_rate = null;
-    public static final Attribute crit_bonus = null;
-    public static final Attribute skill_cooldown = null;
-    public static final Attribute burst_cooldown = null;
-    public static final Attribute burst_cost = null;
-    public static final Attribute recharge_bonus = null;
+    public static final RangedAttribute heal_bonus = null;
+    public static final RangedAttribute defence = null;
+    public static final RangedAttribute elemental_majesty = null;
+    public static final RangedAttribute attack_bonus = null;
+    public static final RangedAttribute crit_rate = null;
+    public static final RangedAttribute crit_bonus = null;
+    public static final RangedAttribute skill_cooldown = null;
+    public static final RangedAttribute burst_cooldown = null;
+    public static final RangedAttribute burst_cost = null;
+    public static final RangedAttribute recharge_bonus = null;
 
-    public static final Attribute pyro_bonus = null;
-    public static final Attribute anemo_bonus = null;
-    public static final Attribute hydro_bonus = null;
-    public static final Attribute geo_bonus = null;
-    public static final Attribute dendro_bonus = null;
-    public static final Attribute cryo_bonus = null;
-    public static final Attribute electro_bonus = null;
+    public static final RangedAttribute pyro_bonus = null;
+    public static final RangedAttribute anemo_bonus = null;
+    public static final RangedAttribute hydro_bonus = null;
+    public static final RangedAttribute geo_bonus = null;
+    public static final RangedAttribute dendro_bonus = null;
+    public static final RangedAttribute cryo_bonus = null;
+    public static final RangedAttribute electro_bonus = null;
 
-    public static final Attribute pyro_resistance = null;
-    public static final Attribute anemo_resistance = null;
-    public static final Attribute hydro_resistance = null;
-    public static final Attribute geo_resistance = null;
-    public static final Attribute dendro_resistance = null;
-    public static final Attribute cryo_resistance = null;
-    public static final Attribute electro_resistance = null;
+    public static final RangedAttribute pyro_resistance = null;
+    public static final RangedAttribute anemo_resistance = null;
+    public static final RangedAttribute hydro_resistance = null;
+    public static final RangedAttribute geo_resistance = null;
+    public static final RangedAttribute dendro_resistance = null;
+    public static final RangedAttribute cryo_resistance = null;
+    public static final RangedAttribute electro_resistance = null;
 
-    public static final Attribute level = null;
-    public static final Attribute shield_strength = null;
+    public static final RangedAttribute level = null;
+    public static final RangedAttribute shield_strength = null;
 
-    public static final Attribute skill_level = null;
+    public static final RangedAttribute skill_level = null;
 
 
     @SubscribeEvent
@@ -106,7 +106,7 @@ public class Attributes {
                         .setRegistryName(GenshinImpactMod.ModID, "shield_strength"),
                 new RangedAttribute("genshin.burst_cost", 90, 0, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "burst_cost"),
-                new RangedAttribute("genshin.skill_level", 0, 0, 15)
+                new RangedAttribute("genshin.skill_level", 0, 0, 11)
                         .setRegistryName(GenshinImpactMod.ModID, "skill_level")
         );
     }

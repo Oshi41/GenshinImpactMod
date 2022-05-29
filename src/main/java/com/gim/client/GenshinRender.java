@@ -150,12 +150,10 @@ public class GenshinRender implements IIngameOverlay {
             xStart = width - size - 12; // 12 - margin from screen edges
             y = height - size - 12; // 12 - margin from screen edges
 
-            ResourceLocation burst = getSource(info.current(), "burst", true);
-
             if (info.canUseBurst(player)) {
-                renderAnimation(mStack, xStart, y, size, size, burst);
+                renderAnimation(mStack, xStart, y, size, size, getSource(info.current(), "burst", true));
             } else {
-                renderStill(mStack, xStart, y, size, size, burst);
+                renderStill(mStack, xStart, y, size, size, info.current(), "burst");
 
                 // render ticks delay
                 int ticks = info.ticksTillBurst(player, info.current());
@@ -197,15 +195,13 @@ public class GenshinRender implements IIngameOverlay {
             size = 28;
             y += (48 - size);
 
-            ResourceLocation skill = getSource(info.current(), "skill", true);
-
             // if can use skill
             if (info.canUseSkill(player)) {
                 // render animation
-                renderAnimation(mStack, xStart, y, size, size, skill);
+                renderAnimation(mStack, xStart, y, size, size, getSource(info.current(), "skill", true));
             } else {
                 // otherwise render still icon
-                renderStill(mStack, xStart, y, size, size, skill);
+                renderStill(mStack, xStart, y, size, size, info.current(), "skill");
 
                 // render ticks delay
                 int ticks = info.ticksTillSkill(player, info.current());
@@ -249,7 +245,7 @@ public class GenshinRender implements IIngameOverlay {
      * @param height   - rectangle height
      * @param location - sprite location in InventoryMenu.BLOCK_ATLAS atlas
      */
-    private void renderAnimation(PoseStack stack, int x, int y, int width, int height, ResourceLocation location) {
+    public static void renderAnimation(PoseStack stack, int x, int y, int width, int height, ResourceLocation location) {
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(location);
         if (sprite == null)
             return;
@@ -262,25 +258,25 @@ public class GenshinRender implements IIngameOverlay {
                 1, 1, 1, 1);
     }
 
-    private void renderStill(PoseStack stack, int x, int y, int width, int height, ResourceLocation location) {
-        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(location);
+    private void renderStill(PoseStack stack, int x, int y, int width, int height, IGenshinPlayer current, String resource) {
+        TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(getSource(current, resource, true));
         if (sprite == null)
             return;
 
-        RenderSystem.setShaderTexture(0, location);
+        RenderSystem.setShaderTexture(0, getSource(current, resource, false));
         RenderSystem.setShaderColor(1, 1, 1, 0.5f);
         GuiComponent.blit(stack, x, y, 0, 0, 0, width, height, width, height * sprite.getFrameCount());
     }
 
 
-    private static void innerBlit(Matrix4f p_93113_, int x1, int x2, int x3, int x4, int x5, float x6, float x7, float x8, float x9, float red, float green, float blue, float alpha) {
+    public static void innerBlit(Matrix4f p_93113_, float x1, float x2, float x3, float x4, float x5, float x6, float x7, float x8, float x9, float red, float green, float blue, float alpha) {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         BufferBuilder bufferbuilder = Tesselator.getInstance().getBuilder();
         bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-        bufferbuilder.vertex(p_93113_, (float) x1, (float) x4, (float) x5).uv(x6, x9).color(red, green, blue, alpha).endVertex();
-        bufferbuilder.vertex(p_93113_, (float) x2, (float) x4, (float) x5).uv(x7, x9).color(red, green, blue, alpha).endVertex();
-        bufferbuilder.vertex(p_93113_, (float) x2, (float) x3, (float) x5).uv(x7, x8).color(red, green, blue, alpha).endVertex();
-        bufferbuilder.vertex(p_93113_, (float) x1, (float) x3, (float) x5).uv(x6, x8).color(red, green, blue, alpha).endVertex();
+        bufferbuilder.vertex(p_93113_, x1, x4, x5).uv(x6, x9).color(red, green, blue, alpha).endVertex();
+        bufferbuilder.vertex(p_93113_, x2, x4, x5).uv(x7, x9).color(red, green, blue, alpha).endVertex();
+        bufferbuilder.vertex(p_93113_, x2, x3, x5).uv(x7, x8).color(red, green, blue, alpha).endVertex();
+        bufferbuilder.vertex(p_93113_, x1, x3, x5).uv(x6, x8).color(red, green, blue, alpha).endVertex();
         bufferbuilder.end();
         BufferUploader.end(bufferbuilder);
     }
@@ -293,7 +289,7 @@ public class GenshinRender implements IIngameOverlay {
      * @param animated - should icon be animated.
      * @return - location to image. 'burst' and 'skill' must be animated
      */
-    private ResourceLocation getSource(IGenshinPlayer player, String picture, boolean animated) {
+    public static ResourceLocation getSource(IGenshinPlayer player, String picture, boolean animated) {
         ResourceLocation source = player.getRegistryName();
         String formattedString = "players/%s/%s";
         if (!animated) {

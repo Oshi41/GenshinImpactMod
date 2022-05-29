@@ -6,13 +6,14 @@ import com.gim.attack.GenshinAreaSpreading;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.entity.Tornado;
 import com.gim.players.base.GenshinPhase;
 import com.gim.players.base.GenshinPlayerBase;
 import com.gim.registry.Attributes;
 import com.gim.registry.Elementals;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,12 +22,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeMod;
 
 import java.util.List;
 
 public class AnemoTraveler extends GenshinPlayerBase {
+    public static int SKILL_ANIM_TIME = 20 * 2;
+    public static int BURST_ANIM_TIME = 20 * 2;
+
     public AnemoTraveler() {
         super(
                 new TranslatableComponent(GenshinImpactMod.ModID + ".traveler.name"),
@@ -59,7 +62,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
             case START:
                 GenshinEntityData personInfo = info.getPersonInfo(this);
                 if (personInfo != null) {
-                    personInfo.setSkillTicksAnim(20 * 2);
+                    personInfo.setSkillTicksAnim(SKILL_ANIM_TIME);
                 }
                 break;
 
@@ -103,16 +106,15 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 } else {
                     // area explosion
                     GenshinDamageSource source = ((GenshinDamageSource) getElemental().create(holder)).bySkill();
-                    Vec3 vector = holder.position().add(0, holder.getY() / 2, 0);
-                    GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder.getLevel(), vector, source, ((float) range));
+                    Vec3 vector = holder.getEyePosition().add(holder.getLookAngle().normalize().scale(2));
+                    GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder, vector, source, ((float) range));
                     spreading.explode();
 
-                    Vec3 center = holder.position().add(0, 1, 0);
                     List<Entity> entities = getAffectedEntities(holder, range);
 
                     for (Entity entity : entities) {
-                        Vec3 movement = entity.getLookAngle().subtract(center).normalize();
-                        entity.setDeltaMovement(movement.scale(1.2f + skillAdditive));
+                        Vec3 movement = holder.getLookAngle().multiply(2, 2, 2).subtract(entity.position()).normalize().scale(1.2f + skillAdditive);
+                        entity.push(movement.x, movement.y, movement.z);
                     }
                 }
 
@@ -147,15 +149,26 @@ public class AnemoTraveler extends GenshinPlayerBase {
             case START:
                 GenshinEntityData personInfo = info.getPersonInfo(this);
                 if (personInfo != null) {
-                    personInfo.setBurstTicksAnim(20 * 3);
+                    personInfo.setBurstTicksAnim(BURST_ANIM_TIME);
                 }
+
+                entity.setInvulnerable(true);
                 break;
 
             case TICK:
-                entity.setYRot(entity.getYRot() + 1);
+                double ySpeed = GenshinHeler.safeGetAttribute(entity, ForgeMod.ENTITY_GRAVITY.get()) + 0.005;
+                entity.push(0, ySpeed, 0);
                 break;
 
             case END:
+                entity.setInvulnerable(false);
+
+                if (!entity.getLevel().isClientSide()) {
+                    Tornado tornado = new Tornado(entity, 20 * 6, Elementals.ANEMO);
+                    Vec3 lookAngle = entity.getLookAngle();
+                    tornado.shoot(lookAngle.x, 0, lookAngle.z, 0.06f, 0);
+                    entity.getLevel().addFreshEntity(tornado);
+                }
                 break;
         }
     }

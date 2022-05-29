@@ -2,7 +2,7 @@ package com.gim.events.elemental;
 
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
-import com.gim.entity.ShieldEntity;
+import com.gim.entity.Shield;
 import com.gim.registry.Attributes;
 import com.gim.registry.Effects;
 import com.gim.registry.Elementals;
@@ -281,7 +281,7 @@ public class DamageEvent {
 
             // calculating health for shield
             double health = 5 * (safeGetAttribute(source.getEntity(), Attributes.level) + 1);
-            entity.getLevel().addFreshEntity(new ShieldEntity(entity, onEntity, (int) health));
+            entity.getLevel().addFreshEntity(new Shield(entity, onEntity, (int) health));
 
             return true;
         }
@@ -349,7 +349,7 @@ public class DamageEvent {
                 Arrays.stream(toRemove).forEach(x -> removeEffect(victim, x));
             }
 
-            GenshinAreaSpreading areaSpreading = new GenshinAreaSpreading(victim.getLevel(), victim.position(), source,
+            GenshinAreaSpreading areaSpreading = new GenshinAreaSpreading(attacker, victim.position(), source,
                     (float) (safeGetAttribute(attacker, Attributes.level) + (3 * majestyBonus(attacker))));
             areaSpreading.explode();
         }

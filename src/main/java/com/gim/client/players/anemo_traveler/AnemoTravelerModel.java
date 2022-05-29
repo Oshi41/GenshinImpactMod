@@ -2,15 +2,16 @@ package com.gim.client.players.anemo_traveler;
 
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.players.AnemoTraveler;
 import com.gim.registry.Capabilities;
+import com.google.common.collect.Iterables;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.LazyOptional;
 
 @OnlyIn(Dist.CLIENT)
 class AnemoTravelerModel extends PlayerModel<AbstractClientPlayer> {
@@ -35,24 +36,50 @@ class AnemoTravelerModel extends PlayerModel<AbstractClientPlayer> {
     }
 
     @Override
-    public void setupAnim(AbstractClientPlayer player, float p_103396_, float p_103397_, float p_103398_, float p_103399_, float p_103400_) {
-        super.setupAnim(player, p_103396_, p_103397_, p_103398_, p_103399_, p_103400_);
+    public void setupAnim(AbstractClientPlayer player, float animPosition, float animSpeed, float bobTicks, float yRot, float xRot) {
+        super.setupAnim(player, animPosition, animSpeed, bobTicks, yRot, xRot);
 
         if (skillTicks > 0) {
-            this.leftArm.xRot = this.rightArm.xRot = 5.2f;
-            this.rightArm.zRot = -1;
-            this.leftArm.zRot = 1;
-        }
+            float xRotation = bobTicks > 0
+                    ? 5.2f
+                    : 0;
 
-        if (burstTicks > 0) {
+            float zRot = bobTicks > 0
+                    ? 1
+                    : 0.4f;
 
+            if (canRotate(leftArmPose)) {
+                this.leftArm.setRotation(xRotation, this.leftArm.yRot, zRot);
+                this.leftSleeve.copyFrom(this.leftArm);
+            }
+
+            if (canRotate(rightArmPose)) {
+                this.rightArm.setRotation(xRotation, this.rightArm.yRot, -zRot);
+                this.rightSleeve.copyFrom(this.rightArm);
+            }
         }
     }
 
-    private GenshinEntityData getData(Player player) {
-        IGenshinInfo info = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
-        return info != null
-                ? info.getPersonInfo(info.current())
-                : null;
+    /**
+     * Checks if can rotate with current arm pose
+     */
+    private boolean canRotate(ArmPose armPose) {
+        return !armPose.isTwoHanded() &&
+                armPose != ArmPose.CROSSBOW_CHARGE &&
+                armPose != ArmPose.THROW_SPEAR;
+    }
+
+    /**
+     * Returns data for current player
+     */
+    public static GenshinEntityData getData(Entity player) {
+        if (player != null) {
+            IGenshinInfo info = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
+            if (info != null && info.current() != null) {
+                return info.getPersonInfo(info.current());
+            }
+        }
+
+        return null;
     }
 }

@@ -21,12 +21,12 @@ import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Random;
 
-public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
+public class Shield extends Entity implements IEntityAdditionalSpawnData {
 
     private Elementals elemental;
     private int hp;
 
-    public ShieldEntity(EntityType<?> type, Level level) {
+    public Shield(EntityType<?> type, Level level) {
         super(type, level);
         setInvulnerable(true);
     }
@@ -36,7 +36,7 @@ public class ShieldEntity extends Entity implements IEntityAdditionalSpawnData {
 
     }
 
-    public ShieldEntity(Entity source, Elementals elemental, int hp) {
+    public Shield(Entity source, Elementals elemental, int hp) {
         this(Entities.shield_entity_type, source.getLevel());
         this.elemental = elemental;
         this.hp = hp;

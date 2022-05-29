@@ -43,7 +43,7 @@ public class GenshinHeler {
         double value = safeGetAttribute(e, Attributes.elemental_majesty);
 
         return value > 0
-                ? (float) (16 * value / (value + 2000) / 100)
+                ? (float) (16 * value / (value + 2000))
                 : 0;
     }
 

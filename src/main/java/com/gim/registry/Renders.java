@@ -4,7 +4,8 @@ import com.gim.GenshinImpactMod;
 import com.gim.client.CustomTextureRender;
 import com.gim.client.IceRender;
 import com.gim.client.ShieldLayerRender;
-import com.gim.entity.ShieldEntity;
+import com.gim.client.players.anemo_traveler.TornadoRenderer;
+import com.gim.entity.Shield;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -30,7 +31,7 @@ public class Renders {
         //////////////////////
         e.registerEntityRenderer(Entities.shield_entity_type, c -> new CustomTextureRender<>(c) {
             @Override
-            public ResourceLocation getTextureLocation(ShieldEntity e) {
+            public ResourceLocation getTextureLocation(Shield e) {
                 return switch (e.getElemental()) {
                     case GEO ->
                             new ResourceLocation(GenshinImpactMod.ModID, "textures/entity/shield/yellow_crystal.png");
@@ -49,6 +50,8 @@ public class Renders {
                 };
             }
         });
+
+        e.registerEntityRenderer(Entities.tornado_entity_type, TornadoRenderer::new);
     }
 
     @SubscribeEvent

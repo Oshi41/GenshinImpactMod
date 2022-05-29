@@ -15,12 +15,14 @@ import java.util.List;
 
 public class GenshinAreaSpreading {
     private final Level level;
+    private final Entity entity;
     private final Vec3 center;
     private final DamageSource source;
     private final float radius;
 
-    public GenshinAreaSpreading(Level level, Vec3 center, DamageSource source, float radius) {
-        this.level = level;
+    public GenshinAreaSpreading(Entity entity, Vec3 center, DamageSource source, float radius) {
+        this.entity = entity;
+        this.level = entity.getLevel();
         this.center = center;
         this.source = source;
         this.radius = radius;
@@ -39,7 +41,7 @@ public class GenshinAreaSpreading {
 
         for (int k2 = 0; k2 < list.size(); ++k2) {
             Entity entity = list.get(k2);
-            if (!entity.ignoreExplosion()) {
+            if (!entity.ignoreExplosion() && entity != this.entity) {
                 double d12 = Math.sqrt(entity.distanceToSqr(this.center)) / (double) f2;
                 if (d12 <= 1.0D) {
                     double d5 = entity.getX() - this.center.x;

@@ -121,7 +121,7 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
                 && currentStack().contains(id)) {
             GenshinEntityData info = getPersonInfo(id);
             // character is alive and not in animation
-            if (info != null && info.getHealth() > 0 && info.getSkillTicksAnim() <= 0) {
+            if (info != null && info.getHealth() > 0 && info.getSkillTicksAnim() <= 0 && info.getBurstTicksAnim() <= 0) {
 
                 if (holder instanceof Player && ((Player) holder).isCreative()) {
                     return true;
@@ -151,17 +151,16 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
             if (data != null
                     // character is alive
                     && data.getHealth() > 0
-                    // cooldown is finished
-                    && ticksTillBurst(holder, id) <= 0
-                    // burst animation is finished
+                    // all animations are finished
+                    && data.getSkillTicksAnim() <= 0
                     && data.getBurstTicksAnim() <= 0) {
 
                 if (holder instanceof Player && ((Player) holder).isCreative()) {
                     return true;
                 }
 
-                // enough energy
-                return data.getEnergy() >= id.getAttributes().getValue(Attributes.burst_cost);
+                // cooldown finished and enough energy
+                return ticksTillBurst(holder, id) <= 0 && data.getEnergy() >= id.getAttributes().getValue(Attributes.burst_cost);
             }
         }
 

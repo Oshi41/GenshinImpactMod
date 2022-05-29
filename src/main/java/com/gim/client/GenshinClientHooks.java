@@ -18,6 +18,12 @@ import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class GenshinClientHooks {
+
+    /**
+     * Helping method for creating context
+     *
+     * @return - context for model creators
+     */
     private static EntityRendererProvider.Context createContext() {
         return new EntityRendererProvider.Context(
                 Minecraft.getInstance().getEntityRenderDispatcher(),
@@ -54,66 +60,4 @@ public class GenshinClientHooks {
 
         return original;
     }
-
-//    public static final CustomLazy<Collection<EntityRenderer<? extends Player>>> getPlayerRenders = new CustomLazy<>(() -> Minecraft.getInstance().getEntityRenderDispatcher().getSkinMap().values());
-//
-//    /**
-//     * Redirecting from AbstractClientPlayer.getSkinTextureLocation.
-//     * Coremod transformation
-//     *
-//     * @return - skin location
-//     */
-//    public static ResourceLocation getSkinTextureLocation(AbstractClientPlayer player) {
-//        IGenshinInfo genshinInfo = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
-//        // can show character skin
-//        if (genshinInfo != null && genshinInfo.current() != null && genshinInfo.current().getSkin() != null) {
-//            return genshinInfo.current().getSkin();
-//        }
-//
-//        // immitating vanilla code
-//        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-//        if (connection != null) {
-//            PlayerInfo info = connection.getPlayerInfo(player.getUUID());
-//            if (info != null) {
-//                return info.getSkinLocation();
-//            }
-//        }
-//
-//        return DefaultPlayerSkin.getDefaultSkin(player.getUUID());
-//    }
-//
-//
-//    /**
-//     * Redirecting from LivingEntityRenderer.getModel
-//     * Coremod transformation
-//     *
-//     * @param model  - entity model
-//     * @param source - renderer
-//     * @return
-//     */
-//    public static EntityModel getModel(EntityModel model, LivingEntityRenderer source) {
-//
-//        // it's a player actually
-//        if (getPlayerRenders.get().contains(source)) {
-//            LocalPlayer player = Minecraft.getInstance().player;
-//
-//            IGenshinInfo genshinInfo = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
-//            // Can show model
-//            if (genshinInfo != null && genshinInfo.current() != null && genshinInfo.current().getModel() != null) {
-//                return (EntityModel) genshinInfo.current().getModel();
-//            }
-//        }
-//
-//        return model;
-//    }
-//
-//    /**
-//     * Converts atlas texture location to full path to .png file
-//     *
-//     * @param location - atlas texture location
-//     * @return
-//     */
-//    public static ResourceLocation getResourceLocation(ResourceLocation location) {
-//        return new ResourceLocation(location.getNamespace(), String.format("textures/%s%s", location.getPath(), ".png"));
-//    }
 }
