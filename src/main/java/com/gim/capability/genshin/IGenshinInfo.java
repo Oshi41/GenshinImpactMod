@@ -1,10 +1,9 @@
 package com.gim.capability.genshin;
 
 import com.gim.players.base.IGenshinPlayer;
-import com.gim.registry.Attributes;
+import com.gim.registry.Elementals;
 import com.google.common.collect.Iterators;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -61,13 +60,6 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
 
         return ticksTillSwitch(holder) <= 0;
     }
-
-    /**
-     * Records current attack
-     *
-     * @param entry
-     */
-    void recordAttack(CombatEntry entry);
 
     /**
      * Returns active personage
@@ -160,7 +152,7 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
                 }
 
                 // cooldown finished and enough energy
-                return ticksTillBurst(holder, id) <= 0 && data.getEnergy() >= id.getAttributes().getValue(Attributes.burst_cost);
+                return ticksTillBurst(holder, id) <= 0 && data.burstInfo().getEnergyStored() >= data.burstInfo().getMaxEnergyStored();
             }
         }
 
@@ -204,4 +196,11 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
     void onSkill(LivingEntity holder);
 
     void onBurst(LivingEntity holder);
+
+    /**
+     * @param energy
+     * @param elemental
+     * @return
+     */
+    double consumeEnergy(double energy, Elementals elemental);
 }

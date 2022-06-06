@@ -25,6 +25,8 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
 
     private Elementals elemental;
     private int hp;
+    private double effectivity;
+    private int duration;
 
     public Shield(EntityType<?> type, Level level) {
         super(type, level);
@@ -36,10 +38,12 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
 
     }
 
-    public Shield(Entity source, Elementals elemental, int hp) {
+    public Shield(Entity source, Elementals elemental, int hp, double effectivity, int duration) {
         this(Entities.shield_entity_type, source.getLevel());
         this.elemental = elemental;
         this.hp = hp;
+        this.effectivity = effectivity;
+        this.duration = duration;
 
         Vec3 vec3 = new Vec3(source.getRandomX(2), source.getY(), source.getRandomZ(2));
         setPos(vec3);
@@ -51,7 +55,7 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
         this.move(MoverType.SELF, getDeltaMovement().add(0, -0.04, 0));
 
         // too old
-        if (tickCount > 17.5 * 20) {
+        if (tickCount > duration * 1.1) {
             discard();
         }
     }
@@ -98,8 +102,7 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
         // skipping tick delay
         if (tickCount > 3 * 20) {
             player.getCapability(Capabilities.SHIELDS).ifPresent(iShield -> {
-                double majesty = GenshinHeler.majestyBonus(player);
-                iShield.setShield(this.hp + (this.hp * (1 + majesty)), getElemental(), 17 * 20);
+                iShield.setShield(this.hp, this.effectivity, getElemental(), duration);
 
                 if (player instanceof ServerPlayer) {
                     GenshinImpactMod.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player), new CapabilityUpdatePackage(Capabilities.SHIELDS, iShield));
@@ -113,12 +116,16 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         hp = tag.getInt("ShieldHP");
+        duration = tag.getInt("Duration");
+        effectivity = tag.getDouble("Effectivity");
         elemental = GenshinHeler.safeGet(Elementals.class, tag.getString("Elemental"));
     }
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putInt("ShieldHP", hp);
+        tag.putInt("Duration", duration);
+        tag.putDouble("Effectivity", effectivity);
         tag.putString("Elemental", getElemental() != null ? getElemental().name() : "");
     }
 
@@ -135,6 +142,14 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
         return hp;
     }
 
+    public double getEffectivity() {
+        return effectivity;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
     @Override
     public void writeSpawnData(FriendlyByteBuf buffer) {
         String elementalName = getElemental() != null
@@ -143,11 +158,15 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
 
         buffer.writeUtf(elementalName);
         buffer.writeInt(getHp());
+        buffer.writeInt(getDuration());
+        buffer.writeDouble(getEffectivity());
     }
 
     @Override
     public void readSpawnData(FriendlyByteBuf additionalData) {
         this.elemental = GenshinHeler.safeGet(Elementals.class, additionalData.readUtf());
         this.hp = additionalData.readInt();
+        this.duration = additionalData.readInt();
+        this.effectivity = additionalData.readDouble();
     }
 }

@@ -1,7 +1,7 @@
 package com.gim.registry;
 
-import com.gim.particle.CircleParticle;
-import com.gim.particle.ElementalParticle;
+import com.gim.client.particle.CircleParticle;
+import com.gim.client.particle.ElementalParticle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;

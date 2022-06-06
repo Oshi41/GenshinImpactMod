@@ -1,8 +1,7 @@
-package com.gim.client.players.anemo_traveler;
+package com.gim.client.entity.players.anemo_traveler;
 
 import com.gim.capability.genshin.GenshinEntityData;
-import com.gim.client.CustomTextureRender;
-import com.gim.client.GenshinRender;
+import com.gim.client.overlay.GenshinRender;
 import com.gim.players.AnemoTraveler;
 import com.gim.registry.GenshinCharacters;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -179,15 +178,15 @@ public class AnemoTravelerRender extends PlayerRenderer {
      * Render vortex here
      */
     @Override
-    public void renderRightHand(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer p_117774_) {
-        model().prepareMobModel(p_117774_, 0, 0, 0);
+    public void renderRightHand(PoseStack poseStack, MultiBufferSource bufferSource, int light, AbstractClientPlayer player) {
+        model().prepareMobModel(player, 0, 0, 0);
 
         if (model().skillTicks > 0) {
             needToRenderOffsetArm = true;
-            renderVortex(poseStack, bufferSource, light, p_117774_);
+            renderVortex(poseStack, bufferSource, light, player);
         }
 
-        this.renderHand(poseStack, bufferSource, light, p_117774_, (this.model).rightArm, (this.model).rightSleeve);
+        this.renderHand(poseStack, bufferSource, light, player, (this.model).rightArm, (this.model).rightSleeve);
     }
 
     private void renderVortex(PoseStack poseStack, MultiBufferSource buffer, int light, Player player) {
@@ -221,7 +220,7 @@ public class AnemoTravelerRender extends PlayerRenderer {
      */
     @SubscribeEvent
     public void onRenderOffsetArm(RenderHandEvent event) {
-        if (event.getHand() == InteractionHand.OFF_HAND && needToRenderOffsetArm) {
+        if (InteractionHand.OFF_HAND.equals(event.getHand()) && needToRenderOffsetArm) {
             // turn off offset render flag
             needToRenderOffsetArm = false;
 

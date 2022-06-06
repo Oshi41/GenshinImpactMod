@@ -15,6 +15,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     private AttributeMap map;
     private List<MobEffectInstance> effects;
     private float health;
-    private float energy;
+    private EnergyStorage energy;
     private IGenshinPlayer assotiatedPlayer;
 
     private int skillTicksAnim;
@@ -62,11 +64,11 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         this(new AttributeMap(AttributeSupplier.builder().build()), new ArrayList<>(), 0, 0, GenshinCharacters.ANEMO_TRAVELER);
     }
 
-    public GenshinEntityData(AttributeMap map, Collection<MobEffectInstance> effects, float health, float energy, IGenshinPlayer assotiatedPlayer) {
+    public GenshinEntityData(AttributeMap map, Collection<MobEffectInstance> effects, float health, int energy, IGenshinPlayer assotiatedPlayer) {
         this.map = map;
         this.effects = effects.stream().filter(x -> x.getEffect().getRegistryName().getNamespace().equals(GenshinImpactMod.ModID)).collect(Collectors.toList());
         this.health = health;
-        this.energy = energy;
+        this.energy = new GenshinEnergyStorage(map, energy);
         this.assotiatedPlayer = assotiatedPlayer;
     }
 
@@ -80,17 +82,8 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     /**
      * Returns current energy count
      */
-    public float getEnergy() {
+    public IEnergyStorage burstInfo() {
         return energy;
-    }
-
-    /**
-     * Settings current energy count
-     *
-     * @param energy
-     */
-    public void setEnergy(float energy) {
-        this.energy = energy;
     }
 
     /**
@@ -122,6 +115,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         tag.putString("Character", assotiatedPlayer.getRegistryName().toString());
         tag.putInt("SkillAnim", getSkillTicksAnim());
         tag.putInt("BurstAnim", getBurstTicksAnim());
+        tag.put("Energy", energy.serializeNBT());
 
         if (!this.effects.isEmpty()) {
             ListTag listtag = new ListTag();
@@ -146,13 +140,14 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
             this.effects.add(MobEffectInstance.load(list.getCompound(i)));
         }
 
-        this.assotiatedPlayer = Registries.CHARACTERS.get().getValue(new ResourceLocation(nbt.getString("Character")));
+        this.assotiatedPlayer = Registries.characters().getValue(new ResourceLocation(nbt.getString("Character")));
         // new instance
         this.map = new AttributeMap(new AttributeSupplier.Builder(assotiatedPlayer.getAttributes()).build());
         this.map.load(nbt.getList("Attributes", 0));
 
         this.burstTicksAnim = nbt.getInt("BurstAnim");
         this.skillTicksAnim = nbt.getInt("SkillAnim");
+        energy.deserializeNBT(nbt.get("Energy"));
     }
 
     public void applyToEntity(LivingEntity entity) {

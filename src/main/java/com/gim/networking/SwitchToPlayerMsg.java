@@ -15,6 +15,7 @@ import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class SwitchToPlayerMsg {
@@ -36,7 +37,7 @@ public class SwitchToPlayerMsg {
     public boolean consume(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
 
-        if (context.getDirection().getReceptionSide() == LogicalSide.SERVER) {
+        if (Objects.equals(context.getDirection().getReceptionSide(), LogicalSide.SERVER)) {
             if (updatePlayer(context.getSender(), index)) {
                 GenshinImpactMod.CHANNEL.sendTo(this, context.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
                 return true;

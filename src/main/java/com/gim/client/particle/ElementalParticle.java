@@ -1,4 +1,4 @@
-package com.gim.particle;
+package com.gim.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
@@ -8,7 +8,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public class ElementalParticle extends TextureSheetParticle {
-    protected ElementalParticle(ClientLevel p_105773_, double p_105774_, double p_105775_, double p_105776_, double p_105777_, double p_105778_, double p_105779_) {
+    public ElementalParticle(ClientLevel p_105773_, double p_105774_, double p_105775_, double p_105776_, double p_105777_, double p_105778_, double p_105779_) {
         super(p_105773_, p_105774_, p_105775_, p_105776_);
         this.quadSize *= this.random.nextFloat() * 0.6F + 0.2F;
         this.xd = p_105777_ * (double) 0.2F + (Math.random() * 2.0D - 1.0D) * (double) 0.02F;

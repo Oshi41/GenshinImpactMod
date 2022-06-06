@@ -18,19 +18,4 @@ public class GenshinCapability {
         e.getEntityLiving().getCapability(Capabilities.GENSHIN_INFO).ifPresent(x -> x.tick(e.getEntityLiving()));
         e.getEntityLiving().getCapability(Capabilities.SHIELDS).ifPresent(IShield::tick);
     }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onLivingDamage(LivingDamageEvent e) {
-        if (!e.isCanceled() && e.getSource().getEntity() instanceof LivingEntity) {
-            e.getSource().getEntity().getCapability(Capabilities.GENSHIN_INFO).ifPresent(x -> {
-                x.recordAttack(new CombatEntry(
-                        e.getSource(),
-                        e.getSource().getEntity().tickCount,
-                        ((LivingEntity) e.getSource().getEntity()).getHealth(),
-                        e.getAmount(),
-                        null,
-                        e.getEntityLiving().fallDistance));
-            });
-        }
-    }
 }

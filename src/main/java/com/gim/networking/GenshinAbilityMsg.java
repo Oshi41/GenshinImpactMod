@@ -8,10 +8,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class GenshinAbilityMsg {
@@ -32,7 +34,7 @@ public class GenshinAbilityMsg {
     public boolean consume(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
 
-        if (context.getDirection().getReceptionSide() == LogicalSide.SERVER) {
+        if (Objects.equals(context.getDirection().getReceptionSide(), LogicalSide.SERVER)) {
             if (context.getSender() != null) {
                 if (onUse(context.getSender(), type)) {
                     GenshinImpactMod.CHANNEL.sendTo(this, context.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
@@ -65,7 +67,8 @@ public class GenshinAbilityMsg {
                 break;
 
             case BURST:
-                genshinInfo.getPersonInfo(genshinInfo.current()).setEnergy(0);
+                IEnergyStorage energyStorage = genshinInfo.getPersonInfo(genshinInfo.current()).burstInfo();
+                energyStorage.extractEnergy(energyStorage.getEnergyStored(), false);
                 genshinInfo.onBurst(entity);
                 break;
         }

@@ -1,4 +1,4 @@
-package com.gim.client;
+package com.gim.client.layers;
 
 import com.gim.capability.shield.IShield;
 import com.gim.registry.Capabilities;

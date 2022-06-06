@@ -1,68 +1,75 @@
 package com.gim.registry;
 
-import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinDamageSource;
+import net.minecraft.ChatFormatting;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public enum Elementals {
-    PYRO("pyro", Effects.PYRO, Attributes.pyro_bonus, Attributes.pyro_resistance, DamageSource::isFire, DamageSource::setIsFire),
-    HYDRO("hydro", Effects.HYDRO, Attributes.hydro_bonus, Attributes.hydro_resistance),
-    CRYO("cryo", Effects.CRYO, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, DamageSource.FREEZE),
-    ELECTRO("electro", Effects.ELECTRO, Attributes.electro_bonus, Attributes.electro_resistance, DamageSource.LIGHTNING_BOLT),
-    DENDRO("dendro", Effects.DENDRO, Attributes.dendro_bonus, Attributes.dendro_resistance),
-    ANEMO("anemo", Effects.ANEMO, Attributes.anemo_bonus, Attributes.anemo_resistance),
-    GEO("geo", Effects.GEO, Attributes.geo_bonus, Attributes.geo_resistance),
-    SUPERCONDUCT("superconduct", Effects.DEFENCE_DEBUFF, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor),
-    FROZEN("frozen", Effects.FROZEN),
+    PYRO("pyro", Effects.PYRO, Attributes.pyro_bonus, Attributes.pyro_resistance, DamageSource::setIsFire, null, ChatFormatting.RED),
+    HYDRO("hydro", Effects.HYDRO, Attributes.hydro_bonus, Attributes.hydro_resistance, null, null, ChatFormatting.DARK_BLUE),
+    CRYO("cryo", Effects.CRYO, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, DamageSource.FREEZE::equals, ChatFormatting.AQUA),
+    ELECTRO("electro", Effects.ELECTRO, Attributes.electro_bonus, Attributes.electro_resistance, null, DamageSource.LIGHTNING_BOLT::equals, ChatFormatting.LIGHT_PURPLE),
+    DENDRO("dendro", Effects.DENDRO, Attributes.dendro_bonus, Attributes.dendro_resistance, null, null, ChatFormatting.DARK_GREEN),
+    ANEMO("anemo", Effects.ANEMO, Attributes.anemo_bonus, Attributes.anemo_resistance, null, null, ChatFormatting.WHITE),
+    GEO("geo", Effects.GEO, Attributes.geo_bonus, Attributes.geo_resistance, null, null, ChatFormatting.GOLD),
+    SUPERCONDUCT("superconduct", Effects.DEFENCE_DEBUFF, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, null, ChatFormatting.LIGHT_PURPLE),
+    FROZEN("frozen", Effects.FROZEN, null, null, null, null, ChatFormatting.AQUA),
+    ELECTROCHARGED("electrocharged", Effects.ELECTROCHARGED, null, null, null, null, ChatFormatting.LIGHT_PURPLE),
+    BURNING("burning", Effects.BURNING, null, null, null, null, ChatFormatting.RED),
     ;
 
-    private String id;
-    private Predicate<DamageSource> possibleCheck;
-    private Function<DamageSource, DamageSource> transform;
-    private MobEffect effect;
+    private final String id;
+    private final Attribute bonus;
+    private final Attribute resistance;
+    private final Function<DamageSource, DamageSource> transform;
+    private final Predicate<DamageSource> additionalCheck;
+    private final MobEffect effect;
 
-    private Attribute bonus;
-    private Attribute resistance;
+    private final ChatFormatting chatColor;
+
+    Elementals(String id, MobEffect effect, Attribute bonus, Attribute resistance, Function<DamageSource, DamageSource> possibleTransform, Predicate<DamageSource> additionalCheck, ChatFormatting chatColor) {
+        this.chatColor = chatColor;
+        Objects.requireNonNull(id, "ID reqiured");
+        Objects.requireNonNull(effect, "Effect required");
+
+        this.id = id;
+        this.bonus = bonus;
+        this.resistance = resistance;
+        this.transform = possibleTransform == null ? x -> x : possibleTransform;
+        this.effect = effect;
+        this.additionalCheck = additionalCheck == null ? x -> false : additionalCheck;
+    }
 
     public boolean is(DamageSource source) {
-        return source != null && (possibleCheck.test(source) || source.getMsgId().equals(id));
+        return additionalCheck.test(source) || source instanceof GenshinDamageSource && this.equals(((GenshinDamageSource) source).getElement());
     }
 
     public boolean is(LivingEntity e) {
-        return e != null && e.hasEffect(this.getEffect());
+        return e != null && e.hasEffect(effect);
     }
 
-    /**
-     * Created damage source for current elemental
-     *
-     * @param attacker - possible attacker
-     * @return DamageSource/GenshinDamageSource if attacker is not null
-     */
-    public DamageSource create(@Nullable Entity attacker) {
-        DamageSource source = new DamageSource(id);
-        if (attacker != null) {
-            source = new GenshinDamageSource(source, attacker);
+    public GenshinDamageSource create(@Nullable Entity attacker) {
+        DamageSource raw = transform.apply(new GenshinDamageSource(transform.apply(new DamageSource(id)), attacker));
+
+        if (!(raw instanceof GenshinDamageSource)) {
+            String msg = String.format("Transformer for %s enum must return same type of DamageSource!", getClass().getName());
+            throw new ReportedException(CrashReport.forThrowable(new Exception(msg), msg));
         }
 
-        if (transform != null) {
-            source = transform.apply(source);
-        }
-
-        return source;
-    }
-
-    public DamageSource create() {
-        return create(null);
+        GenshinDamageSource result = (GenshinDamageSource) raw;
+        result.withElement(this);
+        return result;
     }
 
     public MobEffect getEffect() {
@@ -74,51 +81,11 @@ public enum Elementals {
         return bonus;
     }
 
-    @Nullable
     public Attribute getResistance() {
         return resistance;
     }
 
-    Elementals(String id, MobEffect effect) {
-        this(id, effect, null, null);
-    }
-
-    Elementals(String id, MobEffect effect, Attribute bonus, Attribute resistance) {
-        this(id, effect, bonus, resistance, x -> false, source -> source);
-    }
-
-    Elementals(String id, MobEffect effect, Attribute bonus, Attribute resistance, DamageSource... embedded) {
-        this(
-                id,
-                effect,
-                bonus,
-                resistance,
-                source -> source,
-                embedded
-        );
-    }
-
-    Elementals(String id, MobEffect effect, Function<DamageSource, DamageSource> transform) {
-        this(id, effect, null, null, transform);
-    }
-
-    Elementals(String id, MobEffect effect, Attribute bonus, Attribute resistance, Function<DamageSource, DamageSource> transform, DamageSource... embedded) {
-        this(
-                id,
-                effect,
-                bonus,
-                resistance,
-                source -> embedded != null && embedded.length > 0 && Arrays.asList(embedded).contains(source),
-                transform
-        );
-    }
-
-    Elementals(String id, MobEffect effect, Attribute bonus, Attribute resistance, Predicate<DamageSource> possibleCheck, Function<DamageSource, DamageSource> transform) {
-        this.id = GenshinImpactMod.ModID + "." + id;
-        this.possibleCheck = possibleCheck;
-        this.transform = transform;
-        this.effect = effect;
-        this.bonus = bonus;
-        this.resistance = resistance;
+    public ChatFormatting getChatColor() {
+        return chatColor;
     }
 }

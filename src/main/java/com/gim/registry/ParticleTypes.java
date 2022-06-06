@@ -1,6 +1,7 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraftforge.event.RegistryEvent;

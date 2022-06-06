@@ -1,4 +1,4 @@
-package com.gim.client.players.anemo_traveler;
+package com.gim.client.entity.players.anemo_traveler;
 
 import com.gim.entity.Tornado;
 import com.gim.registry.Elementals;

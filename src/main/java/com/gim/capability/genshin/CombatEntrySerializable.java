@@ -10,13 +10,11 @@ import net.minecraft.world.damagesource.IndirectEntityDamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.Lazy;
-import org.antlr.v4.runtime.misc.EqualityComparator;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
+@Deprecated
 public class CombatEntrySerializable {
     private static final Lazy<List<DamageSource>> loadDefaults = Lazy.of(() -> Arrays.stream(DamageSource.class.getDeclaredFields()).filter(x -> Modifier.isStatic(x.getModifiers()) && Modifier.isFinal(x.getModifiers()))
             .map(x -> {
@@ -109,19 +107,21 @@ public class CombatEntrySerializable {
         }
 
         if (source instanceof GenshinDamageSource) {
-            if (((GenshinDamageSource) source).isSkill())
-                damageSourceTag.putBoolean("Skill", true);
+            GenshinDamageSource genshinDamageSource = (GenshinDamageSource) source;
 
-            if (((GenshinDamageSource) source).isBurst())
-                damageSourceTag.putBoolean("Burst", true);
+            if (genshinDamageSource.skillOf() != null)
+                damageSourceTag.putString("Skill", genshinDamageSource.skillOf().getRegistryName().toString());
 
-            if (((GenshinDamageSource) source).shouldIgnoreBonus())
+            if (genshinDamageSource.burstOf() != null)
+                damageSourceTag.putString("Burst", genshinDamageSource.burstOf().getRegistryName().toString());
+
+            if (genshinDamageSource.shouldIgnoreBonus())
                 damageSourceTag.putBoolean("IgnoreBonus", true);
 
-            if (((GenshinDamageSource) source).shouldIgnoreResistance())
+            if (genshinDamageSource.shouldIgnoreResistance())
                 damageSourceTag.putBoolean("IgnoreResist", true);
 
-            damageSourceTag.put("InnerSource", serialize(((GenshinDamageSource) source).getInnerSource()));
+            damageSourceTag.put("InnerSource", serialize(genshinDamageSource.getInnerSource()));
         }
 
         if (source instanceof EntityDamageSource) {
@@ -169,13 +169,13 @@ public class CombatEntrySerializable {
         if (damageSourceClass.equals(GenshinDamageSource.class)) {
             GenshinDamageSource genshinDamageSource = new GenshinDamageSource(deserializeDamageSource(level, nbt.getCompound("InnerSource")), entity);
 
-            if (nbt.getBoolean("Skill")) {
-                genshinDamageSource.bySkill();
-            }
-
-            if (nbt.getBoolean("Burst")) {
-                genshinDamageSource.byBurst();
-            }
+//            if (nbt.getBoolean("Skill")) {
+//                genshinDamageSource.bySkill();
+//            }
+//
+//            if (nbt.getBoolean("Burst")) {
+//                genshinDamageSource.byBurst();
+//            }
 
             if (nbt.getBoolean("IgnoreBonus")) {
                 genshinDamageSource.ignoreElementalBonus();

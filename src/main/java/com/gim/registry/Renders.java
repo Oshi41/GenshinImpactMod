@@ -1,10 +1,12 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.client.CustomTextureRender;
-import com.gim.client.IceRender;
-import com.gim.client.ShieldLayerRender;
-import com.gim.client.players.anemo_traveler.TornadoRenderer;
+import com.gim.client.entity.CustomTextureRender;
+import com.gim.client.entity.EnergyRenderer;
+import com.gim.client.entity.TextureParticleRenderer;
+import com.gim.client.layers.IceRender;
+import com.gim.client.layers.ShieldLayerRender;
+import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
 import com.gim.entity.Shield;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -52,6 +54,8 @@ public class Renders {
         });
 
         e.registerEntityRenderer(Entities.tornado_entity_type, TornadoRenderer::new);
+        e.registerEntityRenderer(Entities.text_particle_entity_type, TextureParticleRenderer::new);
+        e.registerEntityRenderer(Entities.energy_type, EnergyRenderer::new);
     }
 
     @SubscribeEvent

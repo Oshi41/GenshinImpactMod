@@ -1,4 +1,4 @@
-package com.gim.client.players.anemo_traveler;
+package com.gim.client.entity.players.anemo_traveler;
 
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
@@ -58,14 +58,29 @@ class AnemoTravelerModel extends PlayerModel<AbstractClientPlayer> {
                 this.rightSleeve.copyFrom(this.rightArm);
             }
         }
+
+        // 3-rd face
+        if (burstTicks > 0 && bobTicks == 0) {
+
+            float rotation = ((float) Math.PI) * 3f / AnemoTraveler.BURST_ANIM_TIME * (AnemoTraveler.BURST_ANIM_TIME - burstTicks);
+
+            if (canRotate(leftArmPose)) {
+                this.leftArm.setRotation(0, 0, rotation);
+                this.leftSleeve.copyFrom(this.leftArm);
+            }
+
+            if (canRotate(rightArmPose)) {
+                this.rightArm.setRotation(0, 0, rotation);
+                this.rightSleeve.copyFrom(this.rightArm);
+            }
+        }
     }
 
     /**
      * Checks if can rotate with current arm pose
      */
     private boolean canRotate(ArmPose armPose) {
-        return !armPose.isTwoHanded() &&
-                armPose != ArmPose.CROSSBOW_CHARGE &&
+        return armPose != ArmPose.CROSSBOW_CHARGE &&
                 armPose != ArmPose.THROW_SPEAR;
     }
 

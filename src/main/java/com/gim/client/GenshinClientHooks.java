@@ -1,11 +1,16 @@
 package com.gim.client;
 
 import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.client.players.anemo_traveler.AnemoTravelerRender;
+import com.gim.client.entity.players.anemo_traveler.AnemoTravelerRender;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
 import com.gim.registry.GenshinCharacters;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.world.entity.Entity;

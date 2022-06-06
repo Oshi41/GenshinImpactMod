@@ -1,6 +1,8 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
+import com.gim.entity.Energy;
+import com.gim.entity.TextParticle;
 import com.gim.entity.Shield;
 import com.gim.entity.Tornado;
 import com.google.common.collect.ImmutableSet;
@@ -19,6 +21,10 @@ public class Entities {
 
     public static final EntityType<Shield> shield_entity_type = null;
     public static final EntityType<Tornado> tornado_entity_type = null;
+
+    public static final EntityType<TextParticle> text_particle_entity_type = null;
+
+    public static final EntityType<Energy> energy_type = null;
 
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
@@ -45,7 +51,31 @@ public class Entities {
                         new EntityDimensions(2, 5, true),
                         16,
                         5)
-                        .setRegistryName(GenshinImpactMod.ModID, "tornado_entity_type")
+                        .setRegistryName(GenshinImpactMod.ModID, "tornado_entity_type"),
+
+                new EntityType<>(TextParticle::new,
+                        MobCategory.AMBIENT,
+                        true,
+                        true,
+                        true,
+                        false,
+                        ImmutableSet.<Block>builder().build(),
+                        new EntityDimensions(2.5f, 0.1f, true),
+                        16,
+                        5)
+                        .setRegistryName(GenshinImpactMod.ModID, "text_particle_entity_type"),
+
+                new EntityType<>(Energy::new,
+                        MobCategory.AMBIENT,
+                        true,
+                        true,
+                        true,
+                        false,
+                        ImmutableSet.<Block>builder().build(),
+                        new EntityDimensions(0.5f, 0.5f, true),
+                        16 * 2,
+                        5)
+                        .setRegistryName(GenshinImpactMod.ModID, "energy_type")
         );
     }
 }

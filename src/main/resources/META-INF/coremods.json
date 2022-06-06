@@ -1,4 +1,3 @@
 {
-  "redirect_field_to_methods": "coremods/redirect_field_to_methods.js",
   "redirect_methods": "coremods/redirect_methods.js"
 }

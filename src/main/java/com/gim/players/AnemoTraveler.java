@@ -3,9 +3,11 @@ package com.gim.players;
 import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
+import com.gim.attack.GenshinCombatTracker;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.entity.Energy;
 import com.gim.entity.Tornado;
 import com.gim.players.base.GenshinPhase;
 import com.gim.players.base.GenshinPlayerBase;
@@ -25,6 +27,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 
 import java.util.List;
+import java.util.Map;
 
 public class AnemoTraveler extends GenshinPlayerBase {
     public static int SKILL_ANIM_TIME = 20 * 2;
@@ -53,9 +56,9 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    protected void onSkillTick(LivingEntity holder, IGenshinInfo info, List<CombatEntry> currentAttacks, GenshinPhase phase) {
-        double skillAdditive = GenshinHeler.safeGetAttribute(holder, Attributes.skill_level) / 8f;
-        double range = 3f + skillAdditive;
+    protected void onSkillTick(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, GenshinPhase phase) {
+        double skillAdditive = GenshinHeler.safeGetAttribute(holder, Attributes.skill_level) / 7f;
+        double range = 1.5f + skillAdditive;
 
         switch (phase) {
             // starting skill animation
@@ -105,10 +108,21 @@ public class AnemoTraveler extends GenshinPlayerBase {
                     holder.getLevel().addParticle(ParticleTypes.EXPLOSION, holder.getX() + 0.5D, holder.getY() + 1, holder.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
                 } else {
                     // area explosion
-                    GenshinDamageSource source = ((GenshinDamageSource) getElemental().create(holder)).bySkill();
+                    GenshinDamageSource source = getElemental().create(holder).bySkill(this);
                     Vec3 vector = holder.getEyePosition().add(holder.getLookAngle().normalize().scale(2));
                     GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder, vector, source, ((float) range));
-                    spreading.explode();
+                    Map<Entity, Float> entityFloatMap = spreading.explode();
+
+                    // need to spawn energy orbs
+                    if (entityFloatMap.size() > 0) {
+                        double count = GenshinHeler.gaussian(holder.getRandom(), 2, 3.5);
+                        // find first hitted entity
+                        Entity entity = entityFloatMap.keySet().stream().findFirst().orElse(null);
+                        for (int i = 0; i < count; i++) {
+                            // adding energy in world
+                            holder.getLevel().addFreshEntity(new Energy(holder, entity, 1, getElemental()));
+                        }
+                    }
 
                     List<Entity> entities = getAffectedEntities(holder, range);
 
@@ -117,10 +131,6 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         entity.push(movement.x, movement.y, movement.z);
                     }
                 }
-
-                // adding current attack in attack history
-                currentAttacks.add(new CombatEntry(((GenshinDamageSource) getElemental().create(holder)).bySkill(),
-                        holder.tickCount, 0, holder.getHealth(), null, holder.fallDistance));
                 break;
         }
     }
@@ -143,7 +153,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    protected void onBurstTick(LivingEntity entity, IGenshinInfo info, List<CombatEntry> currentAttacks, GenshinPhase phase) {
+    protected void onBurstTick(LivingEntity entity, IGenshinInfo info, GenshinCombatTracker tracker, GenshinPhase phase) {
 
         switch (phase) {
             case START:
@@ -157,7 +167,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
 
             case TICK:
                 double ySpeed = GenshinHeler.safeGetAttribute(entity, ForgeMod.ENTITY_GRAVITY.get()) + 0.005;
-                entity.push(0, ySpeed, 0);
+                entity.setDeltaMovement(0, ySpeed, 0);
                 break;
 
             case END:
@@ -166,7 +176,8 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 if (!entity.getLevel().isClientSide()) {
                     Tornado tornado = new Tornado(entity, 20 * 6, Elementals.ANEMO);
                     Vec3 lookAngle = entity.getLookAngle();
-                    tornado.shoot(lookAngle.x, 0, lookAngle.z, 0.06f, 0);
+                    lookAngle = new Vec3(lookAngle.x, 0, lookAngle.z).normalize();
+                    tornado.shoot(lookAngle.x, 0, lookAngle.z, 0.5f, 0);
                     entity.getLevel().addFreshEntity(tornado);
                 }
                 break;

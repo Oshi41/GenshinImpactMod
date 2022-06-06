@@ -1,5 +1,6 @@
 package com.gim.players.base;
 
+import com.gim.attack.GenshinCombatTracker;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Elementals;
@@ -15,6 +16,7 @@ import net.minecraftforge.registries.IForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Stack;
 
 public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
 
@@ -50,54 +52,49 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      *
      * @param entity  - holder
      * @param info    - entity info
-     * @param attacks - current attack list
+     * @param tracker - attacks tracker
      */
-    int ticksTillBurst(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks);
+    int ticksTillBurst(LivingEntity entity, GenshinEntityData info, GenshinCombatTracker tracker);
 
     /**
      * Calculates time for next skill attacks
-     *
-     * @param entity
-     * @param info
-     * @param attacks
-     * @return
      */
-    int ticksTillSkill(LivingEntity entity, GenshinEntityData info, List<CombatEntry> attacks);
+    int ticksTillSkill(LivingEntity entity, GenshinEntityData info, GenshinCombatTracker tracker);
 
     /**
      * Called to perform attack
      *
-     * @param holder         - current entity
-     * @param data           - current character data
-     * @param currentAttacks - attacks history
+     * @param holder  - current entity
+     * @param data    - current character data
+     * @param tracker - attacks tracker
      */
-    void performSkill(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks);
+    void performSkill(LivingEntity holder, IGenshinInfo data, GenshinCombatTracker tracker);
 
     /**
      * Called to perform a burst attack
      *
-     * @param holder         - current entity
-     * @param data           - entity data
-     * @param currentAttacks - attacks history
+     * @param holder  - current entity
+     * @param data    - entity data
+     * @param tracker - attacks tracker
      */
-    void performBurst(LivingEntity holder, IGenshinInfo data, List<CombatEntry> currentAttacks);
+    void performBurst(LivingEntity holder, IGenshinInfo data, GenshinCombatTracker tracker);
 
     /**
      * Called every tick for current team
      *
-     * @param holder         - entity holder
-     * @param info           - current entity info
-     * @param currentAttacks - current attack history
+     * @param holder  - entity holder
+     * @param info    - current entity info
+     * @param tracker - attacks tracker
      */
-    void onTick(LivingEntity holder, IGenshinInfo info, List<CombatEntry> currentAttacks);
+    void onTick(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker);
 
     /**
      * Called on switch player
      *
-     * @param holder         - current player
-     * @param info           - current character info
-     * @param currentAttacks - attack history
-     * @param isActive       - is character active
+     * @param holder   - current player
+     * @param info     - current character info
+     * @param tracker  - attacks tracker
+     * @param isActive - is character active
      */
-    void onSwitch(LivingEntity holder, IGenshinInfo info, List<CombatEntry> currentAttacks, boolean isActive);
+    void onSwitch(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, boolean isActive);
 }

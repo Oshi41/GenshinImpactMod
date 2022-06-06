@@ -18,6 +18,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
@@ -27,6 +28,7 @@ import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 
 public class GenshinHeler {
     private static final Field playerByUuidField = ObfuscationReflectionHelper.findField(PlayerList.class, "f_11197_");
@@ -162,26 +164,36 @@ public class GenshinHeler {
     /**
      * Removes effect from entity and saves changes to client
      *
-     * @param e      - current entity
-     * @param effect - removing effect
+     * @param e       - current entity
+     * @param effects - list of removing effects
      * @return
      */
-    public static boolean removeEffect(Entity e, MobEffect effect) {
+    public static boolean removeEffects(Entity e, MobEffect... effects) {
         if (e instanceof LivingEntity
-                && effect != null
-                && !e.getLevel().isClientSide()
-                && ((LivingEntity) e).removeEffect(effect)) {
-            ((ServerLevel) e.getLevel()).getServer().getPlayerList().broadcast(
-                    null,
-                    e.getX(),
-                    e.getY(),
-                    e.getZ(),
-                    16,
-                    e.getLevel().dimension(),
-                    new ClientboundRemoveMobEffectPacket(e.getId(), effect)
-            );
+                && e.getLevel() instanceof ServerLevel
+                && effects != null
+                && effects.length > 0) {
+            int count = 0;
+            LivingEntity livingEntity = (LivingEntity) e;
+            ServerLevel serverLevel = (ServerLevel) e.getLevel();
 
-            return true;
+            for (MobEffect effect : effects) {
+                if (livingEntity.removeEffect(effect)) {
+                    serverLevel.getServer().getPlayerList().broadcast(
+                            null,
+                            e.getX(),
+                            e.getY(),
+                            e.getZ(),
+                            16,
+                            e.getLevel().dimension(),
+                            new ClientboundRemoveMobEffectPacket(e.getId(), effect)
+                    );
+
+                    count++;
+                }
+            }
+
+            return count > 0;
         }
 
         return false;
@@ -231,6 +243,19 @@ public class GenshinHeler {
             AttributeInstance instance = ((LivingEntity) entity).getAttribute(attribute);
             if (instance != null) {
                 return instance.getValue();
+            }
+        }
+
+        return 0;
+    }
+
+    public static double safeGetAttribute(AttributeMap map, Attribute attribute) {
+        if (map != null && attribute != null) {
+            if (map.hasAttribute(attribute)) {
+                AttributeInstance instance = map.getInstance(attribute);
+                if (instance != null) {
+                    return instance.getValue();
+                }
             }
         }
 
@@ -303,5 +328,12 @@ public class GenshinHeler {
      */
     public static Color withAlpha(Color source, float alpha) {
         return new Color(source.getRed() / 255f, source.getGreen() / 255f, source.getBlue() / 255f, alpha / 255f);
+    }
+
+    public static double gaussian(Random random, double from, double to) {
+        double distance = to - from;
+        double middle = from + distance / 2.0;
+        double scale = to - middle;
+        return random.nextGaussian(middle, scale);
     }
 }

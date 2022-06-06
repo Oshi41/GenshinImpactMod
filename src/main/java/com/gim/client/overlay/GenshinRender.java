@@ -1,13 +1,13 @@
-package com.gim.client;
+package com.gim.client.overlay;
 
 import com.gim.GenshinHeler;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.client.layers.ShieldLayerRender;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.KeyMappings;
 import com.google.common.collect.Iterators;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -20,14 +20,13 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.gui.ForgeIngameGui;
 import net.minecraftforge.client.gui.GuiUtils;
 import net.minecraftforge.client.gui.IIngameOverlay;
-import org.lwjgl.opengl.GL11;
+import net.minecraftforge.energy.IEnergyStorage;
 
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -52,7 +51,7 @@ public class GenshinRender implements IIngameOverlay {
             return;
 
         // at least 4 players in the stack
-        int end = Math.max(4, info.currentStack().size());
+        int end = info.currentStack().size();
 
         int xStart = width - 32;
         int y = height / 5;
@@ -178,7 +177,8 @@ public class GenshinRender implements IIngameOverlay {
 
             // render energy bar
             Color color = ShieldLayerRender.getColor(info.current().getElemental());
-            int energyHeight = (int) (info.getPersonInfo(info.current()).getEnergy() / info.getPersonInfo(info.current()).getAttributes().getValue(Attributes.burst_cost) * size);
+            IEnergyStorage energyStorage = info.getPersonInfo(info.current()).burstInfo();
+            int energyHeight = energyStorage.getEnergyStored() / energyStorage.getMaxEnergyStored() * size;
             GuiUtils.drawGradientRect(mStack.last().pose(), 0, xStart,
                     // top height is stopping by energy maximum of current player
                     y + (size - energyHeight), xStart + size,

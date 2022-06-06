@@ -45,7 +45,7 @@ public class CapabilityUpdatePackage {
     public boolean consume(Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
 
-        if (context.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+        if (Objects.equals(context.getDirection().getReceptionSide() , LogicalSide.CLIENT)) {
             updateClientCap();
         } else {
             updateCap(context.getSender());

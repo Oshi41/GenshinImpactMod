@@ -19,6 +19,11 @@ public interface IShield extends INBTSerializable<CompoundTag> {
     double getHp();
 
     /**
+     * How effectively shield absorbs damage
+     */
+    double getEffectivity();
+
+    /**
      * shield element
      *
      * @return
@@ -39,7 +44,7 @@ public interface IShield extends INBTSerializable<CompoundTag> {
      * @param elemental - current shield elemental
      * @param ticks     - ticks duration
      */
-    void setShield(double hp, Elementals elemental, int ticks);
+    void setShield(double hp, double effectivity, Elementals elemental, int ticks);
 
     /**
      * damage shield
@@ -65,7 +70,7 @@ public interface IShield extends INBTSerializable<CompoundTag> {
             return amount;
 
         double strength = 0;
-        double bonus = 0.4;
+        double bonus = getEffectivity();
 
         // actual shield strength of entity
         AttributeInstance instance = victim.getAttribute(Attributes.shield_strength);

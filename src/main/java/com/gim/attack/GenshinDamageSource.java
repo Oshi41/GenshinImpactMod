@@ -1,8 +1,12 @@
 package com.gim.attack;
 
+import com.gim.players.base.IGenshinPlayer;
+import com.gim.registry.ElementalReactions;
+import com.gim.registry.Elementals;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.entity.Entity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -10,8 +14,10 @@ public class GenshinDamageSource extends EntityDamageSource {
     private final DamageSource source;
     private boolean ignoreResistance;
     private boolean ignoreBonus;
-    private boolean skill;
-    private boolean burst;
+    private IGenshinPlayer skill;
+    private IGenshinPlayer burst;
+    private ElementalReactions reaction;
+    private Elementals element;
 
     public GenshinDamageSource(DamageSource source, Entity entity) {
         super(source.getMsgId(), entity);
@@ -77,30 +83,69 @@ public class GenshinDamageSource extends EntityDamageSource {
     /**
      * Current damage source came from skill attack
      */
-    public boolean isSkill() {
+    @Nullable
+    public IGenshinPlayer skillOf() {
         return skill;
     }
 
     /**
      * Damage source is coming from skill attack
      */
-    public GenshinDamageSource bySkill() {
-        this.skill = true;
+    public GenshinDamageSource bySkill(IGenshinPlayer player) {
+        this.skill = player;
         return this;
     }
 
     /**
      * Current damage source came from burst attack
      */
-    public boolean isBurst() {
+    @Nullable
+    public IGenshinPlayer burstOf() {
         return burst;
     }
 
     /**
      * damage source is coming from burst attack
      */
-    public GenshinDamageSource byBurst() {
-        this.burst = true;
+    public GenshinDamageSource byBurst(IGenshinPlayer player) {
+        this.burst = player;
+        return this;
+    }
+
+    /**
+     * Elemental reaction for this
+     *
+     * @return
+     */
+    @Nullable
+    public ElementalReactions possibleReaction() {
+        return reaction;
+    }
+
+    /**
+     * Damage source was caused by current elemental reaction
+     *
+     * @param reaction - elemental reaction
+     */
+    public GenshinDamageSource byElementalReaction(ElementalReactions reaction) {
+        this.reaction = reaction;
+        return this;
+    }
+
+    /**
+     * Returns possible damaging element
+     */
+    public Elementals getElement() {
+        return element;
+    }
+
+    /**
+     * Set current damagin element
+     *
+     * @param element - current element
+     */
+    public GenshinDamageSource withElement(Elementals element) {
+        this.element = element;
         return this;
     }
 }

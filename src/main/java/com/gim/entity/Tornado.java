@@ -28,6 +28,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Tornado extends Projectile {
     private static final List<Elementals> SPREADING = ImmutableList.of(Elementals.HYDRO, Elementals.PYRO, Elementals.ELECTRO, Elementals.CRYO, Elementals.DENDRO);
@@ -44,7 +45,8 @@ public class Tornado extends Projectile {
         withElement(source);
         setOwner(owner);
 
-        setPos(owner.position().add(owner.getLookAngle()));
+        // player is above 3 blocks height
+        setPos(owner.position().add(0, -3, 0).add(owner.getLookAngle()));
     }
 
     @Override
@@ -61,26 +63,26 @@ public class Tornado extends Projectile {
             return;
 
         // middle of tornado
-        Vec3 currentPosition = position();
+        Vec3 currentPosition = getEyePosition();
 
         // Sucking entities to tornado (except owner)
         for (Entity entity : getLevel().getEntities(getOwner(), getWorkingArea())) {
             // except tornado entity
-            if (entity == this) {
+            if (Objects.equals(entity, this)) {
                 continue;
             }
 
-            // scale based on level
-            double scale = (1 + GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level)) / 4;
-            Vec3 speed = currentPosition.subtract(entity.position()).normalize().scale(scale);
+            Vec3 entityPosition = entity.position();
+            double distance = currentPosition.distanceTo(entityPosition);
+            Vec3 speed = currentPosition.subtract(entityPosition).normalize().scale(distance / 20);
             entity.push(speed.x, speed.y, speed.z);
         }
 
         Vec3 vec3 = this.getDeltaMovement();
+        // doing gravity here
         this.move(MoverType.SELF, this.getDeltaMovement().add(0, -ForgeMod.ENTITY_GRAVITY.get().getDefaultValue(), 0));
 
         // slowing down by percent for tick
-        // doing gravity here
         this.setDeltaMovement(vec3.scale(0.99F));
     }
 
@@ -90,9 +92,12 @@ public class Tornado extends Projectile {
     }
 
     @Override
-    public void push(Entity entity) {
-        super.push(entity);
+    public boolean isPushable() {
+        return isAlive();
+    }
 
+    @Override
+    public void push(Entity entity) {
         Elementals element = getElement();
         // no element or no owner
         if (element == null) {
@@ -100,7 +105,7 @@ public class Tornado extends Projectile {
         }
 
         // trying to perform elemental reactions
-        if (element == Elementals.ANEMO && entity instanceof LivingEntity) {
+        if (Objects.equals(element, Elementals.ANEMO) && entity instanceof LivingEntity) {
             LivingEntity living = (LivingEntity) entity;
             for (Elementals e : SPREADING) {
                 // perform elemental infusion
@@ -112,10 +117,15 @@ public class Tornado extends Projectile {
             }
         }
 
-        double skill = GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level);
-        double level = GenshinHeler.safeGetAttribute(getOwner(), Attributes.level);
+        double skill = GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level) + 1;
+        double level = GenshinHeler.safeGetAttribute(getOwner(), Attributes.level) + 1;
 
         float damage = (float) (skill * level);
+
+        // +30.7% percent of damage
+        if (element != Elementals.ANEMO) {
+            damage = damage * 1.307f;
+        }
 
         DamageSource damageSource = element.create(getOwner() == null ? this : getOwner());
         entity.hurt(damageSource, damage);
@@ -166,12 +176,11 @@ public class Tornado extends Projectile {
     }
 
     private AABB getWorkingArea() {
-        float majestyBonus = GenshinHeler.majestyBonus(getOwner());
-        double skillLevel = GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level);
+        Vec3 vec3 = new Vec3(2, .2, 2);
 
-        double range = (1 + majestyBonus) * (1 + skillLevel) / Attributes.skill_level.getMaxValue() / 2 * 2.5;
-        Vec3 vec3 = new Vec3(range, .2, range);
+        AABB boundingBox = getBoundingBox();
+        AABB result = boundingBox.expandTowards(vec3).expandTowards(vec3.reverse());
 
-        return getBoundingBox().expandTowards(vec3).expandTowards(vec3.reverse());
+        return result;
     }
 }

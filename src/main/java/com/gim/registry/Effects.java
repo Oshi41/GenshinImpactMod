@@ -33,6 +33,11 @@ public class Effects {
     public static final MobEffect DEFENCE_DEBUFF = null;
     @ObjectHolder("frozen")
     public static final MobEffect FROZEN = null;
+    @ObjectHolder("electro_charged")
+    public static final MobEffect ELECTROCHARGED = null;
+
+    @ObjectHolder("burning")
+    public static final MobEffect BURNING = null;
 
     @SubscribeEvent
     public static void onEffectRegistry(final RegistryEvent.Register<MobEffect> event) {
@@ -73,7 +78,13 @@ public class Effects {
                         .setRegistryName(GenshinImpactMod.ModID, "defence_debuff"),
 
                 new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
-                        .setRegistryName(GenshinImpactMod.ModID, "frozen")
+                        .setRegistryName(GenshinImpactMod.ModID, "frozen"),
+
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
+                        .setRegistryName(GenshinImpactMod.ModID, "electro_charged"),
+
+                new GenshinMobEffect(MobEffectCategory.HARMFUL, 0)
+                        .setRegistryName(GenshinImpactMod.ModID, "burning")
         );
     }
 }
