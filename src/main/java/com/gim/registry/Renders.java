@@ -11,6 +11,7 @@ import com.gim.entity.Shield;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -69,6 +70,7 @@ public class Renders {
                     list.add(renderer);
                 }
             } catch (Exception e) {
+                GenshinImpactMod.LOGGER.debug("Error during adding layers to LivingEntityRenderer at EntityRenderersEvent.AddLayers event");
                 GenshinImpactMod.LOGGER.debug(e);
             }
         }
@@ -88,6 +90,7 @@ public class Renders {
             renderer.addLayer(new ShieldLayerRender(renderer));
             renderer.addLayer(new IceRender(renderer));
         } catch (Exception e) {
+            GenshinImpactMod.LOGGER.debug("Error during injecting custom layers to LivingEntityRenderer");
             GenshinImpactMod.LOGGER.debug(e);
         }
     }

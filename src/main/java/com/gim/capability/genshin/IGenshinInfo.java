@@ -198,9 +198,10 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
     void onBurst(LivingEntity holder);
 
     /**
+     * @param holder
      * @param energy
      * @param elemental
      * @return
      */
-    double consumeEnergy(double energy, Elementals elemental);
+    double consumeEnergy(LivingEntity holder, double energy, Elementals elemental);
 }

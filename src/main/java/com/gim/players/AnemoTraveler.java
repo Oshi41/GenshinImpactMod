@@ -15,6 +15,7 @@ import com.gim.registry.Attributes;
 import com.gim.registry.Elementals;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.Entity;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 
@@ -160,26 +162,28 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 GenshinEntityData personInfo = info.getPersonInfo(this);
                 if (personInfo != null) {
                     personInfo.setBurstTicksAnim(BURST_ANIM_TIME);
+                    entity.setInvulnerable(true);
+                    // storing y rotation
+                    personInfo.getAdditional().putFloat("YHeadRot", entity.getYHeadRot());
                 }
 
-                entity.setInvulnerable(true);
                 break;
 
             case TICK:
-                double ySpeed = GenshinHeler.safeGetAttribute(entity, ForgeMod.ENTITY_GRAVITY.get()) + 0.005;
+                double ySpeed = GenshinHeler.safeGetAttribute(entity, ForgeMod.ENTITY_GRAVITY.get()) + 0.004;
                 entity.setDeltaMovement(0, ySpeed, 0);
                 break;
 
             case END:
                 entity.setInvulnerable(false);
 
-                if (!entity.getLevel().isClientSide()) {
-                    Tornado tornado = new Tornado(entity, 20 * 6, Elementals.ANEMO);
-                    Vec3 lookAngle = entity.getLookAngle();
-                    lookAngle = new Vec3(lookAngle.x, 0, lookAngle.z).normalize();
-                    tornado.shoot(lookAngle.x, 0, lookAngle.z, 0.5f, 0);
+                personInfo = info.getPersonInfo(this);
+                if (personInfo != null && !entity.getLevel().isClientSide()) {
+                    // launching tornado by saved rotation
+                    Tornado tornado = new Tornado(entity, personInfo.getAdditional().getFloat("YHeadRot"), 20 * 6, Elementals.ANEMO);
                     entity.getLevel().addFreshEntity(tornado);
                 }
+
                 break;
         }
     }

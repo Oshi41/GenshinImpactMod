@@ -1,5 +1,6 @@
 package com.gim.networking;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Capabilities;
@@ -28,7 +29,7 @@ public class GenshinAbilityMsg {
     }
 
     public static GenshinAbilityMsg decode(FriendlyByteBuf buf) {
-        return new GenshinAbilityMsg(Enum.valueOf(Abilities.class, buf.readUtf()));
+        return new GenshinAbilityMsg(GenshinHeler.safeGet(Abilities.class, buf.readUtf()));
     }
 
     public boolean consume(Supplier<NetworkEvent.Context> supplier) {
@@ -64,16 +65,17 @@ public class GenshinAbilityMsg {
         switch (type) {
             case SKILL:
                 genshinInfo.onSkill(entity);
-                break;
+                return true;
 
             case BURST:
                 IEnergyStorage energyStorage = genshinInfo.getPersonInfo(genshinInfo.current()).burstInfo();
                 energyStorage.extractEnergy(energyStorage.getEnergyStored(), false);
                 genshinInfo.onBurst(entity);
-                break;
-        }
+                return true;
 
-        return true;
+            default:
+                return false;
+        }
     }
 
     public enum Abilities {

@@ -29,6 +29,8 @@ public class Capabilities {
     static class Register {
         @SubscribeEvent
         public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+            // For new capabilities add them as well known to CapabilityUpdatePackage
+
             event.register(IShield.class);
             event.register(IGenshinInfo.class);
         }

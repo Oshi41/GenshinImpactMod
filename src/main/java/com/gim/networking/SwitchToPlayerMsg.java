@@ -39,7 +39,7 @@ public class SwitchToPlayerMsg {
 
         if (Objects.equals(context.getDirection().getReceptionSide(), LogicalSide.SERVER)) {
             if (updatePlayer(context.getSender(), index)) {
-                GenshinImpactMod.CHANNEL.sendTo(this, context.getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+                GenshinImpactMod.CHANNEL.reply(this, context);
                 return true;
             }
         } else {

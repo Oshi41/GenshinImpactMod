@@ -1,30 +1,25 @@
 package com.gim.entity;
 
 import com.gim.GenshinHeler;
-import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
 import com.gim.registry.Entities;
 import com.mojang.math.Vector3f;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 
 import java.awt.*;
-import java.util.Random;
 
-public class Energy extends Entity {
+public class Energy extends Entity implements IEntityAdditionalSpawnData {
     /**
      * Entity gravity
      */
@@ -145,7 +140,7 @@ public class Energy extends Entity {
             return;
         }
 
-        genshinInfo.consumeEnergy(energy, elementals);
+        genshinInfo.consumeEnergy(player, energy, elementals);
         discard();
     }
 
@@ -157,5 +152,17 @@ public class Energy extends Entity {
             case 3 -> 10;
             default -> 0;
         };
+    }
+
+    @Override
+    public void writeSpawnData(FriendlyByteBuf buffer) {
+        buffer.writeInt(energy);
+        buffer.writeUtf(elementals == null ? "" : elementals.name());
+    }
+
+    @Override
+    public void readSpawnData(FriendlyByteBuf additionalData) {
+        energy = additionalData.readInt();
+        elementals = GenshinHeler.safeGet(Elementals.class, additionalData.readUtf());
     }
 }

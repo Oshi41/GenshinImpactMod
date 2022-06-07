@@ -35,6 +35,8 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     private int skillTicksAnim;
     private int burstTicksAnim;
 
+    private CompoundTag additive = new CompoundTag();
+
     public GenshinEntityData(LivingEntity entity, GenshinEntityData source) {
         this(entity);
         deserializeNBT(source.serializeNBT());
@@ -116,6 +118,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         tag.putInt("SkillAnim", getSkillTicksAnim());
         tag.putInt("BurstAnim", getBurstTicksAnim());
         tag.put("Energy", energy.serializeNBT());
+        tag.put("Additional", getAdditional());
 
         if (!this.effects.isEmpty()) {
             ListTag listtag = new ListTag();
@@ -143,11 +146,12 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         this.assotiatedPlayer = Registries.characters().getValue(new ResourceLocation(nbt.getString("Character")));
         // new instance
         this.map = new AttributeMap(new AttributeSupplier.Builder(assotiatedPlayer.getAttributes()).build());
-        this.map.load(nbt.getList("Attributes", 0));
+        this.map.load(nbt.getList("Attributes", 10));
 
         this.burstTicksAnim = nbt.getInt("BurstAnim");
         this.skillTicksAnim = nbt.getInt("SkillAnim");
         energy.deserializeNBT(nbt.get("Energy"));
+        setAdditional(nbt.getCompound("Additional"));
     }
 
     public void applyToEntity(LivingEntity entity) {
@@ -218,5 +222,19 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
      */
     public void setBurstTicksAnim(int burstTicksAnim) {
         this.burstTicksAnim = burstTicksAnim;
+    }
+
+    /**
+     * Returns additional info for current player
+     */
+    public CompoundTag getAdditional() {
+        return additive;
+    }
+
+    /**
+     * setting additional info for current player
+     */
+    public void setAdditional(CompoundTag additive) {
+        this.additive = additive;
     }
 }

@@ -1,16 +1,24 @@
 package com.gim.capability.genshin;
 
+import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinCombatTracker;
+import com.gim.networking.CapabilityUpdatePackage;
 import com.gim.players.base.IGenshinPlayer;
+import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
 import com.gim.registry.GenshinCharacters;
 import com.gim.registry.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerConnectionListener;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.*;
@@ -147,6 +155,8 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public void deserializeNBT(CompoundTag nbt, LivingEntity holder) {
+        int oldIndex = index;
+
         index = nbt.getInt("Index");
         nextSwitch = nbt.getInt("NextSwitch");
 
@@ -198,7 +208,9 @@ public class GenshinInfo implements IGenshinInfo {
         getPersonInfo(current()).applyToEntity(holder);
 
         // applying attributes
-        onSwitchToIndex(holder, index);
+        if (oldIndex != index) {
+            onSwitchToIndex(holder, index);
+        }
     }
 
     @Override
@@ -212,7 +224,7 @@ public class GenshinInfo implements IGenshinInfo {
     }
 
     @Override
-    public double consumeEnergy(double energy, Elementals elemental) {
+    public double consumeEnergy(LivingEntity holder, double energy, Elementals elemental) {
         if (energy > 0) {
             for (int i = 0; i < stackOrder.size(); i++) {
                 IGenshinPlayer player = stackOrder.get(i);
@@ -232,8 +244,23 @@ public class GenshinInfo implements IGenshinInfo {
 
                 data.burstInfo().receiveEnergy((int) (Math.ceil(energy * multiplier)), false);
             }
+
+            sendUpdate(holder);
         }
 
         return energy;
+    }
+
+    /**
+     * Sending update for current entity
+     *
+     * @param holder
+     */
+    private void sendUpdate(LivingEntity holder) {
+        if (holder instanceof ServerPlayer) {
+            PacketDistributor.PacketTarget distrib = PacketDistributor.PLAYER.with(() -> ((ServerPlayer) holder));
+            CapabilityUpdatePackage updatePackage = new CapabilityUpdatePackage(Capabilities.GENSHIN_INFO, this);
+            GenshinImpactMod.CHANNEL.send(distrib, updatePackage);
+        }
     }
 }

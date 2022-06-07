@@ -20,18 +20,16 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Random;
+import java.util.*;
 
 public class GenshinHeler {
-    private static final Field playerByUuidField = ObfuscationReflectionHelper.findField(PlayerList.class, "f_11197_");
 
     /**
      * Returns elemental majesty bonus
@@ -287,6 +285,7 @@ public class GenshinHeler {
             try {
                 return (T) Enum.valueOf(clazz, name);
             } catch (Exception e) {
+                GenshinImpactMod.LOGGER.debug("Error during String-->Enum conversion");
                 GenshinImpactMod.LOGGER.debug(e);
             }
         }
@@ -294,26 +293,26 @@ public class GenshinHeler {
         return null;
     }
 
-    /**
-     * retrieves field value
-     *
-     * @param field  - field value
-     * @param source - object source (null for static)
-     * @param <T>    - type of field
-     * @return field of class
-     */
-    @Nullable
-    public static <T> T safeGet(Field field, Object source) {
-        if (field != null) {
-            try {
-                return (T) field.get(source);
-            } catch (Exception e) {
-                GenshinImpactMod.LOGGER.debug(e);
-            }
-        }
-
-        return null;
-    }
+//    /**
+//     * retrieves field value
+//     *
+//     * @param field  - field value
+//     * @param source - object source (null for static)
+//     * @param <T>    - type of field
+//     * @return field of class
+//     */
+//    @Nullable
+//    public static <T> T safeGet(Field field, Object source) {
+//        if (field != null) {
+//            try {
+//                return (T) field.get(source);
+//            } catch (Exception e) {
+//                GenshinImpactMod.LOGGER.debug(e);
+//            }
+//        }
+//
+//        return null;
+//    }
 
     public static <T> int indexOf(Collection<T> collection, T item) {
         return Iterators.indexOf(collection.iterator(), input -> input == item);
@@ -335,5 +334,42 @@ public class GenshinHeler {
         double middle = from + distance / 2.0;
         double scale = to - middle;
         return random.nextGaussian(middle, scale);
+    }
+
+
+    private static final Field capabilityManagerField = ObfuscationReflectionHelper.findField(CapabilityProvider.class, "capabilities");
+    private static final Field namesField = ObfuscationReflectionHelper.findField(CapabilityDispatcher.class, "names");
+    private static final Field capsField = ObfuscationReflectionHelper.findField(CapabilityDispatcher.class, "caps");
+    private static final Field providersField = ObfuscationReflectionHelper.findField(CapabilityManager.class, "providers");
+
+    /**
+     * Returns capability provider from entity
+     *
+     * @param owner   - capability owner
+     * @param capName - capability name
+     */
+    @Nullable
+    public static ICapabilityProvider from(CapabilityProvider owner, String capName) {
+        try {
+            Capability capability = ((Map<String, Capability>) providersField.get(CapabilityManager.INSTANCE)).get(capName.intern());
+
+            if (capability != null) {
+                CapabilityDispatcher dispatcher = (CapabilityDispatcher) capabilityManagerField.get(owner);
+                ICapabilityProvider[] caps = (ICapabilityProvider[]) capsField.get(dispatcher);
+
+                for (int i = 0; i < caps.length; i++) {
+                    ICapabilityProvider cap = caps[i];
+
+                    if (cap.getCapability(capability).isPresent()) {
+                        return cap;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            GenshinImpactMod.LOGGER.debug("Error while retrieving ICapabilityProvider from Entity");
+            GenshinImpactMod.LOGGER.debug(e);
+        }
+
+        return null;
     }
 }

@@ -1,14 +1,10 @@
 package com.gim.entity;
 
 import com.gim.GenshinHeler;
-import com.gim.GenshinImpactMod;
 import com.gim.registry.Attributes;
 import com.gim.registry.Elementals;
 import com.gim.registry.Entities;
 import com.google.common.collect.ImmutableList;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -17,15 +13,12 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -39,56 +32,79 @@ public class Tornado extends Projectile {
         super(p_19870_, p_19871_);
     }
 
-    public Tornado(Entity owner, int maxLiveTime, Elementals source) {
+    public Tornado(Entity owner, float yHeadRot, int maxLiveTime, Elementals source) {
         this(Entities.tornado_entity_type, owner.getLevel());
         liveTime = maxLiveTime;
         withElement(source);
         setOwner(owner);
 
-        // player is above 3 blocks height
-        setPos(owner.position().add(0, -3, 0).add(owner.getLookAngle()));
+        // player is above 2 blocks height
+        Vec3 pos = owner.position().add(0, -2, 0);
+
+        // looking forward to horizon
+        Vec3 lookAngle = Vec3.directionFromRotation(new Vec2(7, yHeadRot));
+        // spawn tornado a bit further than owner
+        pos = pos.add(lookAngle.scale(2));
+        setPos(pos);
+
+        // launching tornado
+        shoot(lookAngle.x, lookAngle.y, lookAngle.z, 0.2f, 0);
     }
 
     @Override
     public void tick() {
         super.tick();
 
+        this.xo = this.getX();
+        this.yo = this.getY();
+        this.zo = this.getZ();
+
         // too old
         if (this.tickCount >= liveTime) {
             discard();
-            return;
         }
-
-        if (getLevel().isClientSide())
-            return;
 
         // middle of tornado
         Vec3 currentPosition = getEyePosition();
 
-        // Sucking entities to tornado (except owner)
-        for (Entity entity : getLevel().getEntities(getOwner(), getWorkingArea())) {
-            // except tornado entity
-            if (Objects.equals(entity, this)) {
-                continue;
-            }
+        if (!getLevel().isClientSide()) {
+            // Sucking entities to tornado (except owner)
+            for (Entity entity : getLevel().getEntities(getOwner(), getWorkingArea())) {
+                // except tornado entity
+                if (entity instanceof Tornado || Objects.equals(getOwner(), this)) {
+                    continue;
+                }
 
-            Vec3 entityPosition = entity.position();
-            double distance = currentPosition.distanceTo(entityPosition);
-            Vec3 speed = currentPosition.subtract(entityPosition).normalize().scale(distance / 20);
-            entity.push(speed.x, speed.y, speed.z);
+                Vec3 entityPosition = entity.position();
+                double distance = currentPosition.distanceTo(entityPosition);
+                Vec3 speed = currentPosition.subtract(entityPosition).normalize().scale(distance / 20);
+                entity.push(speed.x, speed.y, speed.z);
+            }
         }
 
-        Vec3 vec3 = this.getDeltaMovement();
-        // doing gravity here
-        this.move(MoverType.SELF, this.getDeltaMovement().add(0, -ForgeMod.ENTITY_GRAVITY.get().getDefaultValue(), 0));
+        if (!isNoGravity()) {
+            push(0, -ForgeMod.ENTITY_GRAVITY.get().getDefaultValue(), 0);
+            hasImpulse = false;
+        }
+
+        if (!this.level.noCollision(this.getBoundingBox())) {
+            this.moveTowardsClosestSpace(this.getX(), (this.getBoundingBox().minY + this.getBoundingBox().maxY) / 2.0D, this.getZ());
+        }
+
+        this.move(MoverType.SELF, getDeltaMovement());
 
         // slowing down by percent for tick
-        this.setDeltaMovement(vec3.scale(0.99F));
+        this.setDeltaMovement(getDeltaMovement().scale(0.98F));
     }
 
     @Override
-    public void gameEvent(GameEvent p_146856_, @Nullable Entity p_146857_, BlockPos p_146858_) {
-        // no game events
+    public int getMaxFallDistance() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    protected MovementEmission getMovementEmission() {
+        return MovementEmission.NONE;
     }
 
     @Override
@@ -98,6 +114,10 @@ public class Tornado extends Projectile {
 
     @Override
     public void push(Entity entity) {
+        if (Objects.equals(entity, getOwner()) || entity instanceof Tornado) {
+            return;
+        }
+
         Elementals element = getElement();
         // no element or no owner
         if (element == null) {
@@ -132,12 +152,19 @@ public class Tornado extends Projectile {
     }
 
     @Override
+    public void push(double p_20286_, double p_20287_, double p_20288_) {
+        this.setDeltaMovement(this.getDeltaMovement().add(p_20286_, p_20287_, p_20288_));
+    }
+
+    @Override
     protected void defineSynchedData() {
         getEntityData().define(ELEMENT, Elementals.ANEMO.name());
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+
         liveTime = tag.getInt("MaxAge");
         withElement(GenshinHeler.safeGet(Elementals.class, tag.getString("Elemental")));
 
@@ -149,6 +176,8 @@ public class Tornado extends Projectile {
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+
         tag.putInt("MaxAge", liveTime);
         tag.putString("Elemental", getElement().name());
 

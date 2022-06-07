@@ -145,14 +145,47 @@ public class GenshinRender implements IIngameOverlay {
 
         // draw skill/icon helper below the screen
         if (info.current() != null) {
-            int size = 48;
-            xStart = width - size - 12; // 12 - margin from screen edges
-            y = height - size - 12; // 12 - margin from screen edges
+            int burstHeightAndWidth = 48 + font.lineHeight;
+            int barWidth = 6;
+
+
+            xStart = width - 12;
+            y = height - burstHeightAndWidth - 12 + font.lineHeight;
+
+            // render energy bar
+            Color color = ShieldLayerRender.getColor(info.current().getElemental());
+            IEnergyStorage energyStorage = info.getPersonInfo(info.current()).burstInfo();
+            int energyHeight = (int) ((double)energyStorage.getEnergyStored() / energyStorage.getMaxEnergyStored() * burstHeightAndWidth);
+
+            int blackColor = ShieldLayerRender.getColor(info.current().getElemental()).getRGB();
+
+            GuiUtils.drawGradientRect(mStack.last().pose(), 0, xStart, y, xStart + barWidth, y + 1, blackColor, blackColor);
+            GuiUtils.drawGradientRect(mStack.last().pose(), 0, xStart, y, xStart + 1, y + burstHeightAndWidth, blackColor, blackColor);
+            GuiUtils.drawGradientRect(mStack.last().pose(), 0, xStart + barWidth, y, xStart + barWidth + 1, y + burstHeightAndWidth, blackColor, blackColor);
+            GuiUtils.drawGradientRect(mStack.last().pose(), 0, xStart, y + burstHeightAndWidth, xStart + barWidth, y + burstHeightAndWidth + 1, blackColor, blackColor);
+
+            RenderSystem.setShaderTexture(0, new ResourceLocation("forge:textures/white.png"));
+
+            GuiUtils.drawGradientRect(mStack.last().pose(),
+                    0,
+                    xStart + 1,
+                    // top height is stopping by energy maximum of current player
+                    y + 1 + (burstHeightAndWidth - energyHeight),
+                    // lowest Y is always the same
+                    xStart + barWidth,
+                    y + burstHeightAndWidth,
+                    GenshinHeler.withAlpha(color, 255).getRGB(),
+                    GenshinHeler.withAlpha(color, 128).getRGB());
+
+
+            burstHeightAndWidth = 48;
+            xStart = width - burstHeightAndWidth - 12; // 12 - margin from screen edges
+            y = height - burstHeightAndWidth - 12; // 12 - margin from screen edges
 
             if (info.canUseBurst(player)) {
-                renderAnimation(mStack, xStart, y, size, size, getSource(info.current(), "burst", true));
+                renderAnimation(mStack, xStart, y, burstHeightAndWidth, burstHeightAndWidth, getSource(info.current(), "burst", true));
             } else {
-                renderStill(mStack, xStart, y, size, size, info.current(), "burst");
+                renderStill(mStack, xStart, y, burstHeightAndWidth, burstHeightAndWidth, info.current(), "burst");
 
                 // render ticks delay
                 int ticks = info.ticksTillBurst(player, info.current());
@@ -162,7 +195,7 @@ public class GenshinRender implements IIngameOverlay {
 
                     // render seconds
                     GuiComponent.drawString(mStack, font, text,
-                            xStart + (size - font.width(text)) / 2,
+                            xStart + (burstHeightAndWidth - font.width(text)) / 2,
                             y - font.lineHeight,
                             Color.GRAY.getRGB());
                 }
@@ -171,37 +204,25 @@ public class GenshinRender implements IIngameOverlay {
             // render keyboard helping info
             String text = fromMapping(KeyMappings.BURST);
             GuiComponent.drawString(mStack, font, text,
-                    xStart + (size - font.width(text)) / 2,
-                    y + size, // 4 for spacing
+                    xStart + (burstHeightAndWidth - font.width(text)) / 2,
+                    y + burstHeightAndWidth, // 4 for spacing
                     (info.canUseBurst(player) ? Color.WHITE : Color.GRAY).getRGB());
-
-            // render energy bar
-            Color color = ShieldLayerRender.getColor(info.current().getElemental());
-            IEnergyStorage energyStorage = info.getPersonInfo(info.current()).burstInfo();
-            int energyHeight = energyStorage.getEnergyStored() / energyStorage.getMaxEnergyStored() * size;
-            GuiUtils.drawGradientRect(mStack.last().pose(), 0, xStart,
-                    // top height is stopping by energy maximum of current player
-                    y + (size - energyHeight), xStart + size,
-                    // lowest Y is always the same
-                    y + size,
-                    GenshinHeler.withAlpha(color, 90).getRGB(),
-                    GenshinHeler.withAlpha(color, 20).getRGB());
 
 
             // spacing
             xStart -= 4;
             // burst icon size
-            xStart -= size;
-            size = 28;
-            y += (48 - size);
+            xStart -= burstHeightAndWidth;
+            burstHeightAndWidth = 28;
+            y += (48 - burstHeightAndWidth);
 
             // if can use skill
             if (info.canUseSkill(player)) {
                 // render animation
-                renderAnimation(mStack, xStart, y, size, size, getSource(info.current(), "skill", true));
+                renderAnimation(mStack, xStart, y, burstHeightAndWidth, burstHeightAndWidth, getSource(info.current(), "skill", true));
             } else {
                 // otherwise render still icon
-                renderStill(mStack, xStart, y, size, size, info.current(), "skill");
+                renderStill(mStack, xStart, y, burstHeightAndWidth, burstHeightAndWidth, info.current(), "skill");
 
                 // render ticks delay
                 int ticks = info.ticksTillSkill(player, info.current());
@@ -211,7 +232,7 @@ public class GenshinRender implements IIngameOverlay {
 
                     // render seconds
                     GuiComponent.drawString(mStack, font, text,
-                            xStart + (size - font.width(text)) / 2,
+                            xStart + (burstHeightAndWidth - font.width(text)) / 2,
                             y - font.lineHeight,
                             Color.GRAY.getRGB());
                 }
@@ -220,8 +241,8 @@ public class GenshinRender implements IIngameOverlay {
             // render keyboard helping info
             text = fromMapping(KeyMappings.SKILL);
             GuiComponent.drawString(mStack, font, text,
-                    xStart + (size - font.width(text)) / 2,
-                    y + font.lineHeight + size / 2 + 4, // 4 for spacing
+                    xStart + (burstHeightAndWidth - font.width(text)) / 2,
+                    y + font.lineHeight + burstHeightAndWidth / 2 + 4, // 4 for spacing
                     (info.canUseSkill(player) ? Color.WHITE : Color.GRAY).getRGB());
         }
     }
