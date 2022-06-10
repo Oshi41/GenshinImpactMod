@@ -6,5 +6,19 @@
   "gim.key.skill": "Использовать элементальный навык персонажа",
   "gim.key.burst": "Использовать взрыв стихий персонажа",
   "gim.key.category": "Genshin Impact Mod",
-  "gim.traveler.name": "Путешественник"
+  "gim.traveler.name": "Путешественник",
+  "gim.reactions.overload": "Перегрузка",
+  "gim.reactions.froze": "Заморозка",
+  "gim.reactions.vaporize": "Пар",
+  "gim.reactions.reverse_vaporize": "Пар",
+  "gim.reactions.superconduct": "Суперпроводник",
+  "gim.reactions.swirl": "Рассеивание",
+  "gim.reactions.electrocharged": "Заряжен",
+  "gim.reactions.burning": "Горение",
+  "gim.reactions.crystalize": "Кристалл",
+  "gim.reactions.melt": "Таяние",
+  "gim.reactions.reverse_melt": "Таяние",
+  "death.attack.gim.dendro": "%1$s встретил(а) dendro угрозу!",
+  "death.attack.gim.anemo": "%1$s был(а) унесен(а) ветром",
+  "death.attack.gim.geo": "%1$s был(а) пойман(а) камнем"
 }

@@ -6,5 +6,19 @@
   "gim.key.skill": "Use personage elemental skill",
   "gim.key.burst": "Use personage burst",
   "gim.key.category": "Genshin Impact Mod",
-  "gim.traveler.name": "Traveler"
+  "gim.traveler.name": "Traveler",
+  "gim.reactions.overload": "Overload",
+  "gim.reactions.froze": "Frozen",
+  "gim.reactions.vaporize": "Vaporize",
+  "gim.reactions.reverse_vaporize": "Vaporize",
+  "gim.reactions.superconduct": "Superconduct",
+  "gim.reactions.swirl": "Swirl",
+  "gim.reactions.electrocharged": "Electrocharged",
+  "gim.reactions.burning": "Burning",
+  "gim.reactions.crystalize": "Crystalize",
+  "gim.reactions.melt": "Melt",
+  "gim.reactions.reverse_melt": "Melt",
+  "death.attack.gim.dendro": "%1$s meet dendro danger!",
+  "death.attack.gim.anemo": "%1$s was blown out",
+  "death.attack.gim.geo": "%1$s was caught by rock"
 }

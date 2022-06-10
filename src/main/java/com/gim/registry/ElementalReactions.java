@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 public enum ElementalReactions {
     OVERLOAD("overload", ElementalReactions::handleOverload, ChatFormatting.RED),
-    FROZEN("froze", ElementalReactions::handleFrozen, ChatFormatting.AQUA),
+    FROZEN("frozen", ElementalReactions::handleFrozen, ChatFormatting.AQUA),
     VAPORIZE("vaporize", ElementalReactions::handleVaporize, ChatFormatting.GOLD),
     REVERSE_VAPORIZE("reverse_vaporize", ElementalReactions::handleReverseVaporize, ChatFormatting.GOLD),
     SUPERCONDUCT("superconduct", ElementalReactions::handleSuperconduct, ChatFormatting.LIGHT_PURPLE),
@@ -38,7 +38,7 @@ public enum ElementalReactions {
 
     ElementalReactions(String langKey, Predicate<LivingDamageEvent> predicate, ChatFormatting formatting) {
         this.predicate = predicate;
-        this.text = new TranslatableComponent(GenshinImpactMod.ModID, ".reactions." + langKey);
+        this.text = new TranslatableComponent(GenshinImpactMod.ModID + ".reactions." + langKey);
         text.setStyle(text.getStyle().withColor(formatting));
     }
 
@@ -49,11 +49,6 @@ public enum ElementalReactions {
      */
     public boolean handle(LivingDamageEvent e) {
         if (predicate != null && predicate.test(e)) {
-            if (!e.getEntityLiving().getLevel().isClientSide()) {
-                // spawning status info
-                e.getEntityLiving().getLevel().addFreshEntity(new TextParticle(e.getEntity(), text));
-            }
-
             // setting current reaction
             if (e.getSource() instanceof GenshinDamageSource) {
                 ((GenshinDamageSource) e.getSource()).byElementalReaction(this);

@@ -1,5 +1,6 @@
 package com.gim.registry;
 
+import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinDamageSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.CrashReport;
@@ -16,17 +17,17 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public enum Elementals {
-    PYRO("pyro", Effects.PYRO, Attributes.pyro_bonus, Attributes.pyro_resistance, DamageSource::setIsFire, null, ChatFormatting.RED),
-    HYDRO("hydro", Effects.HYDRO, Attributes.hydro_bonus, Attributes.hydro_resistance, null, null, ChatFormatting.DARK_BLUE),
-    CRYO("cryo", Effects.CRYO, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, DamageSource.FREEZE::equals, ChatFormatting.AQUA),
-    ELECTRO("electro", Effects.ELECTRO, Attributes.electro_bonus, Attributes.electro_resistance, null, DamageSource.LIGHTNING_BOLT::equals, ChatFormatting.LIGHT_PURPLE),
-    DENDRO("dendro", Effects.DENDRO, Attributes.dendro_bonus, Attributes.dendro_resistance, null, null, ChatFormatting.DARK_GREEN),
-    ANEMO("anemo", Effects.ANEMO, Attributes.anemo_bonus, Attributes.anemo_resistance, null, null, ChatFormatting.WHITE),
-    GEO("geo", Effects.GEO, Attributes.geo_bonus, Attributes.geo_resistance, null, null, ChatFormatting.GOLD),
-    SUPERCONDUCT("superconduct", Effects.DEFENCE_DEBUFF, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, null, ChatFormatting.LIGHT_PURPLE),
-    FROZEN("frozen", Effects.FROZEN, null, null, null, null, ChatFormatting.AQUA),
-    ELECTROCHARGED("electrocharged", Effects.ELECTROCHARGED, null, null, null, null, ChatFormatting.LIGHT_PURPLE),
-    BURNING("burning", Effects.BURNING, null, null, null, null, ChatFormatting.RED),
+    PYRO("inFire", Effects.PYRO, Attributes.pyro_bonus, Attributes.pyro_resistance, DamageSource::setIsFire, null, ChatFormatting.RED),
+    HYDRO("drown", Effects.HYDRO, Attributes.hydro_bonus, Attributes.hydro_resistance, null, null, ChatFormatting.DARK_BLUE),
+    CRYO("freeze", Effects.CRYO, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, DamageSource.FREEZE::equals, ChatFormatting.AQUA),
+    ELECTRO("lightningBolt", Effects.ELECTRO, Attributes.electro_bonus, Attributes.electro_resistance, null, DamageSource.LIGHTNING_BOLT::equals, ChatFormatting.LIGHT_PURPLE),
+    DENDRO(GenshinImpactMod.ModID + ".dendro", Effects.DENDRO, Attributes.dendro_bonus, Attributes.dendro_resistance, null, null, ChatFormatting.DARK_GREEN),
+    ANEMO(GenshinImpactMod.ModID + ".anemo", Effects.ANEMO, Attributes.anemo_bonus, Attributes.anemo_resistance, null, null, ChatFormatting.WHITE),
+    GEO(GenshinImpactMod.ModID + ".geo", Effects.GEO, Attributes.geo_bonus, Attributes.geo_resistance, null, null, ChatFormatting.GOLD),
+    SUPERCONDUCT(GenshinImpactMod.ModID + "lightningBolt", Effects.DEFENCE_DEBUFF, Attributes.cryo_bonus, Attributes.cryo_resistance, DamageSource::bypassArmor, null, ChatFormatting.LIGHT_PURPLE),
+    FROZEN("freeze", Effects.FROZEN, null, null, null, null, ChatFormatting.AQUA),
+    ELECTROCHARGED("lightningBolt", Effects.ELECTROCHARGED, null, null, null, null, ChatFormatting.LIGHT_PURPLE),
+    BURNING("inFire", Effects.BURNING, null, null, null, null, ChatFormatting.RED),
     ;
 
     private final String id;

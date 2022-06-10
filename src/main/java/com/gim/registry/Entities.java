@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.minecraftforge.registries.ObjectHolder;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -29,53 +30,39 @@ public class Entities {
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
         event.getRegistry().registerAll(
-                new EntityType<>(Shield::new,
-                        MobCategory.AMBIENT,
-                        true,
-                        true,
-                        true,
-                        false,
-                        ImmutableSet.<Block>builder().build(),
-                        new EntityDimensions(0.5f, 0.5f, true),
-                        16,
-                        5)
-                        .setRegistryName(GenshinImpactMod.ModID, "shield_entity_type"),
 
-                new EntityType<Tornado>(Tornado::new,
-                        MobCategory.AMBIENT,
-                        true,
-                        true,
-                        true,
-                        false,
-                        ImmutableSet.<Block>builder().build(),
-                        new EntityDimensions(2, 5, true),
-                        16,
-                        5)
-                        .setRegistryName(GenshinImpactMod.ModID, "tornado_entity_type"),
+                registerType(EntityType.Builder.<Shield>of(Shield::new, MobCategory.AMBIENT)
+                                .fireImmune()
+                                .sized(.5f, .5f)
+                                .clientTrackingRange(4),
+                        "shield_entity_type"),
 
-                new EntityType<>(TextParticle::new,
-                        MobCategory.AMBIENT,
-                        true,
-                        true,
-                        true,
-                        false,
-                        ImmutableSet.<Block>builder().build(),
-                        new EntityDimensions(2.5f, 0.1f, true),
-                        16,
-                        5)
-                        .setRegistryName(GenshinImpactMod.ModID, "text_particle_entity_type"),
+                registerType(EntityType.Builder.<Tornado>of(Tornado::new, MobCategory.AMBIENT)
+                                .sized(2, 5),
+                        "tornado_entity_type"),
 
-                new EntityType<>(Energy::new,
-                        MobCategory.AMBIENT,
-                        true,
-                        true,
-                        true,
-                        false,
-                        ImmutableSet.<Block>builder().build(),
-                        new EntityDimensions(0.5f, 0.5f, true),
-                        16 * 2,
-                        5)
-                        .setRegistryName(GenshinImpactMod.ModID, "energy_type")
+                registerType(EntityType.Builder.<TextParticle>of(TextParticle::new, MobCategory.AMBIENT)
+                                .sized(2.5f, 0.1f)
+                                .fireImmune()
+                                .noSave()
+                                .updateInterval(1),
+                        "text_particle_entity_type"),
+
+                registerType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.AMBIENT)
+                                .sized(.5f, .5f)
+                                .fireImmune(),
+                        "energy_type")
         );
+    }
+
+    /**
+     * Creates type from
+     *
+     * @param builder - entity type builder
+     * @param name    - name of entity
+     */
+    private static EntityType registerType(EntityType.Builder builder, String name) {
+        return (EntityType) builder.build(name)
+                .setRegistryName(GenshinImpactMod.ModID, name);
     }
 }

@@ -4,6 +4,7 @@ import com.gim.entity.Tornado;
 import com.gim.registry.Elementals;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -43,6 +44,10 @@ public class TornadoRenderer<T extends Tornado> extends EntityRenderer<T> {
         double radius = boundingBox.getXsize() / 2d;
         ParticleOptions particleOptions = from(entity.getElement());
         double step = step(entity.getElement());
+
+        if (Minecraft.getInstance().isPaused()) {
+            return;
+        }
 
         for (double y = boundingBox.maxY; y > boundingBox.minY; y -= 0.5) {
             double yStep = (boundingBox.maxY - y) / boundingBox.getYsize();

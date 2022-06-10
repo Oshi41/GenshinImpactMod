@@ -27,6 +27,7 @@ public class Tornado extends Projectile {
     private static final List<Elementals> SPREADING = ImmutableList.of(Elementals.HYDRO, Elementals.PYRO, Elementals.ELECTRO, Elementals.CRYO, Elementals.DENDRO);
     private static final EntityDataAccessor<String> ELEMENT = SynchedEntityData.defineId(Tornado.class, EntityDataSerializers.STRING);
     private int liveTime = Integer.MAX_VALUE;
+    private Vec3 moveVec;
 
     public Tornado(EntityType<? extends Projectile> p_19870_, Level p_19871_) {
         super(p_19870_, p_19871_);
@@ -49,6 +50,7 @@ public class Tornado extends Projectile {
 
         // launching tornado
         shoot(lookAngle.x, lookAngle.y, lookAngle.z, 0.2f, 0);
+        moveVec = getDeltaMovement();
     }
 
     @Override
@@ -93,8 +95,19 @@ public class Tornado extends Projectile {
 
         this.move(MoverType.SELF, getDeltaMovement());
 
-        // slowing down by percent for tick
-        this.setDeltaMovement(getDeltaMovement().scale(0.98F));
+        if (moveVec != null) {
+            setDeltaMovement(moveVec);
+        }
+
+        if (Elementals.ANEMO.equals(getElement())) {
+            if (isInWater()) {
+                withElement(Elementals.HYDRO);
+            } else if (isInLava() || isOnFire()) {
+                withElement(Elementals.PYRO);
+            } else if (isInPowderSnow) {
+                withElement(Elementals.CRYO);
+            }
+        }
     }
 
     @Override
@@ -105,6 +118,21 @@ public class Tornado extends Projectile {
     @Override
     protected MovementEmission getMovementEmission() {
         return MovementEmission.NONE;
+    }
+
+    @Override
+    public void setRemainingFireTicks(int ticks) {
+
+        if (ticks > 0) {
+            if (Elementals.ANEMO.equals(getElement())) {
+                withElement(Elementals.PYRO);
+            }
+
+            // no flame
+            ticks = 0;
+        }
+
+        super.setRemainingFireTicks(ticks);
     }
 
     @Override
@@ -153,7 +181,8 @@ public class Tornado extends Projectile {
 
     @Override
     public void push(double p_20286_, double p_20287_, double p_20288_) {
-        this.setDeltaMovement(this.getDeltaMovement().add(p_20286_, p_20287_, p_20288_));
+        super.push(p_20286_, p_20287_, p_20288_);
+        hasImpulse = false;
     }
 
     @Override

@@ -3,9 +3,11 @@ package com.gim.attack;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.ElementalReactions;
 import com.gim.registry.Elementals;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -147,5 +149,12 @@ public class GenshinDamageSource extends EntityDamageSource {
     public GenshinDamageSource withElement(Elementals element) {
         this.element = element;
         return this;
+    }
+
+    @Override
+    public Component getLocalizedDeathMessage(LivingEntity p_19397_) {
+        return getInnerSource() != null
+                ? getInnerSource().getLocalizedDeathMessage(p_19397_)
+                : super.getLocalizedDeathMessage(p_19397_);
     }
 }
