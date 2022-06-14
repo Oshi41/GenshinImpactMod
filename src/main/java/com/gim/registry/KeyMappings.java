@@ -31,5 +31,7 @@ public class KeyMappings {
 
         ClientRegistry.registerKeyBinding(SKILL);
         ClientRegistry.registerKeyBinding(BURST);
+
+
     }
 }

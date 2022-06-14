@@ -8,18 +8,25 @@ import com.gim.client.layers.IceRender;
 import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
 import com.gim.entity.Shield;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -59,21 +66,16 @@ public class Renders {
         e.registerEntityRenderer(Entities.energy_type, EnergyRenderer::new);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBakeModel(final EntityRenderersEvent.AddLayers event) {
 
-        List<LivingEntityRenderer> list = event.getSkins().stream().map(x -> (LivingEntityRenderer) event.getSkin(x)).toList();
-        for (EntityType type : ForgeRegistries.ENTITIES.getValues()) {
-            try {
-                LivingEntityRenderer renderer = event.getRenderer(type);
-                if (renderer != null) {
-                    list.add(renderer);
-                }
-            } catch (Exception e) {
-                GenshinImpactMod.LOGGER.debug("Error during adding layers to LivingEntityRenderer at EntityRenderersEvent.AddLayers event");
-                GenshinImpactMod.LOGGER.debug(e);
-            }
-        }
+        EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+
+        List<LivingEntityRenderer> list = dispatcher.getSkinMap().values().stream().map(x -> (LivingEntityRenderer) x).collect(Collectors.toList());
+        dispatcher.renderers.values().stream()
+                .filter(x -> x instanceof LivingEntityRenderer)
+                .map(x -> (LivingEntityRenderer) x)
+                .forEach(list::add);
 
         for (LivingEntityRenderer renderer : list) {
             injectLayers(renderer);

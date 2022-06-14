@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "gim:block/star_worktable_top",
+    "north": "gim:block/star_worktable_side",
+    "south": "gim:block/star_worktable_side_2",
+    "east": "gim:block/star_worktable_side_2",
+    "west": "gim:block/star_worktable_side",
+    "up": "gim:block/star_worktable_top",
+    "down": "minecraft:block/oak_planks"
+  }
+}

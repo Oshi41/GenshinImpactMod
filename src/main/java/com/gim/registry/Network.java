@@ -1,11 +1,7 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.networking.CapabilityUpdatePackage;
-import com.gim.networking.ClientboundLevelParticlesPacketHandler;
-import com.gim.networking.GenshinAbilityMsg;
-import com.gim.networking.SwitchToPlayerMsg;
-import net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket;
+import com.gim.networking.*;
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -42,6 +38,12 @@ public class Network {
                 .encoder(ClientboundLevelParticlesPacket::write)
                 .decoder(ClientboundLevelParticlesPacket::new)
                 .consumer(ClientboundLevelParticlesPacketHandler::consume)
+                .add();
+
+        playChannel.messageBuilder(StarClickedPackage.class, 4)
+                .encoder(StarClickedPackage::encode)
+                .decoder(StarClickedPackage::new)
+                .consumer(StarClickedPackage::consume)
                 .add();
 
         return playChannel;

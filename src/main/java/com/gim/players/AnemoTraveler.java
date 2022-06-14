@@ -20,6 +20,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
@@ -30,10 +32,14 @@ import net.minecraftforge.common.ForgeMod;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public class AnemoTraveler extends GenshinPlayerBase {
     public static int SKILL_ANIM_TIME = 20 * 2;
     public static int BURST_ANIM_TIME = 20 * 2;
+
+    public static final UUID RECHARGE_MODIFIER = UUID.fromString("a4509964-a79a-4386-becf-3f6fa3d7bfa6");
 
     public AnemoTraveler() {
         super(
@@ -43,8 +49,14 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         .add(Attributes.attack_bonus, 2)
                         .add(Attributes.burst_cost, 60d)
                         .add(Attributes.burst_cooldown, 20 * 15)
-                        .add(Attributes.skill_cooldown, 20 * 8)
-                        .build());
+                        .add(Attributes.skill_cooldown, 20 * 8),
+                List.of(
+                        new Vec2(26, 30),
+                        new Vec2(8, 85),
+                        new Vec2(79, 47),
+                        new Vec2(102, 81)
+                )
+        );
     }
 
     @Override
@@ -58,9 +70,31 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
+    public void onStarAdded(LivingEntity holder, IGenshinInfo info, int currentStarCount) {
+        switch (currentStarCount) {
+
+            case 2:
+                GenshinEntityData entityData = info.getPersonInfo(this);
+                if (entityData != null) {
+                    AttributeInstance instance = entityData.getAttributes().getInstance(Attributes.recharge_bonus);
+                    if (instance != null) {
+                        instance.addPermanentModifier(new AttributeModifier(RECHARGE_MODIFIER, "anemo_traveler_recharge", 1.16, AttributeModifier.Operation.MULTIPLY_TOTAL));
+                    }
+                }
+                break;
+
+        }
+    }
+
+    @Override
     protected void onSkillTick(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, GenshinPhase phase) {
-        double skillAdditive = GenshinHeler.safeGetAttribute(holder, Attributes.skill_level) / 7f;
-        double range = 1.5f + skillAdditive;
+        double skillAdditive = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.skill_level)) / 7f;
+        double starCount = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.constellations));
+        double range = 0;
+
+        if (starCount > 0) {
+            range += 5 + skillAdditive;
+        }
 
         switch (phase) {
             // starting skill animation
@@ -170,7 +204,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 break;
 
             case TICK:
-                double ySpeed = GenshinHeler.safeGetAttribute(entity, ForgeMod.ENTITY_GRAVITY.get()) + 0.004;
+                double ySpeed = Math.max(0, GenshinHeler.safeGetAttribute(entity, ForgeMod.ENTITY_GRAVITY.get())) + 0.004;
                 entity.setDeltaMovement(0, ySpeed, 0);
                 break;
 

@@ -31,24 +31,24 @@ public class Entities {
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
         event.getRegistry().registerAll(
 
-                registerType(EntityType.Builder.<Shield>of(Shield::new, MobCategory.AMBIENT)
+                registerType(EntityType.Builder.<Shield>of(Shield::new, MobCategory.MISC)
                                 .fireImmune()
                                 .sized(.5f, .5f)
                                 .clientTrackingRange(4),
                         "shield_entity_type"),
 
-                registerType(EntityType.Builder.<Tornado>of(Tornado::new, MobCategory.AMBIENT)
+                registerType(EntityType.Builder.<Tornado>of(Tornado::new, MobCategory.MISC)
                                 .sized(2, 5),
                         "tornado_entity_type"),
 
-                registerType(EntityType.Builder.<TextParticle>of(TextParticle::new, MobCategory.AMBIENT)
+                registerType(EntityType.Builder.<TextParticle>of(TextParticle::new, MobCategory.MISC)
                                 .sized(2.5f, 0.1f)
                                 .fireImmune()
                                 .noSave()
                                 .updateInterval(1),
                         "text_particle_entity_type"),
 
-                registerType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.AMBIENT)
+                registerType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.MISC)
                                 .sized(.5f, .5f)
                                 .fireImmune(),
                         "energy_type")

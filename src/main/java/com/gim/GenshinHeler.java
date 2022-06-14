@@ -10,19 +10,16 @@ import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -54,10 +51,10 @@ public class GenshinHeler {
      * @return - bonus of defence attribute
      */
     public static float defenceBonus(Entity e) {
-        double defenceRaw = safeGetAttribute(e, Attributes.defence);
-        int level = (int) safeGetAttribute(e, Attributes.level);
+        double defenceRaw = Math.max(0, safeGetAttribute(e, Attributes.defence));
+        int level = (int) Math.max(1, safeGetAttribute(e, Attributes.level));
 
-        return (float) (defenceRaw / (defenceRaw + 5f * (1f + level)));
+        return (float) (defenceRaw / (defenceRaw + 5f * level));
     }
 
     /**
@@ -86,7 +83,7 @@ public class GenshinHeler {
 
             // calclulated majesty for attacker
             majesty = majestyBonus(attacker);
-            level = (int) safeGetAttribute(entity, Attributes.level);
+            level = (int) Math.max(1, safeGetAttribute(entity, Attributes.level));
 
             // find elemental from attack
             Elementals elemental = Arrays.stream(Elementals.values()).filter(x -> x.is(source)).findFirst().orElse(null);
@@ -94,12 +91,12 @@ public class GenshinHeler {
             if (elemental != null) {
                 // checking possible bonus for current elemental
                 if (elemental.getBonus() != null && (!(source instanceof GenshinDamageSource) || !((GenshinDamageSource) source).shouldIgnoreBonus())) {
-                    elementalBonus = (float) safeGetAttribute(attacker, elemental.getBonus());
+                    elementalBonus = (float) Math.max(0, safeGetAttribute(attacker, elemental.getBonus()));
                 }
 
                 // checking possible resistance for current elemental
                 if (elemental.getResistance() != null) {
-                    elementalResistance = (float) safeGetAttribute(attacker, elemental.getResistance());
+                    elementalResistance = (float) Math.max(0, safeGetAttribute(attacker, elemental.getResistance()));
                 }
             }
 
@@ -244,7 +241,7 @@ public class GenshinHeler {
             }
         }
 
-        return 0;
+        return -1;
     }
 
     public static double safeGetAttribute(AttributeMap map, Attribute attribute) {
@@ -257,7 +254,7 @@ public class GenshinHeler {
             }
         }
 
-        return 0;
+        return -1;
     }
 
     public static void safeAddModifier(LivingEntity e, Attribute attribute, AttributeModifier modifier) {
@@ -281,7 +278,7 @@ public class GenshinHeler {
      */
     @Nullable
     public static <T extends Enum<T>> T safeGet(Class<T> clazz, String name) {
-        if (clazz != null || name != null) {
+        if (clazz != null && name != null && !name.isEmpty()) {
             try {
                 return (T) Enum.valueOf(clazz, name);
             } catch (Exception e) {
@@ -342,6 +339,7 @@ public class GenshinHeler {
     private static final Field capsField = ObfuscationReflectionHelper.findField(CapabilityDispatcher.class, "caps");
     private static final Field providersField = ObfuscationReflectionHelper.findField(CapabilityManager.class, "providers");
 
+
     /**
      * Returns capability provider from entity
      *
@@ -371,5 +369,28 @@ public class GenshinHeler {
         }
 
         return null;
+    }
+
+    public static AttributeMap union(AttributeMap... maps) {
+        return new AttributeMap(unionSupplier(maps));
+    }
+
+    public static AttributeSupplier unionSupplier(AttributeMap... maps) {
+        if (maps == null || maps.length == 0) {
+            return new AttributeSupplier(new HashMap<>());
+        }
+
+        Map<Attribute, AttributeInstance> instanceMap = new HashMap<>();
+
+        for (Attribute attribute : ForgeRegistries.ATTRIBUTES.getValues()) {
+            for (AttributeMap attributeMap : maps) {
+                AttributeInstance instance = attributeMap.getInstance(attribute);
+                if (instance != null) {
+                    instanceMap.put(attribute, instance);
+                }
+            }
+        }
+
+        return new AttributeSupplier(instanceMap);
     }
 }

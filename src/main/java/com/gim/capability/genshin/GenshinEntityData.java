@@ -1,33 +1,33 @@
 package com.gim.capability.genshin;
 
-import com.gim.GenshinImpactMod;
+import com.gim.GenshinHeler;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
-import com.gim.registry.GenshinCharacters;
 import com.gim.registry.Registries;
+import com.google.common.base.Equivalence;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.lang.ref.WeakReference;
+import java.util.*;
 
 public class GenshinEntityData implements INBTSerializable<CompoundTag> {
 
-    private AttributeMap map;
-    private List<MobEffectInstance> effects;
+    private final AttributeMap map;
+    private final Map<MobEffect, MobEffectInstance> effects;
     private float health;
     private EnergyStorage energy;
     private IGenshinPlayer assotiatedPlayer;
@@ -37,42 +37,62 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
 
     private CompoundTag additive = new CompoundTag();
 
-    public GenshinEntityData(LivingEntity entity, GenshinEntityData source) {
-        this(entity);
-        deserializeNBT(source.serializeNBT());
+    public GenshinEntityData(LivingEntity holder, IGenshinPlayer assotiatedPlayer, int energy) {
+        // creating weak reference
+        WeakReference<LivingEntity> weakReference = new WeakReference<>(holder);
+        // creating base attributes map
+        map = new GenshinAttributeMap(GenshinHeler.unionSupplier(holder.getAttributes(), assotiatedPlayer.cachedAttributes()),
+                (attribute, attributeMap) -> this.afterAttributeChanged(weakReference, attribute, attributeMap));
+        this.assotiatedPlayer = assotiatedPlayer;
+        this.health = holder.getHealth();
+        this.energy = new GenshinEnergyStorage(map, energy);
+        effects = new ObservableMap<>(holder.getActiveEffectsMap(), (s, source) -> this.afterEffectsChanged(weakReference, s, source));
     }
 
-    public GenshinEntityData(LivingEntity entity) {
-        this(
-                entity.getAttributes(),
-                entity.getActiveEffects(),
-                entity.getHealth(),
-                90,
-                getCurrent(entity));
-    }
-
-    private static IGenshinPlayer getCurrent(LivingEntity e) {
-        if (e != null) {
-            IGenshinInfo info = e.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
-            if (info != null) {
-                return info.current();
-            }
+    private void afterEffectsChanged(WeakReference<LivingEntity> reference, String operation, Map<MobEffect, MobEffectInstance> source) {
+        // called from other changes
+        if (effects != source) {
+            return;
         }
 
-        return GenshinCharacters.ANEMO_TRAVELER;
+        LivingEntity livingEntity = reference.get();
+        // expired entity
+        if (livingEntity == null)
+            return;
+
+        IGenshinInfo genshinInfo = livingEntity.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
+        // no capability provided
+        if (genshinInfo == null)
+            return;
+
+        // can apply to current entity
+        if (Objects.equals(getAssotiatedPlayer(), genshinInfo.current())) {
+            applyToEntity(livingEntity, ApplyTypes.EFFECTS);
+        }
     }
 
-    public GenshinEntityData() {
-        this(new AttributeMap(AttributeSupplier.builder().build()), new ArrayList<>(), 0, 0, GenshinCharacters.ANEMO_TRAVELER);
+    private void afterAttributeChanged(WeakReference<LivingEntity> reference, @Nullable Attribute attribute, AttributeMap source) {
+        // called from other changes
+        if (source != getAttributes()) {
+            return;
+        }
+
+        LivingEntity livingEntity = reference.get();
+        // expired entity
+        if (livingEntity == null)
+            return;
+
+        IGenshinInfo genshinInfo = livingEntity.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
+        // no capability provided
+        if (genshinInfo == null)
+            return;
+
+        // can apply to current entity
+        if (Objects.equals(getAssotiatedPlayer(), genshinInfo.current())) {
+            applyToEntity(livingEntity, ApplyTypes.ATTRIBUTES);
+        }
     }
 
-    public GenshinEntityData(AttributeMap map, Collection<MobEffectInstance> effects, float health, int energy, IGenshinPlayer assotiatedPlayer) {
-        this.map = map;
-        this.effects = effects.stream().filter(x -> x.getEffect().getRegistryName().getNamespace().equals(GenshinImpactMod.ModID)).collect(Collectors.toList());
-        this.health = health;
-        this.energy = new GenshinEnergyStorage(map, energy);
-        this.assotiatedPlayer = assotiatedPlayer;
-    }
 
     /**
      * Returns health of entity
@@ -98,12 +118,12 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     /**
      * Returns only Genshin active effects
      */
-    public List<MobEffectInstance> getGenshinEffects() {
+    public Map<MobEffect, MobEffectInstance> getGenshinEffects() {
         return effects;
     }
 
     /**
-     * Returns current attributes
+     * Returns current attributeMap
      */
     public AttributeMap getAttributes() {
         return map;
@@ -123,7 +143,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         if (!this.effects.isEmpty()) {
             ListTag listtag = new ListTag();
 
-            for (MobEffectInstance mobeffectinstance : this.effects) {
+            for (MobEffectInstance mobeffectinstance : this.effects.values()) {
                 listtag.add(mobeffectinstance.save(new CompoundTag()));
             }
 
@@ -140,12 +160,11 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
         this.effects.clear();
         ListTag list = nbt.getList("Effects", 0);
         for (int i = 0; i < list.size(); i++) {
-            this.effects.add(MobEffectInstance.load(list.getCompound(i)));
+            MobEffectInstance effectInstance = MobEffectInstance.load(list.getCompound(i));
+            getGenshinEffects().put(effectInstance.getEffect(), effectInstance);
         }
 
         this.assotiatedPlayer = Registries.characters().getValue(new ResourceLocation(nbt.getString("Character")));
-        // new instance
-        this.map = new AttributeMap(new AttributeSupplier.Builder(assotiatedPlayer.getAttributes()).build());
         this.map.load(nbt.getList("Attributes", 10));
 
         this.burstTicksAnim = nbt.getInt("BurstAnim");
@@ -155,35 +174,66 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     }
 
     public void applyToEntity(LivingEntity entity) {
-        // setting health
-        entity.setHealth(getHealth());
+        applyToEntity(entity, ApplyTypes.values());
+    }
 
-        // removing all genshin effects
-        for (MobEffectInstance instance : entity.getActiveEffects().stream().filter(x -> x.getEffect().getRegistryName().getNamespace().equals(GenshinImpactMod.ModID)).toList()) {
-            entity.removeEffect(instance.getEffect());
+    public void applyToEntity(LivingEntity entity, ApplyTypes... types) {
+        if (entity == null || types == null || types.length == 0) {
+            return;
         }
 
-        // adding all genshin effects
-        effects.forEach(entity::addEffect);
+        for (ApplyTypes applyType : types) {
+            switch (applyType) {
+                case HEALTH:
+                    entity.setHealth(getHealth());
+                    break;
 
-        // player attributes
-        AttributeMap entityMap = entity.getAttributes();
+                case EFFECTS:
+                    // unsubscribe from changes
+                    if (entity.getActiveEffectsMap() instanceof ObservableMap<MobEffect, MobEffectInstance>) {
+                        ((ObservableMap<MobEffect, MobEffectInstance>) entity.getActiveEffectsMap()).sync(null);
+                    }
 
-        // switching all base values
-        for (Attribute attribute : ForgeRegistries.ATTRIBUTES.getValues()) {
-            AttributeInstance old = entityMap.getInstance(attribute);
+                    MapDifference<MobEffect, MobEffectInstance> effectsDiff = Maps.difference(entity.getActiveEffectsMap(), effects);
 
-            // switching off all genshin attributes
-            if (attribute.getRegistryName().getNamespace().equals(GenshinImpactMod.ModID) && old != null) {
-                old.setBaseValue(attribute.getDefaultValue());
-            }
+                    if (!effectsDiff.areEqual()) {
+                        effectsDiff.entriesOnlyOnLeft().forEach((effect, effectInstance) -> entity.removeEffect(effect));
+                        effectsDiff.entriesOnlyOnRight().forEach((effect, effectInstance) -> entity.addEffect(effectInstance));
+                        effectsDiff.entriesDiffering().forEach((effect, mobEffectInstanceValueDifference) -> entity.addEffect(mobEffectInstanceValueDifference.rightValue()));
+                    }
 
-            // find instance to apply on entity
-            AttributeInstance replacing = this.map.getInstance(attribute);
 
-            // can replace old one
-            if (old != null && replacing != null) {
-                old.setBaseValue(replacing.getBaseValue());
+                    // subscribe again
+                    if (entity.getActiveEffectsMap() instanceof ObservableMap<MobEffect, MobEffectInstance>) {
+                        ((ObservableMap<MobEffect, MobEffectInstance>) entity.getActiveEffectsMap()).sync(effects);
+                    }
+                    break;
+
+                case ATTRIBUTES:
+                    AttributeMap entityMap = entity.getAttributes();
+
+                    // unsubscribe from changes
+                    if (entityMap instanceof GenshinAttributeMap) {
+                        ((GenshinAttributeMap) entityMap).syncFor(null);
+                    }
+
+                    MapDifference<Attribute, AttributeInstance> attrDiff = Maps.difference(
+                            GenshinAttributeMap.from(getAttributes()),
+                            GenshinAttributeMap.from(entityMap),
+                            new AttributeEquals());
+
+                    if (!attrDiff.areEqual()) {
+                        // we do not adding or removing attributes, only chanhing
+                        attrDiff.entriesDiffering().forEach((attribute, diff) -> {
+                            entity.getAttribute(attribute).replaceFrom(diff.leftValue());
+                        });
+                    }
+
+                    // subscribe again
+                    if (entityMap instanceof GenshinAttributeMap) {
+                        ((GenshinAttributeMap) entityMap).syncFor(getAttributes());
+                    }
+                    break;
             }
         }
     }
@@ -236,5 +286,11 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
      */
     public void setAdditional(CompoundTag additive) {
         this.additive = additive;
+    }
+
+    public enum ApplyTypes {
+        ATTRIBUTES,
+        HEALTH,
+        EFFECTS,
     }
 }

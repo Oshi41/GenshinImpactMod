@@ -165,8 +165,8 @@ public class Tornado extends Projectile {
             }
         }
 
-        double skill = GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level) + 1;
-        double level = GenshinHeler.safeGetAttribute(getOwner(), Attributes.level) + 1;
+        double skill = Math.max(0, GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level)) + 1;
+        double level = Math.max(0, GenshinHeler.safeGetAttribute(getOwner(), Attributes.level)) + 1;
 
         float damage = (float) (skill * level);
 

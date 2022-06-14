@@ -118,8 +118,8 @@ public class DamageEvent {
      * @return
      */
     private static boolean handleBonusAttack(LivingDamageEvent e) {
-        double bonus = GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.attack_bonus);
-        float actualDamage = GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), (float) (e.getAmount() * (1 + bonus)));
+        double bonus = Math.max(0, GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.attack_bonus)) + 1;
+        float actualDamage = GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), (float) (e.getAmount() * bonus));
 
         if (actualDamage != e.getAmount()) {
             e.setAmount(actualDamage);

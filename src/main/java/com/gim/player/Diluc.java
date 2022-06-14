@@ -18,7 +18,7 @@ import java.util.UUID;
 import static com.gim.GenshinHeler.safeAddModifier;
 import static com.gim.GenshinHeler.safeGetAttribute;
 
-public class    Diluc {
+public class Diluc {
 
     public final Map<Attribute, Double> initAttributes = new HashMap<>() {{
         put(Attributes.attack_bonus, 7d);
@@ -55,7 +55,7 @@ public class    Diluc {
                 ? 0.97
                 : 1.28;
 
-        entity.hurt(source, (float) (safeGetAttribute(entity, net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE) * multiplier * 1.08));
+        entity.hurt(source, (float) (Math.max(0, safeGetAttribute(entity, net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)) * multiplier * 1.08));
     }
 
     public void onBurstPressed(LivingEntity entity) {

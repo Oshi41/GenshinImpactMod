@@ -1,74 +1,86 @@
 package com.gim.players.base;
 
+import com.electronwill.nightconfig.core.utils.ObservedMap;
 import com.gim.GenshinHeler;
-import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinCombatTracker;
 import com.gim.attack.GenshinDamageSource;
+import com.gim.capability.genshin.GenshinAttributeMap;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.capability.genshin.ObservableMap;
 import com.gim.registry.Attributes;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
+import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.Lazy;
+import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlayer> implements IGenshinPlayer {
 
     protected BaseComponent name;
-    protected Lazy<AttributeSupplier> attributes;
+    protected Supplier<AttributeSupplier.Builder> builder;
+    protected AttributeMap attributeMap;
+    private List<Vec2> starPoses;
 
-    protected GenshinPlayerBase(BaseComponent name, Supplier<AttributeSupplier> attributes) {
+    protected GenshinPlayerBase(BaseComponent name, Supplier<AttributeSupplier.Builder> attributes, List<Vec2> starPoses) {
         this.name = name;
-        this.attributes = Lazy.of(() -> {
-            AttributeSupplier supplier = attributes.get();
-
-            // These attributes must have any character
-            try {
-                supplier.getValue(Attributes.burst_cooldown);
-                supplier.getValue(Attributes.burst_cost);
-                supplier.getValue(Attributes.skill_cooldown);
-            } catch (Exception e) {
-                GenshinImpactMod.LOGGER.info(e);
-
-                List<String> list = Stream.of(Attributes.burst_cooldown, Attributes.burst_cost, Attributes.skill_cooldown)
-                        .map(x -> x.getRegistryName().toString())
-                        .toList();
-                String messageParam = String.join(", ", list);
-                String msg = String.format("Character %s must have all of these attributes: %s", getName().getString(), messageParam);
-                CrashReport report = CrashReport.forThrowable(e, msg);
-                throw new ReportedException(report);
-            }
-
-            return supplier;
-        });
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    protected net.minecraft.client.model.Model createModel() {
-        return null;
+        this.builder = attributes;
+        this.starPoses = starPoses;
     }
 
     @Override
-    public AttributeSupplier getAttributes() {
+    public AttributeMap cachedAttributes() {
+        if (attributeMap == null) {
 
-        return attributes.get();
+            attributeMap = GenshinHeler.union(
+                    new AttributeMap(DefaultAttributes.getSupplier(EntityType.PLAYER)),
+                    new AttributeMap(attributesBuilder().build())
+            );
+
+            List<RangedAttribute> attributeList = List.of(Attributes.burst_cooldown, Attributes.burst_cost, Attributes.skill_cooldown);
+
+            for (RangedAttribute attribute : attributeList) {
+                if (!attributeMap.hasAttribute(attribute)) {
+                    String messageParam = String.join(", ", attributeList.stream().map(x -> x.getRegistryName().toString()).collect(Collectors.toList()));
+                    String msg = String.format("Character %s must have all of these attributeMap: %s", getName().getString(), messageParam);
+                    CrashReport report = CrashReport.forThrowable(new Exception(msg), msg);
+                    throw new ReportedException(report);
+                }
+            }
+        }
+
+        return attributeMap;
     }
 
     @Override
     public BaseComponent getName() {
         return name;
+    }
+
+    @Override
+    public List<Vec2> starPoses() {
+        return starPoses;
+    }
+
+    @Override
+    public AttributeSupplier.Builder attributesBuilder() {
+        return builder.get();
     }
 
     /**
@@ -134,6 +146,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
     @Override
     public void onTick(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker) {
         GenshinEntityData data = info.getPersonInfo(this);
+
         if (data != null) {
             if (data.getBurstTicksAnim() > 0) {
                 onBurstTick(holder, info, tracker, GenshinPhase.TICK);
@@ -167,7 +180,6 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
 
     @Override
     public void onSwitch(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, boolean isActive) {
-
     }
 
     /**

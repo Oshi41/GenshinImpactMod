@@ -253,7 +253,7 @@ public enum ElementalReactions {
                 GenshinHeler.canApply(e.getEntityLiving(), e.getSource(), Elementals.ELECTRO, Elementals.HYDRO)) {
 
             // calculating amplifier
-            int level = (int) (GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.level)
+            int level = (int) (Math.max(0, GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.level))
                     * (1 + GenshinHeler.majestyBonus(e.getSource().getEntity())));
 
             // adding effect on
@@ -286,7 +286,7 @@ public enum ElementalReactions {
             MobEffectInstance effectInstance = new MobEffectInstance(
                     Elementals.BURNING.getEffect(),
                     seconds * 20,
-                    (int) GenshinHeler.safeGetAttribute(e.getEntityLiving(), Attributes.level),
+                    (int) Math.max(0, GenshinHeler.safeGetAttribute(e.getEntityLiving(), Attributes.level)),
                     false,
                     true,
                     true,
@@ -406,7 +406,7 @@ public enum ElementalReactions {
     private static void explode(Entity victim, Entity attacker, DamageSource source) {
         if (victim != null && !victim.getLevel().isClientSide()) {
             GenshinAreaSpreading areaSpreading = new GenshinAreaSpreading(attacker, victim.position(), source,
-                    (float) (GenshinHeler.safeGetAttribute(attacker, Attributes.level) + (3 * GenshinHeler.majestyBonus(attacker))));
+                    (float) Math.max(0, GenshinHeler.safeGetAttribute(attacker, Attributes.level)) + (3 * GenshinHeler.majestyBonus(attacker)));
             areaSpreading.explode();
         }
     }
@@ -418,7 +418,9 @@ public enum ElementalReactions {
      * @param multiplier - damage multiplier
      */
     private static void setAdditiveDamage(LivingDamageEvent e, float multiplier) {
-        e.setAmount(GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), (float) ((e.getAmount() + GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.level)) * multiplier)));
+        e.setAmount(GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), (float) ((e.getAmount() +
+                Math.max(0, GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.level)))
+                * multiplier)));
     }
 
     // endregion

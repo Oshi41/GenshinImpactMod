@@ -67,8 +67,6 @@ public class SwitchToPlayerMsg {
             if (genshinInfo != null && genshinInfo.canSwitchToPlayer(index, player)) {
                 IGenshinPlayer genshinPlayer = Iterators.get(genshinInfo.currentStack().iterator(), index);
                 if (genshinPlayer != null) {
-                    GenshinEntityData info = genshinInfo.getPersonInfo(genshinPlayer);
-                    info.applyToEntity(player);
                     genshinInfo.onSwitchToIndex(player, index);
                     return true;
                 }

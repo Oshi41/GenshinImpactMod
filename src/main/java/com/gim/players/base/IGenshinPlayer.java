@@ -5,18 +5,14 @@ import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Elementals;
 import net.minecraft.network.chat.BaseComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.registries.IForgeRegistryEntry;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Stack;
 
 public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
 
@@ -28,11 +24,17 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
     BaseComponent getName();
 
     /**
-     * Returns attributes of current entity
+     * Returns attributeMap of current entity
      *
      * @return the same instance! Should be used with wisdom
      */
-    AttributeSupplier getAttributes();
+    AttributeMap cachedAttributes();
+
+    /**
+     * Returns builder for current attributeMap
+     * Creates every call
+     */
+    AttributeSupplier.Builder attributesBuilder();
 
     /**
      * Is current stack applicable to character weapon
@@ -46,6 +48,14 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * Current character elemental
      */
     Elementals getElemental();
+
+    /**
+     * Returns possible star positions
+     * Should be from 0 to 64
+     * <p>
+     * Not more than length of 6!
+     */
+    List<Vec2> starPoses();
 
     /**
      * Calculates time for next burst attacks
@@ -97,4 +107,13 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param isActive - is character active
      */
     void onSwitch(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, boolean isActive);
+
+    /**
+     * Called for special handling for star adding event
+     *
+     * @param holder           - current holder
+     * @param info             - current genshin info
+     * @param currentStarCount - total stars
+     */
+    void onStarAdded(LivingEntity holder, IGenshinInfo info, int currentStarCount);
 }

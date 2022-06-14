@@ -20,5 +20,8 @@
   "gim.reactions.reverse_melt": "Melt",
   "death.attack.gim.dendro": "%1$s meet dendro danger!",
   "death.attack.gim.anemo": "%1$s was blown out",
-  "death.attack.gim.geo": "%1$s was caught by rock"
+  "death.attack.gim.geo": "%1$s was caught by rock",
+  "gim.crafting.star_worktable": "Constellations worktable",
+  "block.gim.star_worktable": "Constellations worktable",
+  "item.gim.anemo_traveler_star": "Traveler's star in bottle"
 }

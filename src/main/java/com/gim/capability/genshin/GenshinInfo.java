@@ -1,53 +1,49 @@
 package com.gim.capability.genshin;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinCombatTracker;
 import com.gim.networking.CapabilityUpdatePackage;
 import com.gim.players.base.IGenshinPlayer;
-import com.gim.registry.Capabilities;
-import com.gim.registry.Elementals;
-import com.gim.registry.GenshinCharacters;
-import com.gim.registry.Registries;
+import com.gim.registry.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.ServerConnectionListener;
-import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.*;
 
 public class GenshinInfo implements IGenshinInfo {
-    private final List<IGenshinPlayer> allPlayers = new ArrayList<>();
-    private final Map<IGenshinPlayer, GenshinEntityData> team = new LinkedHashMap<>();
+    private final Map<IGenshinPlayer, GenshinEntityData> allPlayers = new HashMap<>();
+    private final ArrayList<IGenshinPlayer> stackOrder = new ArrayList<>();
+    private final Map<IGenshinPlayer, GenshinEntityData> team = new MapView<>(allPlayers, stackOrder);
     private final GenshinCombatTracker tracker;
     private int index;
     private long nextSwitch;
 
-    private final ArrayList<IGenshinPlayer> stackOrder = new ArrayList<>();
 
     public GenshinInfo(LivingEntity entity) {
         // injecting own implementation for all entities
         tracker = ((GenshinCombatTracker) entity.getCombatTracker());
 
-        //////////////////////////
-        // FOR DEBUG PURPOSES!
-        /////////////////////////
-        allPlayers.add(GenshinCharacters.ANEMO_TRAVELER);
-        GenshinEntityData entityData = new GenshinEntityData(
-                new AttributeMap(new AttributeSupplier.Builder(GenshinCharacters.ANEMO_TRAVELER.getAttributes()).build()),
-                entity.getActiveEffects(),
-                entity.getHealth(),
-                90,
-                GenshinCharacters.ANEMO_TRAVELER
-        );
-        team.put(GenshinCharacters.ANEMO_TRAVELER, entityData);
+        debug(entity);
+    }
+
+    /**
+     * !!! FOR DEBUG PURPOSES !!!
+     */
+    private void debug(LivingEntity entity) {
+
+        GenshinEntityData entityData = new GenshinEntityData(entity, GenshinCharacters.ANEMO_TRAVELER, 90);
+        allPlayers.put(GenshinCharacters.ANEMO_TRAVELER, entityData);
+        stackOrder.add(GenshinCharacters.ANEMO_TRAVELER);
     }
 
     @Override
@@ -74,6 +70,8 @@ public class GenshinInfo implements IGenshinInfo {
 
         stackOrder.remove(current);
         stackOrder.add(0, current);
+
+        getPersonInfo(current).applyToEntity(holder);
     }
 
     @Override
@@ -99,17 +97,17 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public GenshinEntityData getPersonInfo(IGenshinPlayer id) {
-        return team.getOrDefault(id, new GenshinEntityData());
+        return allPlayers.get(id);
     }
 
     @Override
-    public List<IGenshinPlayer> getAllPersonages() {
-        return allPlayers;
+    public Collection<IGenshinPlayer> getAllPersonages() {
+        return allPlayers.keySet();
     }
 
     @Override
     public Collection<IGenshinPlayer> currentStack() {
-        return team.keySet();
+        return stackOrder;
     }
 
     @Override
@@ -118,31 +116,23 @@ public class GenshinInfo implements IGenshinInfo {
     }
 
     @Override
-    public void updateByHolder(LivingEntity entity) {
-        team.compute(current(), (iGenshinPlayer, genshinEntityInfo) -> genshinEntityInfo != null
-                ? new GenshinEntityData(entity, genshinEntityInfo)
-                : null);
-    }
-
-    @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
-
-        tag.putInt("AllPlayersCount", getAllPersonages().size());
-        for (int i = 0; i < getAllPersonages().size(); i++) {
-            tag.putString("Player_" + i, getAllPersonages().get(i).getRegistryName().toString());
-        }
-
         tag.putInt("Index", index);
         tag.putLong("NextSwitch", nextSwitch);
-        tag.putInt("TeamCount", team.size());
-        int current = -1;
-        for (Map.Entry<IGenshinPlayer, GenshinEntityData> entry : team.entrySet()) {
-            current++;
 
-            tag.putString("TeamId_" + current, entry.getKey().getRegistryName().toString());
-            tag.put("TeamTag_" + current, entry.getValue().serializeNBT());
-            tag.putInt("TeamOrder_" + current, stackOrder.indexOf(entry.getKey()));
+        tag.putInt("AllCount", allPlayers.size());
+        tag.putInt("TeamCount", stackOrder.size());
+
+        int i = 0;
+        for (Map.Entry<IGenshinPlayer, GenshinEntityData> entry : allPlayers.entrySet()) {
+            tag.putString(String.format("Player_%s", i), entry.getKey().getRegistryName().toString());
+            tag.put(String.format("PlayerData_%s", i), entry.getValue().serializeNBT());
+            i++;
+        }
+
+        for (i = 0; i < stackOrder.size(); i++) {
+            tag.putString(String.format("Stack_%s", i), stackOrder.get(i).getRegistryName().toString());
         }
 
         return tag;
@@ -160,57 +150,26 @@ public class GenshinInfo implements IGenshinInfo {
         index = nbt.getInt("Index");
         nextSwitch = nbt.getInt("NextSwitch");
 
-        this.allPlayers.clear();
-        int end = nbt.getInt("AllPlayersCount");
-        for (int i = 0; i < end; i++) {
-            ResourceLocation location = new ResourceLocation(nbt.getString("Player_" + i));
-            this.allPlayers.add(Registries.characters().getValue(location));
-        }
-
-        team.clear();
+        allPlayers.clear();
         stackOrder.clear();
 
-        // storing here players by their indexes
-        Map<Integer, IGenshinPlayer> stack = new HashMap<>();
+        int end = nbt.getInt("AllCount");
+        for (int i = 0; i < end; i++) {
+            IGenshinPlayer player = Registries.characters().getValue(new ResourceLocation(nbt.getString(String.format("Player_%s", i))));
+            GenshinEntityData data = new GenshinEntityData(holder, player, 0);
+            data.deserializeNBT(nbt.getCompound(String.format("PlayerData_%s", i)));
+
+            allPlayers.put(player, data);
+        }
 
         end = nbt.getInt("TeamCount");
         for (int i = 0; i < end; i++) {
-            // ID of registered genshin character
-            ResourceLocation location = new ResourceLocation(nbt.getString("TeamId_" + i));
-            // find actual value
-            IGenshinPlayer player = Registries.characters().getValue(location);
-            // deserializing it's data
-            GenshinEntityData data = new GenshinEntityData();
-            data.deserializeNBT(nbt.getCompound("TeamTag_" + i));
-            team.put(player, data);
-
-            // find current character stack order
-            int order = nbt.getInt("TeamOrder_" + i);
-            if (order < 0) {
-                // unique index based on current
-                order = end + i;
-            }
-
-            // putting it to map
-            stack.put(order, player);
+            stackOrder.add(Registries.characters().getValue(new ResourceLocation(nbt.getString(String.format("Stack_%s", i)))));
         }
-
-        stack.keySet().stream()
-                // sorting backwards
-                .sorted((o1, o2) -> Integer.compare(o2, o1))
-                // pushing to stack from old ones
-                .forEach(x -> {
-                    stackOrder.add(stack.get(x));
-                });
 
 
         // applying all genshin info to holder entity
         getPersonInfo(current()).applyToEntity(holder);
-
-        // applying attributes
-        if (oldIndex != index) {
-            onSwitchToIndex(holder, index);
-        }
     }
 
     @Override
@@ -242,7 +201,9 @@ public class GenshinInfo implements IGenshinInfo {
                             : 1;
                 }
 
-                data.burstInfo().receiveEnergy((int) (Math.ceil(energy * multiplier)), false);
+                // recharge bonus
+                double bonus = Math.max(0, GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.recharge_bonus));
+                data.burstInfo().receiveEnergy((int) (Math.ceil(energy * multiplier * bonus)), false);
             }
 
             sendUpdate(holder);

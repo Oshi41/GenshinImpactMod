@@ -4,6 +4,7 @@ var InsnList = Java.type('org.objectweb.asm.tree.InsnList');
 var VarInsnNode = Java.type('org.objectweb.asm.tree.VarInsnNode');
 var MethodInsnNode = Java.type('org.objectweb.asm.tree.MethodInsnNode');
 var TypeInsnNode = Java.type('org.objectweb.asm.tree.TypeInsnNode');
+var InsnNode = Java.type('org.objectweb.asm.tree.InsnNode');
 
 function initializeCoreMod() {
     return {
@@ -15,8 +16,6 @@ function initializeCoreMod() {
                 'methodDesc': '(Lnet/minecraft/world/entity/Entity;)Lnet/minecraft/client/renderer/entity/EntityRenderer;'
             },
             'transformer': function (method) {
-                ASMAPI.log("INFO", 'From Genshin Impact, redirecting EntityRenderDispatcher.getRenderer');
-
                 for (var j = 0; j < method.instructions.size(); j++) {
 
                     var currentInstruction = method.instructions.get(j);
@@ -37,6 +36,8 @@ function initializeCoreMod() {
 
                         // inserting instructions before ARETURN
                         method.instructions.insertBefore(currentInstruction, list);
+
+                        ASMAPI.log("INFO", 'From Genshin Impact, redirecting EntityRenderDispatcher.getRenderer completed');
                         return method;
                     }
                 }
@@ -53,7 +54,6 @@ function initializeCoreMod() {
                 'methodDesc': '(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V'
             },
             'transformer': function (method) {
-                ASMAPI.log("INFO", 'From Genshin Impact, LivingEntity.<init> redirecting LivingEntity combatTracker creation');
                 var desc = '(Lnet/minecraft/world/entity/LivingEntity;)V';
                 var type = 'net/minecraft/world/damagesource/CombatTracker';
                 var replacingType = 'com/gim/attack/GenshinCombatTracker';
@@ -76,12 +76,89 @@ function initializeCoreMod() {
                         );
                         // replacing ctor call
                         method.instructions.set(currentInstruction, ctorCall);
+
+                        ASMAPI.log("INFO", 'From Genshin Impact, LivingEntity.<init> redirecting LivingEntity combatTracker creation completed');
                     }
                 }
 
                 return method;
             }
-        }
+        },
+
+        'AttributeMap.<init>': {
+            'target': {
+                'type': 'METHOD',
+                'class': 'net.minecraft.world.entity.LivingEntity',
+                'methodName': '<init>',
+                'methodDesc': '(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V'
+            },
+            'transformer': function (method) {
+                var desc = '(Lnet/minecraft/world/entity/ai/attributes/AttributeSupplier;)V';
+                var type = 'net/minecraft/world/entity/ai/attributes/AttributeMap';
+                var replacingType = 'com/gim/capability/genshin/GenshinAttributeMap';
+
+                for (var i = 0; i < method.instructions.size(); i++) {
+                    var currentInstruction = method.instructions.get(i);
+
+                    // replacing NEW call
+                    if (Opcodes.NEW === currentInstruction.getOpcode() && currentInstruction.desc === type) {
+                        method.instructions.set(currentInstruction, new TypeInsnNode(Opcodes.NEW, replacingType));
+                    }
+
+                    // replacting ctor call
+                    if (Opcodes.INVOKESPECIAL === currentInstruction.getOpcode() && currentInstruction.desc === desc) {
+                        var ctorCall = ASMAPI.buildMethodCall(
+                            replacingType,
+                            currentInstruction.name,
+                            currentInstruction.desc,
+                            ASMAPI.MethodType.SPECIAL
+                        );
+                        // replacing ctor call
+                        method.instructions.set(currentInstruction, ctorCall);
+
+                        ASMAPI.log("INFO", 'From Genshin Impact, LivingEntity.<init> redirecting LivingEntity attribute map creation completed');
+                    }
+                }
+
+                return method;
+            }
+        },
+
+        'Effects.HashMap.<init>': {
+            'target': {
+                'type': 'METHOD',
+                'class': 'net.minecraft.world.entity.LivingEntity',
+                'methodName': '<init>',
+                'methodDesc': '(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V'
+            },
+            'transformer': function (method) {
+                for (var i = 0; i < method.instructions.size(); i++) {
+                    var currentInstruction = method.instructions.get(i);
+                    if (Opcodes.INVOKESTATIC === currentInstruction.getOpcode()
+                        && currentInstruction.owner === 'com/google/common/collect/Maps'
+                        && currentInstruction.desc === '()Ljava/util/HashMap;') {
+
+                        var list = new InsnList();
+                        list.add(new TypeInsnNode(Opcodes.NEW, 'com/gim/capability/genshin/ObservableMap'));
+                        list.add(new InsnNode(Opcodes.DUP));
+                        list.add(new MethodInsnNode(
+                            Opcodes.INVOKESPECIAL,
+                            'com/gim/capability/genshin/ObservableMap',
+                            '<init>',
+                            '()V',
+                            false
+                        ));
+
+                        method.instructions.insertBefore(currentInstruction, list);
+                        method.instructions.remove(currentInstruction);
+
+                        ASMAPI.log("INFO", 'From Genshin Impact, LivingEntity.<init> redirecting LivingEntity effects map creation completed');
+                    }
+                }
+
+                return method;
+            }
+        },
         //
         // 'render': {
         //     'target': {

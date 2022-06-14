@@ -7,9 +7,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.INBTSerializable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 
 public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
 
@@ -65,6 +65,10 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * Returns active personage
      */
     default IGenshinPlayer current() {
+        if (currentStack().isEmpty()) {
+            return null;
+        }
+
         return Iterators.get(currentStack().iterator(), currentIndex());
     }
 
@@ -165,12 +169,13 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @param id - personage ID
      * @return
      */
+    @Nullable
     GenshinEntityData getPersonInfo(IGenshinPlayer id);
 
     /**
      * Collection of all possible personages
      */
-    List<IGenshinPlayer> getAllPersonages();
+    Collection<IGenshinPlayer> getAllPersonages();
 
     /**
      * Returns current stack of personages
@@ -185,11 +190,6 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @param newPlayer - new character
      */
     void onAddPersonage(IGenshinPlayer newPlayer);
-
-    /**
-     * Updating data by current player
-     */
-    void updateByHolder(LivingEntity entity);
 
     void deserializeNBT(CompoundTag nbt, LivingEntity holder);
 
