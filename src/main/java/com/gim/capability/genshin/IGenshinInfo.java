@@ -164,7 +164,7 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
     }
 
     /**
-     * Returns current health / max health of person (from 0 to 1)
+     * Returns current health / maxExp health of person (from 0 to 1)
      *
      * @param id - personage ID
      * @return

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "gim:block/artifacts_forge",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "gim:block/artifacts_forge",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "gim:block/artifacts_forge"
+    },
+    "facing=west": {
+      "model": "gim:block/artifacts_forge",
+      "y": 90
+    }
+  }
+}

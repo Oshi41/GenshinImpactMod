@@ -1,22 +1,28 @@
 package com.gim;
 
 import com.gim.client.overlay.GenshinRender;
+import com.gim.config.GenshinConfig;
 import com.gim.registry.Network;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeConfig;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.simple.SimpleChannel;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,6 +37,8 @@ public class GenshinImpactMod {
     public static final Logger LOGGER = LogManager.getLogger();
     public static final String ModID = "gim";
     public static final SimpleChannel CHANNEL = Network.createChannel();
+    public static final Pair<GenshinConfig, ForgeConfigSpec> CONFIG = new ForgeConfigSpec.Builder().configure(GenshinConfig::new);
+
 
     public GenshinImpactMod() {
         // Register the setup method for modloading
@@ -43,6 +51,8 @@ public class GenshinImpactMod {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CONFIG.getRight());
     }
 
     private void setup(final FMLCommonSetupEvent event) {

@@ -9,6 +9,8 @@ import com.gim.registry.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.CombatTracker;
+import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
@@ -48,7 +50,15 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public void tick(LivingEntity entity) {
+        if (team.isEmpty())
+            return;
+
         team.forEach((iGenshinPlayer, data) -> iGenshinPlayer.onTick(entity, this, tracker));
+
+        GenshinEntityData entityData = getPersonInfo(current());
+        if (entityData != null) {
+            entityData.setHealth(entity, entity.getHealth());
+        }
     }
 
     @Override
@@ -70,6 +80,12 @@ public class GenshinInfo implements IGenshinInfo {
 
         stackOrder.remove(current);
         stackOrder.add(0, current);
+
+        CombatTracker combatTracker = holder.getCombatTracker();
+        if (combatTracker instanceof GenshinCombatTracker) {
+            // remove all prev player attack
+            ((GenshinCombatTracker) combatTracker).removeAttacks(source -> source instanceof EntityDamageSource && "player".equals(source.getMsgId()));
+        }
 
         getPersonInfo(current).applyToEntity(holder);
     }

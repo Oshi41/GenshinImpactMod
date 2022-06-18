@@ -1,21 +1,18 @@
 package com.gim.players.base;
 
-import com.electronwill.nightconfig.core.utils.ObservedMap;
 import com.gim.GenshinHeler;
 import com.gim.attack.GenshinCombatTracker;
 import com.gim.attack.GenshinDamageSource;
-import com.gim.capability.genshin.GenshinAttributeMap;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.capability.genshin.ObservableMap;
 import com.gim.registry.Attributes;
+import com.gim.registry.Capabilities;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
@@ -24,10 +21,14 @@ import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec2;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.registries.ForgeRegistryEntry;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,30 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
         this.name = name;
         this.builder = attributes;
         this.starPoses = starPoses;
+    }
+
+    /**
+     * Subscribe to special event
+     *
+     * @param clazz    - event type
+     * @param getOwner - get owner from entity
+     * @param onHandle - handling event if current player enabled
+     * @param <T>      - type of Forge event
+     */
+    protected <T extends Event> void handleForgeEventForCurrentPlayer(Class<T> clazz, Function<T, Entity> getOwner, TriConsumer<T, LivingEntity, IGenshinInfo> onHandle) {
+        if (clazz == null || getOwner == null || onHandle == null)
+            return;
+
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.NORMAL, false, clazz, e -> {
+            Entity livingEntity = getOwner.apply(e);
+            if (livingEntity instanceof LivingEntity) {
+                livingEntity.getCapability(Capabilities.GENSHIN_INFO).ifPresent(iGenshinInfo -> {
+                    if (equals(iGenshinInfo.current())) {
+                        onHandle.accept(e, ((LivingEntity) livingEntity), iGenshinInfo);
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -155,7 +180,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
                 if (data.getBurstTicksAnim() == 0) {
                     onBurstTick(holder, info, tracker, GenshinPhase.END);
                     // remove old burst attack history
-                    tracker.removeAttacks(x -> this.equals(x.burstOf()));
+                    tracker.removeGenshinAttacks(x -> this.equals(x.burstOf()));
 
                     // recording burst attack history
                     tracker.recordAttack(new GenshinDamageSource(DamageSource.GENERIC, null).byBurst(this), 0, 0);
@@ -169,7 +194,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
                 if (data.getSkillTicksAnim() == 0) {
                     onSkillTick(holder, info, tracker, GenshinPhase.END);
                     // remove old burst attack history
-                    tracker.removeAttacks(x -> this.equals(x.skillOf()));
+                    tracker.removeGenshinAttacks(x -> this.equals(x.skillOf()));
 
                     // recording skill attack history
                     tracker.recordAttack(new GenshinDamageSource(DamageSource.GENERIC, null).bySkill(this), 0, 0);

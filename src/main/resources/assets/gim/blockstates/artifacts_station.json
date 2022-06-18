@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "gim:block/artifacts_station"
+    }
+  }
+}

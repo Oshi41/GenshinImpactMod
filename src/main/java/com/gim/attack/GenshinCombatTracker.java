@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Combat tracker that records attacks too
@@ -43,8 +44,12 @@ public class GenshinCombatTracker extends CombatTracker {
         attacks.add(combatentry);
     }
 
-    public void removeAttacks(Predicate<GenshinDamageSource> condition) {
+    public void removeGenshinAttacks(Predicate<GenshinDamageSource> condition) {
         attacks.removeIf(x -> x.getSource() instanceof GenshinDamageSource && condition.test((GenshinDamageSource) x.getSource()));
+    }
+
+    public void removeAttacks(Predicate<DamageSource> condition) {
+        attacks.removeIf(x -> condition.test(x.getSource()));
     }
 
 
@@ -66,11 +71,15 @@ public class GenshinCombatTracker extends CombatTracker {
         return null;
     }
 
+    public Stream<CombatEntry> getAttacks() {
+        return attacks.stream();
+    }
+
     @Override
     public void recheckStatus() {
         super.recheckStatus();
 
-        // max time for storing attacks is minute
+        // maxExp time for storing attacks is minute
         attacks.removeIf(x -> getMob().tickCount - x.getTime() > MAX_ATTACK_HISTORY_DURATION);
     }
 }

@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "gim:block/artifacts_station_top",
+    "north": "gim:block/artifacts_station_side",
+    "south": "gim:block/artifacts_station_front",
+    "east": "gim:block/artifacts_station_front",
+    "west": "gim:block/artifacts_station_side",
+    "up": "gim:block/artifacts_station_top",
+    "down": "minecraft:block/oak_planks"
+  }
+}

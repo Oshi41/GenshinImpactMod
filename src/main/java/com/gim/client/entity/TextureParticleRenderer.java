@@ -68,7 +68,7 @@ public class TextureParticleRenderer<T extends TextParticle> extends EntityRende
     private float getScale(T entity) {
         // base size
         float scale = 0.025f;
-        // max scale size during entity living
+        // maxExp scale size during entity living
         float maxScale = 3;
         // half life of particle
         float halfEdge = TextParticle.MAX_AGE / 2f;

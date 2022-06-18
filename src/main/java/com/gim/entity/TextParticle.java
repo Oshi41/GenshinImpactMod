@@ -19,7 +19,7 @@ public class TextParticle extends Entity {
 
     public static int MAX_AGE = 20 * 2;
 
-    // max count for stats for same entity is 4 (3 for damage stats and one for reaction)
+    // maxExp count for stats for same entity is 4 (3 for damage stats and one for reaction)
     public static int MAX_COUNT_OF_STATS = 4;
     private Vec3 offset;
     private Entity owner;

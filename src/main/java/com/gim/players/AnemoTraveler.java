@@ -18,6 +18,9 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.damagesource.CombatEntry;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.EntityDamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -29,17 +32,22 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.common.util.Lazy;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.eventbus.api.Event;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class AnemoTraveler extends GenshinPlayerBase {
     public static int SKILL_ANIM_TIME = 20 * 2;
     public static int BURST_ANIM_TIME = 20 * 2;
 
     public static final UUID RECHARGE_MODIFIER = UUID.fromString("a4509964-a79a-4386-becf-3f6fa3d7bfa6");
+
+    private final Lazy<List<Elementals>> swirling = Lazy.of(() -> List.of(Elementals.HYDRO, Elementals.ELECTRO, Elementals.PYRO, Elementals.CRYO));
 
     public AnemoTraveler() {
         super(
@@ -57,6 +65,59 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         new Vec2(102, 81)
                 )
         );
+
+        handleForgeEventForCurrentPlayer(LivingAttackEvent.class, x -> x.getSource().getEntity(), this::handleAttack);
+        handleForgeEventForCurrentPlayer(LivingDeathEvent.class, x -> x.getSource().getEntity(), this::handleDeath);
+    }
+
+    private void handleDeath(LivingDeathEvent event, LivingEntity holder, IGenshinInfo genshinInfo) {
+        GenshinEntityData genshinEntityData = genshinInfo.getPersonInfo(this);
+        double skillLevel = genshinEntityData.getAttributes().getInstance(Attributes.skill_level).getValue();
+        if (skillLevel >= 14) {
+            long lastSkillHealTime = genshinEntityData.getAdditional().getLong("LastSkillHealTime");
+            // skill cooldown is 5 seconds
+            int skillHealingCooldown = 5 * 20;
+
+            if (lastSkillHealTime < holder.tickCount - skillHealingCooldown) {
+                holder.heal(holder.getMaxHealth() * 0.02f);
+                genshinEntityData.getAdditional().putInt("LastSkillHealTime", holder.tickCount);
+            }
+        }
+    }
+
+    private void handleAttack(LivingAttackEvent event, LivingEntity holder, IGenshinInfo info) {
+        if (holder.getCombatTracker() instanceof GenshinCombatTracker) {
+            GenshinCombatTracker genshinCombatTracker = (GenshinCombatTracker) holder.getCombatTracker();
+
+            double skillLevel = info.getPersonInfo(this).getAttributes().getInstance(Attributes.skill_level).getValue();
+
+            if (skillLevel >= 13) {
+                // 4 attacks should be done within 2 seconds
+                int earliestTime = holder.tickCount - 20 * 2;
+
+                int minAttacksCount = 5;
+
+                List<CombatEntry> entries = genshinCombatTracker.getAttacks()
+                        .filter(x -> x.getTime() >= earliestTime)
+                        .filter(x -> x.getSource() instanceof EntityDamageSource && "player".equals(x.getSource().msgId))
+                        .sorted((o1, o2) -> Integer.compare(o2.getTime(), o1.getTime()))
+                        .toList();
+
+
+                if (entries.size() >= minAttacksCount) {
+                    // removing previous ones
+                    entries.stream().skip(minAttacksCount)
+                            .collect(Collectors.toList()).stream().forEach(entries::remove);
+
+                    Set<DamageSource> sources = entries.stream().map(x -> x.getSource()).collect(Collectors.toSet());
+
+                    // adding anemo attack
+                    event.getEntity().hurt(Elementals.ANEMO.create(holder), event.getAmount() * 0.6f);
+                    // removing prev history
+                    genshinCombatTracker.removeAttacks(sources::contains);
+                }
+            }
+        }
     }
 
     @Override
@@ -143,10 +204,20 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 if (holder.getLevel().isClientSide()) {
                     holder.getLevel().addParticle(ParticleTypes.EXPLOSION, holder.getX() + 0.5D, holder.getY() + 1, holder.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
                 } else {
+                    Elementals elemental = getElemental();
+
+                    List<LivingEntity> affectedEntities = getAffectedEntities(holder, range).stream().filter(x -> x instanceof LivingEntity)
+                            .map(x -> ((LivingEntity) x)).toList();
+
+                    elemental = swirling.get().stream().filter(x -> affectedEntities.stream().anyMatch(x::is)).findFirst().orElse(elemental);
+
+
                     // area explosion
-                    GenshinDamageSource source = getElemental().create(holder).bySkill(this);
+                    GenshinDamageSource source = elemental.create(holder).bySkill(this);
                     Vec3 vector = holder.getEyePosition().add(holder.getLookAngle().normalize().scale(2));
-                    GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder, vector, source, ((float) range));
+                    GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder, vector, source, ((float) range),
+                            (diameter, attackPercent) -> this.createDamage(diameter, attackPercent, GenshinHeler.safeGetAttribute(holder, Attributes.skill_level), starCount,
+                                    GenshinHeler.safeGetAttribute(holder, net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)));
                     Map<Entity, Float> entityFloatMap = spreading.explode();
 
                     // need to spawn energy orbs
@@ -156,7 +227,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         Entity entity = entityFloatMap.keySet().stream().findFirst().orElse(null);
                         for (int i = 0; i < count; i++) {
                             // adding energy in world
-                            holder.getLevel().addFreshEntity(new Energy(holder, entity, 1, getElemental()));
+                            holder.getLevel().addFreshEntity(new Energy(holder, entity, 1, elemental));
                         }
                     }
 
@@ -169,6 +240,25 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 }
                 break;
         }
+    }
+
+    /**
+     * Calculating damage for anemo skill
+     *
+     * @param diameter      - explosion diameter
+     * @param attackPercent - attack percent for explosion
+     * @param skill         - skill level
+     * @param starCount     - star count
+     * @param attackDamage  - holder attack damage
+     * @return - calculated damage per entity
+     */
+    private float createDamage(float diameter, double attackPercent, double skill, double starCount, double attackDamage) {
+        double minAttackBonus = 1.92;
+        double maxAttackBonus = 4.08;
+
+        double attackBonus = minAttackBonus + (maxAttackBonus - minAttackBonus) / Attributes.skill_level.getMaxValue() * skill;
+        double result = attackDamage * attackBonus * attackPercent * (1 + diameter);
+        return (float) result;
     }
 
     /**

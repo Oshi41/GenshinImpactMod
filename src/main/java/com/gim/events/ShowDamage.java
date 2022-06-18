@@ -1,5 +1,7 @@
 package com.gim.events;
 
+import com.gim.GenshinHeler;
+import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.entity.Energy;
 import com.gim.entity.TextParticle;
@@ -53,8 +55,8 @@ public class ShowDamage {
                             format = genshinDamageSource.getElement().getChatColor();
                         }
 
-                        if (genshinDamageSource.possibleReaction() != null) {
-                            entityLiving.getLevel().addFreshEntity(new TextParticle(entityLiving, genshinDamageSource.possibleReaction().text));
+                        if (genshinDamageSource.possibleReaction() != null && GenshinImpactMod.CONFIG.getKey().indicateReactions.get()) {
+                            GenshinHeler.showInfo(entityLiving, genshinDamageSource.possibleReaction().text);
                         }
                     }
 
@@ -79,7 +81,10 @@ public class ShowDamage {
                     }
 
                     component.setStyle(style);
-                    entityLiving.getLevel().addFreshEntity(new TextParticle(entityLiving, component));
+
+                    if (GenshinImpactMod.CONFIG.getKey().indicateDamage.get()) {
+                        GenshinHeler.showInfo(entityLiving, component);
+                    }
                 }
             }
         }

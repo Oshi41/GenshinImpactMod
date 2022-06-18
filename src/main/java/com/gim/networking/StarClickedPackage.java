@@ -54,10 +54,6 @@ public class StarClickedPackage {
 
     @OnlyIn(Dist.CLIENT)
     private boolean consumeClient(NetworkEvent.Context context) {
-        net.minecraft.client.gui.screens.Screen screen = net.minecraft.client.Minecraft.getInstance().screen;
-        if (screen instanceof com.gim.client.screen.ConstellationScreen) {
-            ((com.gim.client.screen.ConstellationScreen) screen).refresh(true);
-        }
         return true;
     }
 

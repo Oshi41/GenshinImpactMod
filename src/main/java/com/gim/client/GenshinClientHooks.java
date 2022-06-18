@@ -65,4 +65,8 @@ public class GenshinClientHooks {
 
         return original;
     }
+
+    public static EntityRenderer getRenderer(IGenshinPlayer player) {
+        return characterRenders.get(player).get();
+    }
 }

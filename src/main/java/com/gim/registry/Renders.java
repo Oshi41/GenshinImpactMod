@@ -87,7 +87,7 @@ public class Renders {
      *
      * @param renderer - current living entity render
      */
-    private static void injectLayers(LivingEntityRenderer renderer) {
+    public static void injectLayers(LivingEntityRenderer renderer) {
         try {
             renderer.addLayer(new ShieldLayerRender(renderer));
             renderer.addLayer(new IceRender(renderer));

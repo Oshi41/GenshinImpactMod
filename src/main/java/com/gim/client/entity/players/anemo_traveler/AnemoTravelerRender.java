@@ -1,9 +1,12 @@
 package com.gim.client.entity.players.anemo_traveler;
 
 import com.gim.capability.genshin.GenshinEntityData;
+import com.gim.client.layers.IceRender;
+import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.overlay.GenshinRender;
 import com.gim.players.AnemoTraveler;
 import com.gim.registry.GenshinCharacters;
+import com.gim.registry.Renders;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Matrix3f;
@@ -57,6 +60,7 @@ public class AnemoTravelerRender extends PlayerRenderer {
         super(context, false);
         model = new AnemoTravelerModel(context.bakeLayer(ModelLayers.PLAYER));
 
+        Renders.injectLayers(this);
         MinecraftForge.EVENT_BUS.register(this);
     }
 

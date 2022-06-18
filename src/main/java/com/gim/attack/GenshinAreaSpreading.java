@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 public class GenshinAreaSpreading {
     private final Level level;
@@ -23,13 +24,24 @@ public class GenshinAreaSpreading {
     private final Vec3 center;
     private final DamageSource source;
     private final float radius;
+    private DamageCalculation calculation;
 
     public GenshinAreaSpreading(Entity entity, Vec3 center, DamageSource source, float radius) {
+        this(entity, center, source, radius, GenshinAreaSpreading::defaultExplosion);
+    }
+
+    private static float defaultExplosion(float diameter, double attackPercent) {
+        double result = (attackPercent * attackPercent + attackPercent) / 2f * 7 * (diameter + 1);
+        return (float) result;
+    }
+
+    public GenshinAreaSpreading(Entity entity, Vec3 center, DamageSource source, float radius, DamageCalculation calculation) {
         this.entity = entity;
         this.level = entity.getLevel();
         this.center = center;
         this.source = source;
         this.radius = radius;
+        this.calculation = calculation;
     }
 
     /**
@@ -63,7 +75,7 @@ public class GenshinAreaSpreading {
                     if (d13 != 0.0D) {
                         double d14 = Explosion.getSeenPercent(this.center, entity);
                         double d10 = (1.0D - d12) * d14;
-                        float damage = ((int) ((d10 * d10 + d10) / 2.0D * 7.0D * (double) f2 + 1.0D));
+                        float damage = calculation.calculate(f2, d10);
                         entity.hurt(this.source, damage);
                         result.put(entity, damage);
                     }
@@ -87,5 +99,10 @@ public class GenshinAreaSpreading {
 
 
         return result;
+    }
+
+    @FunctionalInterface
+    public interface DamageCalculation {
+        float calculate(float diameter, double attackPercent);
     }
 }
