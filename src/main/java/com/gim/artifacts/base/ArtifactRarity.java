@@ -1,5 +1,7 @@
 package com.gim.artifacts.base;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public enum ArtifactRarity {
@@ -10,37 +12,41 @@ public enum ArtifactRarity {
     FIVE(20, 3000, 270475, 3),
     ;
 
-    public final int maxLevel;
-    public final double minExp;
-    public final double maxExp;
     private final int baseSubstatCount;
 
-    ArtifactRarity(int maxLevel, double min, double max, int baseSubstatCount) {
-        this.maxLevel = maxLevel;
-        this.minExp = min;
-        this.maxExp = max;
-        this.baseSubstatCount = baseSubstatCount;
-    }
+    private final List<Double> expLevels = new ArrayList<>();
+    private final List<Double> fullXpLevels = new ArrayList<>();
 
-    /**
-     * Returns base value for power progression
-     */
-    private double base() {
-        double difference = maxExp - minExp;
-        return Math.pow(difference, 1.0 / maxLevel);
+    ArtifactRarity(int maxLevel, double minExp, double maxExp, int baseSubstatCount) {
+        this.baseSubstatCount = baseSubstatCount;
+
+        expLevels.add(minExp);
+        fullXpLevels.add(minExp);
+
+        double perLevel = (maxExp - minExp) / maxLevel - 2;
+
+        for (int i = 1; i <= maxLevel - 1; i++) {
+            expLevels.add(perLevel * i);
+        }
+
+        expLevels.add(maxExp);
+
+        for (int i = 1; i < expLevels.size(); i++) {
+            fullXpLevels.add(fullXpLevels.get(i - 1) + expLevels.get(i));
+        }
     }
 
     /**
      * Returns level from current Exp
      */
     public int getLevel(double exp) {
-        if (maxExp >= exp) {
-            return 0;
+        for (int i = 0; i < fullXpLevels.size(); i++) {
+            if (exp <= fullXpLevels.get(i)) {
+                return i;
+            }
         }
 
-        exp -= maxExp;
-        // see https://www.baeldung.com/java-logarithms
-        return (int) Math.floor(Math.log(exp) / Math.log(base()));
+        return getMaxLevel();
     }
 
     /**
@@ -51,13 +57,13 @@ public enum ArtifactRarity {
      * @return - exp amount
      */
     public int getAmount(int fromLvl, int toLvl) {
-        double base = base();
-        double maxAmount = Math.pow(base, toLvl);
-        double minAmount = fromLvl == 0
-                ? 0
-                : Math.pow(base, fromLvl);
+        if (fromLvl >= toLvl
+                || toLvl >= fullXpLevels.size()
+                || fromLvl < 0) {
+            return 0;
+        }
 
-        return (int) Math.ceil(maxAmount - minAmount);
+        return (int) (fullXpLevels.get(toLvl) - fullXpLevels.get(fromLvl));
     }
 
     /**
@@ -70,5 +76,49 @@ public enum ArtifactRarity {
         }
 
         return Math.max(0, result);
+    }
+
+    public double getMinExp() {
+        return expLevels.get(0);
+    }
+
+    public double getMaxExp() {
+        return expLevels.get(expLevels.size() - 1);
+    }
+
+    public int getMaxLevel() {
+        return expLevels.size() - 1;
+    }
+
+    /**
+     * Returns amount of xp for current level
+     *
+     * @param exp - total xp count
+     * @return
+     */
+    public int getXpAmountForLevel(int exp) {
+        for (int i = 0; i < fullXpLevels.size(); i++) {
+            Double perLevel = fullXpLevels.get(i);
+            if (perLevel >= exp) {
+                return (int) (perLevel - exp);
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Returns xp neede to upgrade this level
+     *
+     * @param level
+     * @return
+     */
+    public int getXpForLevel(int level) {
+        if (level < 0 || level >= expLevels.size()) {
+            return -1;
+        }
+
+        double result = expLevels.get(level);
+        return (int) result;
     }
 }

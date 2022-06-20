@@ -40,12 +40,6 @@ public class Network {
                 .consumer(ClientboundLevelParticlesPacketHandler::consume)
                 .add();
 
-        playChannel.messageBuilder(StarClickedPackage.class, 4)
-                .encoder(StarClickedPackage::encode)
-                .decoder(StarClickedPackage::new)
-                .consumer(StarClickedPackage::consume)
-                .add();
-
         return playChannel;
     }
 }

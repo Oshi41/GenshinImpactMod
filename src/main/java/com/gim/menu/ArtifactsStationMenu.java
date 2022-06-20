@@ -6,6 +6,7 @@ import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.items.ArtefactItem;
 import com.gim.menu.base.GenshinIterableMenuBase;
 import com.gim.menu.base.WrapperContainer;
+import com.gim.registry.Blocks;
 import com.gim.registry.Menus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
@@ -14,6 +15,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Objects;
 
@@ -45,8 +47,8 @@ public class ArtifactsStationMenu extends GenshinIterableMenuBase {
     }
 
     @Override
-    protected boolean checkBlock(Block block) {
-        return block instanceof GenshinCraftingTableBlock;
+    protected boolean checkBlock(BlockState block) {
+        return block.getBlock().equals(Blocks.artifacts_station);
     }
 
     @Override

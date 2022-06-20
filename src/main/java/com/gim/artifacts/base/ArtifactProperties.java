@@ -1,13 +1,15 @@
 package com.gim.artifacts.base;
 
 import com.gim.GenshinHeler;
-import com.google.common.collect.ImmutableMultimap;
+import com.gim.items.ArtefactItem;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +28,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
      * @param type   - slot type
      */
     public ArtifactProperties(ArtifactRarity rarity, ArtifactSlotType type, Random random) {
-        exp = (int) rarity.minExp;
+        exp = (int) rarity.getMinExp();
         this.rarity = rarity;
 
         // primal
@@ -55,7 +57,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         CompoundTag tag = new CompoundTag();
         tag.putString("Rarity", rarity.name());
         tag.putInt("Exp", exp);
-        tag.putString("Primal", withPrimal().name());
+        tag.putString("Primal", getPrimal().name());
 
         ListTag keys = new ListTag();
         tag.put("Stats", keys);
@@ -109,7 +111,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         ArtifactProperties properties = new ArtifactProperties()
                 .withRarity(getRarity())
                 // adding init level
-                .addExp((int) getRarity().minExp, null, null)
+                .addExp((int) getRarity().getMinExp(), null, null, null)
                 .withPrimal(stat);
 
         subStats.add(properties);
@@ -119,7 +121,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
     /**
      * Primal artifact stat
      */
-    private ArtifactStat withPrimal() {
+    public ArtifactStat getPrimal() {
         return primal;
     }
 
@@ -131,23 +133,35 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
      * @param random - possible random. Null to disable leveling
      * @return this
      */
-    public ArtifactProperties addExp(int toAdd, @Nullable ArtifactSlotType type, @Nullable Random random) {
+    public ArtifactProperties addExp(int toAdd, @Nullable ArtifactSlotType type, @Nullable Random random, @Nullable ItemStack stack) {
+        // saving old level
         int oldLevel = getRarity().getLevel(getExp());
 
+        // adding exp to artifact
         this.exp += toAdd;
 
+        // retrieving new level
         int current = getRarity().getLevel(getExp());
 
+        // if level was changed
         if (current > oldLevel && type != null && random != null) {
-            if (current % 4 == 0) {
-                performLeveling(type, random);
+            // iterating through all levels
+            for (int i = oldLevel; i < current; i++) {
+                // if
+                if (i % 4 == 0) {
+                    addSubStat(type, random);
+                }
             }
+        }
+
+        if (stack != null && !stack.isEmpty() && stack.getItem() instanceof ArtefactItem) {
+            ((ArtefactItem) stack.getItem()).save(stack, this);
         }
 
         return this;
     }
 
-    private void performLeveling(ArtifactSlotType type, Random random) {
+    private void addSubStat(ArtifactSlotType type, Random random) {
         if (subStats.size() < 4) {
             // adding possible stat
             withSub(type.getRandomSub(random, primal));
@@ -155,7 +169,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
             ArtifactProperties properties = subStats.get(random.nextInt(subStats.size()));
             int currentLevel = getRarity().getLevel(properties.getExp());
             int toAdd = getRarity().getAmount(currentLevel, currentLevel + 1);
-            properties.addExp(toAdd, null, null);
+            properties.addExp(toAdd, null, null, null);
         }
     }
 
@@ -165,6 +179,13 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
 
     public int getExp() {
         return exp;
+    }
+
+    /**
+     * Returns amount of sub stats
+     */
+    public ImmutableList<ArtifactProperties> getSubModifiers() {
+        return ImmutableList.copyOf(subStats);
     }
 
     public void addModifiers(Multimap<Attribute, AttributeModifier> builder) {

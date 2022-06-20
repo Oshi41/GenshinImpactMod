@@ -58,6 +58,7 @@ public class ArtefactItem extends Item {
         ArtifactProperties properties = new ArtifactProperties(tag);
         int count = Arrays.stream(ArtifactRarity.values()).toList().indexOf(properties.getRarity()) + 1;
         components.add(new TextComponent("✯".repeat(count)));
+        components.add(new TranslatableComponent(GenshinImpactMod.ModID + ".level", properties.getRarity().getLevel(properties.getExp())));
 
         components.add(TextComponent.EMPTY);
         components.add(new TranslatableComponent("item.modifiers.artifacts").withStyle(ChatFormatting.GRAY));
@@ -108,8 +109,9 @@ public class ArtefactItem extends Item {
             components.add(new TranslatableComponent("genshin.set_bonus").withStyle(ChatFormatting.GRAY));
 
             for (IArtifactSet artifactSet : setList) {
-                components.add(artifactSet.name().withStyle(ChatFormatting.WHITE));
-                components.add(artifactSet.description().withStyle(ChatFormatting.BLACK));
+                components.add(artifactSet.name().plainCopy().withStyle(ChatFormatting.WHITE));
+                components.add(artifactSet.description().plainCopy().withStyle(ChatFormatting.DARK_GREEN));
+                components.add(TextComponent.EMPTY);
             }
         }
     }
@@ -117,7 +119,13 @@ public class ArtefactItem extends Item {
     @Override
     public ItemStack getDefaultInstance() {
         ItemStack stack = super.getDefaultInstance();
-        stack.getOrCreateTag().put(tagName, defaultProps.get());
+
+        Random random = new Random();
+        ArtifactRarity[] rarities = ArtifactRarity.values();
+        ArtifactRarity rarity = rarities[random.nextInt(rarities.length)];
+        CompoundTag tag = new ArtifactProperties(rarity, getType(), random).serializeNBT();
+
+        stack.getOrCreateTag().put(tagName, tag);
         return stack;
     }
 
@@ -139,6 +147,21 @@ public class ArtefactItem extends Item {
         }
 
         return super.getAttributeModifiers(slot, stack);
+    }
+
+    @Nullable
+    public ArtifactProperties from(ItemStack stack) {
+        CompoundTag compoundTag = stack.getOrCreateTag().getCompound(tagName);
+        if (compoundTag.isEmpty())
+            return null;
+
+        return new ArtifactProperties(compoundTag);
+    }
+
+    public void save(ItemStack stack, ArtifactProperties props) {
+        if (!stack.isEmpty() && props != null) {
+            stack.getOrCreateTag().put(tagName, props.serializeNBT());
+        }
     }
 
     public ItemStack create(ArtifactProperties props) {

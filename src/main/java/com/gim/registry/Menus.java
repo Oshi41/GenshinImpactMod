@@ -1,6 +1,7 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
+import com.gim.menu.ArtifactsForgeMenu;
 import com.gim.menu.ArtifactsStationMenu;
 import com.gim.menu.ConstellationMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -15,6 +16,7 @@ import net.minecraftforge.registries.ObjectHolder;
 public class Menus {
     public static final MenuType<ConstellationMenu> constellation = null;
     public static final MenuType<ArtifactsStationMenu> artifacts_station = null;
+    public static final MenuType<ArtifactsForgeMenu> artifacts_forge = null;
 
     @SubscribeEvent
     public static void register(RegistryEvent.Register<MenuType<?>> event) {
@@ -23,7 +25,10 @@ public class Menus {
                         .setRegistryName(GenshinImpactMod.ModID, "constellation"),
 
                 IForgeMenuType.create(ArtifactsStationMenu::new)
-                        .setRegistryName(GenshinImpactMod.ModID, "artifacts_station")
+                        .setRegistryName(GenshinImpactMod.ModID, "artifacts_station"),
+
+                IForgeMenuType.create(ArtifactsForgeMenu::new)
+                        .setRegistryName(GenshinImpactMod.ModID, "artifacts_forge")
         );
     }
 }

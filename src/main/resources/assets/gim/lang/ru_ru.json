@@ -26,7 +26,7 @@
   "item.gim.anemo_traveler_star": "Созвездие Путешественника",
   "gim.anemo_traveler.star.1": "§7§l1\n«Бушующий ураган».§r\nСпособность «§nЛадонь вихря§r» стягивает противников и предметы в радиусе пяти метров.",
   "gim.anemo_traveler.star.2": "§7§l2\n§7§l«Вздымающийся вихрь».§r\nУскоряет восполнение энергии на 16%.",
-  "gim.anemo_traveler.star.3": "§7§l1\n§7§l«Хранящий бриз».§r\nНа 10% снижает получаемый героем урон, когда активна «§nЛадонь вихря§r».",
+  "gim.anemo_traveler.star.3": "§7§l3\n§7§l«Хранящий бриз».§r\nНа 10% снижает получаемый героем урон, когда активна «§nЛадонь вихря§r».",
   "gim.anemo_traveler.star.4": "§7§l4\n§7§l«Плетение ветров».§r\nНа 20% уменьшает сопротивление стихии Анемо у врагов, которые получили урон от «§nВзрывного торнадо§r». Если сработало поглощение стихий, то враги также получают -20% сопротивления от урона поглощенного элемента.",
   "itemGroup.gim.artifacts": "Артефакты",
   "item.gim.adventure_flower": "Цветок искателя приключений",
@@ -39,6 +39,7 @@
   "gim.artifact_set.adventure4.name": "Искатель приключений, 4 предмета:",
   "gim.artifact_set.adventure4.description": "Восстанавливает 20% HP при добыче ценной руды",
   "block.gim.artifacts_station": "Стол артефактов",
+  "gim.crafting.artifacts_station": "Стол артефактов",
   "item.modifiers.artifacts": "Когда надето:",
   "gim.main_stat": "Главная характеристика",
   "genshin.heal_bonus": "Бонус лечения",
@@ -69,5 +70,11 @@
   "genshin.shield_strength": "Сила щита",
   "genshin.skill_level": "Уровень элементальных навыков",
   "genshin.constellations": "Уровень созвездия",
-  "genshin.set_bonus": "Бонус комплекта:"
+  "genshin.set_bonus": "Бонус комплекта:",
+  "gim.upgrade": "Улучшить",
+  "block.gim.artifacts_forge": "Кузня артефактов",
+  "gim.crafting.artifacts_forge": "Кузня артефактов",
+  "gim.level": "%s уровень",
+  "gim.sub_stat_added": "+%s доп. характеристика",
+  "gim.sub_stat_upgraded": "Улучшит %s доп. характеристик"
 }

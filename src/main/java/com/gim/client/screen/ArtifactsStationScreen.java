@@ -41,6 +41,9 @@ public class ArtifactsStationScreen extends AbstractContainerScreen<ArtifactsSta
 
         this.imageWidth = 176;
         this.imageHeight = 215;
+
+        this.titleLabelX = 70;
+        this.titleLabelY = 6;
     }
 
     @Override
@@ -83,12 +86,12 @@ public class ArtifactsStationScreen extends AbstractContainerScreen<ArtifactsSta
         BaseComponent component = getMenu().current().getAssotiatedPlayer().getName();
         int textHeight = minecraft.font.lineHeight;
 
-        drawCenteredString(p_97787_, minecraft.font, component, this.leftPos + 114, this.topPos + textHeight / 2, getMenu().current().getAssotiatedPlayer().getElemental().getChatColor().getColor());
+        drawCenteredString(p_97787_, minecraft.font, component, this.leftPos + 114, this.topPos + textHeight * 2, getMenu().current().getAssotiatedPlayer().getElemental().getChatColor().getColor());
     }
 
     @Override
     protected void renderLabels(PoseStack p_97808_, int p_97809_, int p_97810_) {
-        // this.font.draw(p_97808_, this.title, (float) this.titleLabelX, (float) this.titleLabelY, 4210752);
+        this.font.draw(p_97808_, this.title, (float) this.titleLabelX, (float) this.titleLabelY, 4210752);
         // this.font.draw(p_97808_, this.playerInventoryTitle, (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
     }
 

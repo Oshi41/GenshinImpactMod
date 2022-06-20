@@ -3,6 +3,7 @@ package com.gim.registry;
 import com.gim.GenshinImpactMod;
 import com.gim.blocks.GenshinAnvilBlock;
 import com.gim.blocks.GenshinCraftingTableBlock;
+import com.gim.menu.ArtifactsForgeMenu;
 import com.gim.menu.ArtifactsStationMenu;
 import com.gim.menu.ConstellationMenu;
 import net.minecraft.CrashReport;
@@ -66,7 +67,7 @@ public class Blocks {
                                 .strength(5, 1000)
                                 .sound(SoundType.WOOD)
                                 .requiresCorrectToolForDrops(),
-                        ArtifactsStationMenu::new
+                        ArtifactsForgeMenu::new
                 ),
                 new Item.Properties().setNoRepair().tab(CreativeModeTab.TAB_MISC),
                 "artifacts_forge");

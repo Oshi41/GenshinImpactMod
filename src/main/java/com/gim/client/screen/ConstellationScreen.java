@@ -2,28 +2,20 @@ package com.gim.client.screen;
 
 import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.GenshinEntityData;
-import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.items.ConstellationItem;
 import com.gim.menu.ConstellationMenu;
-import com.gim.networking.StarClickedPackage;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Attributes;
-import com.gim.registry.Capabilities;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Maps;
-import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Matrix4f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.*;
+import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
@@ -40,7 +32,6 @@ import java.util.*;
 public class ConstellationScreen extends AbstractContainerScreen<ConstellationMenu> {
     private static final ResourceLocation GUI = new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/star_worktable/star_worktable_gui.png");
     private static final ResourceLocation NETHER_STAR = new ResourceLocation("textures/item/nether_star.png");
-
 
     private Button left;
     private Button right;
@@ -89,7 +80,7 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
 
         for (int i = 0; i < poses.size(); i++) {
             StarInfo starInfo = new StarInfo(i,
-                    value >= i,
+                    value > i,
                     FormattedText.of(new TranslatableComponent(String.format("%s.%s.star.%s", assotiatedPlayer.getRegistryName().getNamespace(), assotiatedPlayer.getRegistryName().getPath(), i + 1)).getString()),
                     poses.get(i));
 
@@ -114,8 +105,16 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
         }
         starButtons.clear();
 
+        int openSize = 15;
+        int closedSIze = 7;
+
+        StarInfo firstClosed = current.stream().filter(s -> !s.isOpen).findFirst().orElse(null);
+        int index = firstClosed != null
+                ? firstClosed.index
+                : -1;
+
         for (StarInfo starInfo : current) {
-            int size = starInfo.isOpen ? 15 : 7;
+            int size = starInfo.isOpen ? openSize : closedSIze;
 
             int xStart = (int) (x + starInfo.pos.x) - size / 2;
             int yStart = (int) (y + starInfo.pos.y) - size / 2;
@@ -131,9 +130,27 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
                     NETHER_STAR,
                     size,
                     size,
-                    p_93751_ -> onStarClick(p_93751_, starInfo),
+                    p_93751_ -> {
+                        if (index == starInfo.index) {
+                            onStarClick(p_93751_, starInfo);
+                        }
+                    },
                     (Button button, PoseStack stack, int xPos, int yPos) -> renderStackTooltip(stack, starInfo.text, xPos, yPos),
-                    TextComponent.EMPTY)));
+                    TextComponent.EMPTY) {
+
+                @Override
+                public void renderButton(PoseStack p_94282_, int p_94283_, int p_94284_, float p_94285_) {
+                    super.renderButton(p_94282_, p_94283_, p_94284_, p_94285_);
+
+                    if (index == starInfo.index && isHovered) {
+                        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+                        RenderSystem.setShaderTexture(0, NETHER_STAR);
+
+                        int diff = (openSize / 2) - (closedSIze / 2);
+                        blit(p_94282_, this.x - diff, this.y - diff, 0, 0, openSize, openSize, openSize, openSize);
+                    }
+                }
+            }));
         }
 
         Item item = ForgeRegistries.ITEMS.getValues().stream()
@@ -173,18 +190,9 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
         renderComponentTooltip(stack, List.of(text), xPos, yPos, Items.AIR.getDefaultInstance());
     }
 
-    void onStarClick(Button p_93751_, StarInfo starInfo) {
-        // not opened star
-        if (!starInfo.isOpen
-                // first index
-                && starInfo.index == 0
-                // or prev star is open
-                || current.get(starInfo.index - 1).isOpen) {
-            Slot slot = this.menu.getSlot(0);
-            if (slot.hasItem()) {
-                // sending message to open star
-                GenshinImpactMod.CHANNEL.sendToServer(new StarClickedPackage(getMenu().current().getAssotiatedPlayer()));
-            }
+    void onStarClick(Button btn, StarInfo starInfo) {
+        if (!starInfo.isOpen) {
+            this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, starInfo.index);
         }
     }
 
