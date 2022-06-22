@@ -83,7 +83,6 @@ public class ObservableMap<K, V> extends AbstractMap<K, V> {
 
     public ObservableMap<K, V> sync(Map<K, V> map) {
         observable = map;
-        onChange("put");
         return this;
     }
 

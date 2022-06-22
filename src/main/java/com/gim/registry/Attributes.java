@@ -79,7 +79,7 @@ public class Attributes {
                 new RangedAttribute("genshin.recharge_bonus", 1, 0, Double.MAX_VALUE)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "recharge_bonus"),
-                new RangedAttribute("genshin.level", 1, 1, 8)
+                new RangedAttribute("genshin.level", 0, 0, 20)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "level"),
 

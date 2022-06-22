@@ -2,7 +2,6 @@ package com.gim;
 
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.shield.IShield;
-import com.gim.entity.TextParticle;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
@@ -394,20 +393,5 @@ public class GenshinHeler {
         }
 
         return new AttributeSupplier(instanceMap);
-    }
-
-    /**
-     * Showing info for current entity.
-     * TODo change entity based info to screen render
-     *
-     * @param entity - linked entity we want to show info
-     * @param text   - current text info
-     */
-    public static void showInfo(Entity entity, BaseComponent text) {
-        if (entity != null && text != null) {
-            if (!entity.getLevel().isClientSide()) {
-                entity.getLevel().addFreshEntity(new TextParticle(entity, text));
-            }
-        }
     }
 }

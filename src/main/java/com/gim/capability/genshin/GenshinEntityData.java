@@ -278,8 +278,8 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
                     }
 
                     MapDifference<Attribute, AttributeInstance> attrDiff = Maps.difference(
-                            GenshinAttributeMap.from(getAttributes()),
-                            GenshinAttributeMap.from(entityMap),
+                            GenshinAttributeMap.from(getAttributes(), true),
+                            GenshinAttributeMap.from(entityMap, true),
                             new AttributeEquals());
 
                     if (!attrDiff.areEqual()) {

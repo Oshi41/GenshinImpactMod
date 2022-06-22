@@ -2,6 +2,8 @@ package com.gim.events;
 
 import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
+import com.gim.capability.genshin.GenshinEntityData;
+import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.networking.CapabilityUpdatePackage;
 import com.gim.registry.Capabilities;
 import net.minecraft.nbt.CompoundTag;
@@ -43,6 +45,17 @@ public class CapabilitySync {
                 }
             } else if (e.getEntity() instanceof LivingEntity) {
 
+            }
+        }
+
+        ////////////////////////////
+        // DEBUG
+        ///////////////////////////
+        IGenshinInfo genshinInfo = e.getEntity().getCapability(Capabilities.GENSHIN_INFO).orElse(null);
+        if (genshinInfo != null) {
+            GenshinEntityData genshinEntityData = genshinInfo.getPersonInfo(genshinInfo.current());
+            if (genshinEntityData != null) {
+                genshinEntityData.applyToEntity(((LivingEntity) e.getEntity()));
             }
         }
     }

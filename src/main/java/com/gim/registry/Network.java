@@ -40,6 +40,12 @@ public class Network {
                 .consumer(ClientboundLevelParticlesPacketHandler::consume)
                 .add();
 
+        playChannel.messageBuilder(TextParticleMsg.class, 4)
+                .encoder(TextParticleMsg::encode)
+                .decoder(TextParticleMsg::decode)
+                .consumer(TextParticleMsg::consume)
+                .add();
+
         return playChannel;
     }
 }

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -19,9 +20,31 @@ import java.util.function.Consumer;
 public class GenshinAttributeMap extends AttributeMap {
     private static final Field attributesField = ObfuscationReflectionHelper.findField(AttributeMap.class, "f_22139_");
 
-    public static Map<Attribute, AttributeInstance> from(AttributeMap map) {
+    /**
+     * Obtainig private field from attributes map
+     *
+     * @param map     - attributes map to retrieve private field in
+     * @param preload - need to load all containing attributes? By default there is NO LOADED instances inside
+     * @return loaded attribute instances
+     */
+    public static Map<Attribute, AttributeInstance> from(AttributeMap map, boolean preload) {
         try {
-            return (Map<Attribute, AttributeInstance>) attributesField.get(map);
+            // retrieving field
+            Map<Attribute, AttributeInstance> instanceMap = (Map<Attribute, AttributeInstance>) attributesField.get(map);
+
+            if (preload) {
+                // loading all attributes in map
+                for (Attribute attribute : ForgeRegistries.ATTRIBUTES.getValues()) {
+                    // if has attribute
+                    if (map.hasAttribute(attribute) && !instanceMap.containsKey(attribute)) {
+                        // trying to load this
+                        map.getInstance(attribute);
+                    }
+                }
+            }
+
+
+            return instanceMap;
         } catch (IllegalAccessException e) {
             throw new ReportedException(CrashReport.forThrowable(e, "Cannot obtain attributes field"));
         }
@@ -46,7 +69,7 @@ public class GenshinAttributeMap extends AttributeMap {
     public GenshinAttributeMap(AttributeSupplier supplier) {
         super(supplier);
         this.supplier = supplier;
-        attributes = from(this);
+        attributes = from(this, false);
         observedDirtySet = new ObservableSet<>(super.getDirtyAttributes(), this::onDirtySetChanged);
     }
 
@@ -57,7 +80,6 @@ public class GenshinAttributeMap extends AttributeMap {
 
     public GenshinAttributeMap syncFor(AttributeMap map) {
         observable = map;
-        updateInner(null);
         return this;
     }
 

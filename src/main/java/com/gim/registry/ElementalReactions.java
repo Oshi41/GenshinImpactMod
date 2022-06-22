@@ -5,7 +5,6 @@ import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.entity.Shield;
-import com.gim.entity.TextParticle;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.damagesource.DamageSource;

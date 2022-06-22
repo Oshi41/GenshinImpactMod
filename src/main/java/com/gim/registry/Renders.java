@@ -3,27 +3,20 @@ package com.gim.registry;
 import com.gim.GenshinImpactMod;
 import com.gim.client.entity.CustomTextureRender;
 import com.gim.client.entity.EnergyRenderer;
-import com.gim.client.entity.TextureParticleRenderer;
 import com.gim.client.layers.IceRender;
 import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
 import com.gim.entity.Shield;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +55,6 @@ public class Renders {
         });
 
         e.registerEntityRenderer(Entities.tornado_entity_type, TornadoRenderer::new);
-        e.registerEntityRenderer(Entities.text_particle_entity_type, TextureParticleRenderer::new);
         e.registerEntityRenderer(Entities.energy_type, EnergyRenderer::new);
     }
 
@@ -91,6 +83,7 @@ public class Renders {
         try {
             renderer.addLayer(new ShieldLayerRender(renderer));
             renderer.addLayer(new IceRender(renderer));
+            // renderer.addLayer(new GenshinInfoRender(renderer));
         } catch (Exception e) {
             GenshinImpactMod.LOGGER.debug("Error during injecting custom layers to LivingEntityRenderer");
             GenshinImpactMod.LOGGER.debug(e);
