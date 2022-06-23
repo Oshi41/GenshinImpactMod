@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "gim:block/level_station_top",
+    "north": "gim:block/level_station_front",
+    "south": "gim:block/level_station_front",
+    "east": "gim:block/level_station_side",
+    "west": "gim:block/level_station_side",
+    "up": "gim:block/level_station_top",
+    "down": "gim:block/level_station_bottom"
+  }
+}

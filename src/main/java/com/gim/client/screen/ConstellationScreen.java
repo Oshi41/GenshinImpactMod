@@ -66,8 +66,7 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
     }
 
     private void navigate(boolean forward) {
-        int add = forward ? 1 : -1;
-        getMenu().changeIndex(getMenu().getIndex() + add);
+        getMinecraft().gameMode.handleInventoryButtonClick(getMenu().containerId, forward ? 1 : 0);
     }
 
     private List<StarInfo> create(GenshinEntityData data) {
@@ -192,7 +191,9 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
 
     void onStarClick(Button btn, StarInfo starInfo) {
         if (!starInfo.isOpen) {
-            this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, starInfo.index);
+            // need to skip first bit
+            int bitMask = starInfo.index >> 1;
+            this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, bitMask);
         }
     }
 

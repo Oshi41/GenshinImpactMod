@@ -3,6 +3,7 @@ package com.gim.client.screen;
 import com.gim.GenshinImpactMod;
 import com.gim.artifacts.base.ArtifactProperties;
 import com.gim.artifacts.base.ArtifactSlotType;
+import com.gim.client.screen.base.GenshinScreenBase;
 import com.gim.items.ArtefactItem;
 import com.gim.menu.ArtifactsForgeMenu;
 import com.google.common.collect.Multimap;
@@ -29,16 +30,12 @@ import java.util.Arrays;
 import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
-public class ArtifactsForgeScreen extends AbstractContainerScreen<ArtifactsForgeMenu> implements ContainerListener {
+public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> {
     private static final ResourceLocation GUI = new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/artifacts_forge/artifacts_forge.png");
     private Button applyBtn;
 
     public ArtifactsForgeScreen(ArtifactsForgeMenu forgeMenu, Inventory inventory, Component text) {
-        super(forgeMenu, inventory, text);
-        forgeMenu.addSlotListener(this);
-
-        this.imageWidth = 176;
-        this.imageHeight = 215;
+        super(forgeMenu, inventory, text, new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/artifacts_forge/artifacts_forge.png"));
     }
 
     @Override
@@ -53,8 +50,6 @@ public class ArtifactsForgeScreen extends AbstractContainerScreen<ArtifactsForge
     @Override
     public void render(PoseStack p_97795_, int p_97796_, int p_97797_, float p_97798_) {
         super.render(p_97795_, p_97796_, p_97797_, p_97798_);
-        renderTooltip(p_97795_, p_97796_, p_97797_);
-
         applyBtn.active = getMenu().isCanApply();
     }
 
@@ -65,14 +60,10 @@ public class ArtifactsForgeScreen extends AbstractContainerScreen<ArtifactsForge
 
     @Override
     protected void renderBg(PoseStack poseStack, float p_97788_, int p_97789_, int p_97790_) {
+        super.renderBg(poseStack, p_97788_, p_97789_, p_97790_);
+
         int x = this.leftPos;
         int y = (this.height - this.imageHeight) / 2;
-
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, GUI);
-        // background
-        this.blit(poseStack, x, y, 0, 0, this.imageWidth, this.imageHeight);
 
         ItemStack artifact = getMenu().getSlot(0).getItem();
 
@@ -219,18 +210,5 @@ public class ArtifactsForgeScreen extends AbstractContainerScreen<ArtifactsForge
             minecraft.font.draw(poseStack, text, this.leftPos + this.imageWidth - minecraft.font.width(text) - 4,
                     yStart + 8, 4210752);
         }
-    }
-
-    @Override
-    public void slotChanged(AbstractContainerMenu p_39315_, int p_39316_, ItemStack p_39317_) {
-
-        if (applyBtn != null) {
-            applyBtn.active = getMenu().isCanApply();
-        }
-    }
-
-    @Override
-    public void dataChanged(AbstractContainerMenu p_150524_, int p_150525_, int p_150526_) {
-
     }
 }

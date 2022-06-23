@@ -9,9 +9,11 @@ import com.gim.registry.Blocks;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Menus;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.BitStorage;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -20,10 +22,13 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.BitSet;
 import java.util.Objects;
+import java.util.UUID;
 
 public class ConstellationMenu extends GenshinIterableMenuBase {
     private final Container own = new SimpleContainer(1);
+    private static final UUID id = UUID.fromString("68703754-3121-4b83-8657-d61c37683967");
 
     public ConstellationMenu(int containerID, Inventory playerInv, FriendlyByteBuf buf) {
         this(containerID, playerInv, ContainerLevelAccess.NULL);
@@ -61,15 +66,22 @@ public class ConstellationMenu extends GenshinIterableMenuBase {
     }
 
     @Override
-    public boolean clickMenuButton(Player player, int starIndex) {
+    public boolean clickMenuButton(Player player, int btnIndex) {
+        if (super.clickMenuButton(player, btnIndex))
+            return true;
+
+        int starIndex = btnIndex >> 1;
+
         GenshinEntityData entityData = current();
         if (entityData != null) {
             IGenshinInfo genshinInfo = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
             if (genshinInfo != null) {
                 AttributeInstance attributeInstance = entityData.getAttributes().getInstance(Attributes.constellations);
                 // clicked on correct star
-                if (attributeInstance != null && attributeInstance.getBaseValue() == starIndex) {
-                    attributeInstance.setBaseValue(attributeInstance.getBaseValue() + 1);
+                if (attributeInstance != null && attributeInstance.getValue() == starIndex) {
+                    AttributeModifier modifier = new AttributeModifier(id, "star", starIndex + 1, AttributeModifier.Operation.ADDITION);
+                    attributeInstance.removeModifier(id);
+                    attributeInstance.addPermanentModifier(modifier);
                     entityData.getAssotiatedPlayer().onStarAdded(player, genshinInfo, ((int) attributeInstance.getValue()));
                     own.removeItem(0, 1);
 

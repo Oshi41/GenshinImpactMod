@@ -67,8 +67,6 @@ public class GenshinHeler {
      * @return
      */
     public static float getActualDamage(LivingEntity entity, final DamageSource source, float damage) {
-        // current attacker level
-        int level = 1;
         // elemental majesty
         float majesty = 0;
         // bonus for current elemental attack. Can be zero if non elemental attack happens
@@ -84,7 +82,6 @@ public class GenshinHeler {
 
             // calclulated majesty for attacker
             majesty = majestyBonus(attacker);
-            level = (int) Math.max(1, safeGetAttribute(entity, Attributes.level));
 
             // find elemental from attack
             Elementals elemental = Arrays.stream(Elementals.values()).filter(x -> x.is(source)).findFirst().orElse(null);
@@ -106,8 +103,8 @@ public class GenshinHeler {
             }
         }
 
-        // calcuating raw damage (by level, majesty and elemental bonuses)
-        float rawDamage = damage * level * (1 + majesty + elementalBonus);
+        // calcuating raw damage (by  majesty and elemental bonuses)
+        float rawDamage = damage * (1 + majesty + elementalBonus);
         // calculating defence by raw damage
         float defenceValue = rawDamage * defence;
         // calculating resistance for raw damage

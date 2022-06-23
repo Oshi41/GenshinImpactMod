@@ -6,17 +6,19 @@ import com.gim.blocks.GenshinCraftingTableBlock;
 import com.gim.menu.ArtifactsForgeMenu;
 import com.gim.menu.ArtifactsStationMenu;
 import com.gim.menu.ConstellationMenu;
+import com.gim.menu.LevelStationMenu;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FlowerBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
-import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,9 +35,16 @@ public class Blocks {
     public static final Block star_worktable = null;
     public static final Block artifacts_station = null;
     public static final Block artifacts_forge = null;
+    public static final Block level_station = null;
+    public static final Block wind_astra = null;
 
     @SubscribeEvent
     public static void registerBlock(RegistryEvent.Register<Block> event) {
+        registerBlock(event,
+                new FlowerBlock(MobEffects.LEVITATION, 5, BlockBehaviour.Properties.of(Material.PLANT).noCollission().instabreak().sound(SoundType.GRASS)),
+                new Item.Properties().setNoRepair().tab(CreativeModeTab.TAB_DECORATIONS),
+                "wind_astra");
+
         registerBlock(
                 event,
                 new GenshinCraftingTableBlock(
@@ -71,6 +80,18 @@ public class Blocks {
                 ),
                 new Item.Properties().setNoRepair().tab(CreativeModeTab.TAB_MISC),
                 "artifacts_forge");
+
+        registerBlock(
+                event,
+                new GenshinCraftingTableBlock(
+                        BlockBehaviour.Properties.of(Material.WOOD)
+                                .strength(2.5f)
+                                .sound(SoundType.WOOD)
+                                .requiresCorrectToolForDrops(),
+                        LevelStationMenu::new
+                ),
+                new Item.Properties().setNoRepair().tab(CreativeModeTab.TAB_MISC),
+                "level_station");
 
     }
 

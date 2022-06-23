@@ -26,6 +26,9 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Comparator;
+import java.util.List;
+
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(Dist.CLIENT)
 public class GenshinStatsRender {
@@ -66,7 +69,10 @@ public class GenshinStatsRender {
 
     @SubscribeEvent
     public static void onEndLevelRender(RenderLevelLastEvent event) {
-        for (ShowDamage.TextParticle particle : ShowDamage.getAll()) {
+        // need to show reactions at last
+        List<ShowDamage.TextParticle> list = ShowDamage.getAll().stream().sorted(Comparator.comparing(ShowDamage.TextParticle::getType)).toList();
+
+        for (ShowDamage.TextParticle particle : list) {
 
             // do not showing damage stats
             if (ShowDamage.IndicatingType.DAMAGE.equals(particle.getType()) && !GenshinImpactMod.CONFIG.getKey().indicateDamage.get()) {

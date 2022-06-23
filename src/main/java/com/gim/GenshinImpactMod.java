@@ -86,6 +86,7 @@ public class GenshinImpactMod {
     public void onClientStarting(final FMLClientSetupEvent event) {
         com.gim.registry.KeyMappings.registerKeys();
         com.gim.registry.Screens.register();
+        com.gim.registry.Renders.setCustomBlockRender();
 
         net.minecraftforge.client.gui.OverlayRegistry.registerOverlayTop(
                 new ResourceLocation(GenshinImpactMod.ModID, "genshin").toString(),

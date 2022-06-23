@@ -4,7 +4,9 @@ import com.gim.GenshinImpactMod;
 import com.gim.artifacts.base.ArtifactSlotType;
 import com.gim.items.ArtefactItem;
 import com.gim.items.ConstellationItem;
+import com.gim.items.GenshinMaterialItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -17,6 +19,20 @@ import java.util.Arrays;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Items {
     public static final ConstellationItem anemo_traveler_star = null;
+
+    public static final Item freedom_scroll = null;
+    public static final Item freedom_scroll_2 = null;
+
+    public static final Item resistance_scroll = null;
+    public static final Item resistance_scroll_2 = null;
+
+    public static final Item ballad_scroll = null;
+    public static final Item ballad_scroll_2 = null;
+
+    public static final Item brilliant = null;
+    public static final Item brilliant_large = null;
+    public static final Item mask = null;
+    public static final Item hard_mask = null;
 
     public static final ArtefactItem adventure_clock = null;
     public static final ArtefactItem adventure_cup = null;
@@ -32,8 +48,32 @@ public class Items {
                         .stacksTo(4)
                         .setNoRepair(),
                         Lazy.of(() -> GenshinCharacters.ANEMO_TRAVELER))
-                        .setRegistryName(GenshinImpactMod.ModID, "anemo_traveler_star")
-                );
+                        .setRegistryName(GenshinImpactMod.ModID, "anemo_traveler_star"),
+
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.UNCOMMON))
+                        .setRegistryName(GenshinImpactMod.ModID, "freedom_scroll"),
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().foil().setNoRepair().rarity(Rarity.RARE))
+                        .setRegistryName(GenshinImpactMod.ModID, "freedom_scroll_2"),
+
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.UNCOMMON))
+                        .setRegistryName(GenshinImpactMod.ModID, "resistance_scroll"),
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().foil().setNoRepair().rarity(Rarity.RARE))
+                        .setRegistryName(GenshinImpactMod.ModID, "resistance_scroll_2"),
+
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.UNCOMMON))
+                        .setRegistryName(GenshinImpactMod.ModID, "ballad_scroll"),
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().foil().setNoRepair().rarity(Rarity.RARE))
+                        .setRegistryName(GenshinImpactMod.ModID, "ballad_scroll_2"),
+
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.UNCOMMON))
+                        .setRegistryName(GenshinImpactMod.ModID, "brilliant"),
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.RARE))
+                        .setRegistryName(GenshinImpactMod.ModID, "brilliant_large"),
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.UNCOMMON))
+                        .setRegistryName(GenshinImpactMod.ModID, "mask"),
+                new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.RARE))
+                        .setRegistryName(GenshinImpactMod.ModID, "hard_mask")
+        );
 
         event.getRegistry().registerAll(createSet("adventure"));
     }

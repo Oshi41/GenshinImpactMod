@@ -8,6 +8,8 @@ import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
 import com.gim.entity.Shield;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -88,5 +90,12 @@ public class Renders {
             GenshinImpactMod.LOGGER.debug("Error during injecting custom layers to LivingEntityRenderer");
             GenshinImpactMod.LOGGER.debug(e);
         }
+    }
+
+    /**
+     * Customize blocks to use neede render type
+     */
+    public static void setCustomBlockRender() {
+        List.of(Blocks.wind_astra).forEach(x -> ItemBlockRenderTypes.setRenderLayer(x, RenderType.cutout()));
     }
 }

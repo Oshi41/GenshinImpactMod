@@ -3,9 +3,9 @@
   "textures": {
     "particle": "gim:block/star_worktable_top",
     "north": "gim:block/star_worktable_side",
-    "south": "gim:block/star_worktable_side_2",
+    "south": "gim:block/star_worktable_side",
     "east": "gim:block/star_worktable_side_2",
-    "west": "gim:block/star_worktable_side",
+    "west": "gim:block/star_worktable_side_2",
     "up": "gim:block/star_worktable_top",
     "down": "minecraft:block/oak_planks"
   }

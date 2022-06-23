@@ -25,14 +25,14 @@ public class GenshinConfig {
                 .define("indicateReactions", true);
 
         levelUpTime = builder
-                .comment("Time in ticks when world should spawn stronger mobs (in minutes)")
+                .comment("Time in minutes when world should spawn stronger mobs")
                 .translation(String.format("%s.configgui.levelUpTime", GenshinImpactMod.ModID))
                 .defineInRange("levelUpTime", 60 * 24 * 2, 10, Integer.MAX_VALUE);
 
         levelScaling = builder
-                .comment("Value for level attributes scaling. Currently scales 3 attributes: health, attack and armor")
+                .comment("Value for level attributes scaling. Currently scales 4 attributes: health, attack and armor and special attribute for player")
                 .translation(String.format("%s.configgui.levelScaling", GenshinImpactMod.ModID))
-                .defineInRange("levelUpTime", 1.2, 1 + Double.MIN_NORMAL, Integer.MAX_VALUE);
+                .defineInRange("levelUpTime", 1.13, 1 + Double.MIN_NORMAL, Integer.MAX_VALUE);
 
     }
 }

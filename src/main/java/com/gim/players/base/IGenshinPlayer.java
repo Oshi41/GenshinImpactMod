@@ -116,4 +116,11 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param currentStarCount - total stars
      */
     void onStarAdded(LivingEntity holder, IGenshinInfo info, int currentStarCount);
+
+    /**
+     * Returns ascending info about levelling
+     *
+     * @param level - from  which level we want to share
+     */
+    AscendInfo fromLevel(int level);
 }

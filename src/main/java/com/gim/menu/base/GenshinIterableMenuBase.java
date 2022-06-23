@@ -12,6 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -31,8 +33,29 @@ public abstract class GenshinIterableMenuBase extends GenshinMenuBase {
         addDataSlots(containerData);
     }
 
-    public void changeIndex(int newIndex) {
-        setData(0, newIndex);
+    @Override
+    public boolean clickMenuButton(Player player, int btnIndex) {
+        switch (btnIndex) {
+            // navigate backwards
+            case 0:
+                if (getIndex() > 0) {
+                    setData(0, getIndex() - 1);
+                }
+
+                return true;
+
+            // navigate forwards
+            case 1:
+                player.getCapability(Capabilities.GENSHIN_INFO).ifPresent(info -> {
+                    if (info.getAllPersonages().size() > getIndex() + 1) {
+                        setData(0, getIndex() + 1);
+                    }
+                });
+                return true;
+
+            default:
+                return false;
+        }
     }
 
     /**

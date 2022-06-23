@@ -9,20 +9,23 @@ import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.entity.Energy;
 import com.gim.entity.Tornado;
+import com.gim.players.base.AscendInfo;
 import com.gim.players.base.GenshinPhase;
 import com.gim.players.base.GenshinPlayerBase;
 import com.gim.registry.Attributes;
+import com.gim.registry.Blocks;
 import com.gim.registry.Elementals;
-import net.minecraft.commands.arguments.EntityAnchorArgument;
+import com.gim.registry.Items;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.EntityDamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -35,8 +38,6 @@ import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.Event;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -145,6 +146,48 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 break;
 
         }
+    }
+
+    @Override
+    public AscendInfo fromLevel(int level) {
+        // special attribute starting to scale since 5 level
+        Attribute special = level >= 5
+                ? Attributes.attack_bonus
+                : null;
+
+        List<ItemStack> stacks = new ArrayList<>();
+
+        stacks.add(new ItemStack(Blocks.wind_astra.asItem(), Mth.clamp((level + 1) * 3, 3, 64)));
+        double halfLevel = Attributes.level.getMaxValue() / 2;
+        boolean moreHalf = level >= halfLevel;
+        double currentCount = 1 + (moreHalf ? level - halfLevel : level);
+
+
+        stacks.add(new ItemStack(
+                moreHalf
+                        ? Items.brilliant_large
+                        : Items.brilliant,
+                (int) (2 * (currentCount))
+        ));
+
+        stacks.add(new ItemStack(
+                moreHalf
+                        ? Items.hard_mask
+                        : Items.mask,
+                (int) (Mth.clamp(3 * currentCount, 3, 64))
+        ));
+
+        Component text = null;
+
+        if (level == 3 || level == 15) {
+            text = new TranslatableComponent(GenshinImpactMod.ModID + "talent.unlocked",
+                    new TranslatableComponent(String.format("%s.%s.passive.%s",
+                            getRegistryName().getNamespace(),
+                            getRegistryName().getPath(),
+                            level > 3 ? 2 : 1)));
+        }
+
+        return new AscendInfo(level, (level + 1) * 2, special, text, stacks.toArray(ItemStack[]::new));
     }
 
     @Override
