@@ -1,13 +1,15 @@
 package com.gim.events;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
-import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.registry.Attributes;
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -15,14 +17,19 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class LevelScaling {
-    private static final UUID levelHealthId = UUID.fromString("283728cf-94ce-4875-bb41-b1fb8b79a9b8");
-    private static final UUID levelAttackId = UUID.fromString("81dd41e0-d26f-432c-916d-671ccfeaf252");
-    private static final UUID levelDefId = UUID.fromString("f3d4c503-d4a3-4224-9255-81adc12bf637");
     private static final UUID mainLevelModifierId = UUID.fromString("8e23d976-ef87-4170-a057-5d8eeba0bdcc");
+
+    /**
+     * List of scaling modifiers
+     */
+    public static final Lazy<Map<Attribute, UUID>> SCALING_MODIFIERS = Lazy.of(() -> ImmutableMap.of(
+            net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, UUID.fromString("283728cf-94ce-4875-bb41-b1fb8b79a9b8"),
+            net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE, UUID.fromString("81dd41e0-d26f-432c-916d-671ccfeaf252"),
+            Attributes.defence, UUID.fromString("f3d4c503-d4a3-4224-9255-81adc12bf637")
+    ));
 
     @SubscribeEvent
     public static void onEntityAdded(EntityJoinWorldEvent e) {
@@ -35,16 +42,40 @@ public class LevelScaling {
         long gameTime = e.getWorld().getGameTime();
         long ticks = levelUpInMuntes * 60 * 20;
         long currentWorldLevel = gameTime / ticks;
+
+        // DEBUG
+        currentWorldLevel = 20;
+
+
         if (currentWorldLevel < 1) {
             return;
         }
 
         float diff = (e.getWorld().getRandom().nextFloat() - 1) * 4;
 
-        float entityLevel = Math.max(1, currentWorldLevel + diff);
+        int entityLevel = (int) Math.max(1, currentWorldLevel + diff);
         LivingEntity livingEntity = (LivingEntity) e.getEntity();
 
         if (scaleLevel(livingEntity::getAttribute, entityLevel)) {
+
+            AttributeInstance attributeInstance = livingEntity.getAttribute(Attributes.defence);
+            // minimum defence value for entities
+            double minDefenceValue = Math.sqrt(livingEntity.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).getBaseValue())
+                    * entityLevel;
+
+            // adding defence values
+            if (attributeInstance.getBaseValue() < minDefenceValue) {
+                attributeInstance.setBaseValue(minDefenceValue);
+            }
+
+            // if contains armor attributes
+            AttributeInstance armorAttr = livingEntity.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR);
+            if (armorAttr != null && armorAttr.getBaseValue() > 0) {
+                // scaling up the defence value
+                attributeInstance.setBaseValue(attributeInstance.getBaseValue() + armorAttr.getBaseValue());
+            }
+
+            // setting  health up to maximum
             livingEntity.setHealth(livingEntity.getMaxHealth());
         }
     }
@@ -64,36 +95,29 @@ public class LevelScaling {
         if (attributeInstance == null)
             return false;
 
+        // adding level modifier
         AttributeModifier modifier = new AttributeModifier(mainLevelModifierId, "level", level, AttributeModifier.Operation.ADDITION);
         attributeInstance.removeModifier(mainLevelModifierId);
         attributeInstance.addPermanentModifier(modifier);
 
-        return addModifier(
-                getAttribute.apply(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH),
-                levelHealthId,
-                "level.helath.scaling",
-                level
-        )
-                &&
-                addModifier(
-                        getAttribute.apply(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
-                        levelAttackId,
-                        "level.attack.scaling",
-                        level
-                )
-                &&
-                addModifier(
-                        getAttribute.apply(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR),
-                        levelDefId,
-                        "level.armor.scaling",
-                        level
-                );
+        // need to add all attributes
+        return SCALING_MODIFIERS.get().entrySet().stream().allMatch(x -> {
+            String[] strings = x.getKey().getDescriptionId().split("\\.");
+            String lastName = strings[strings.length - 1];
+            boolean success = addModifier(getAttribute.apply(x.getKey()), x.getValue(), "level_scaling." + lastName, level);
+
+            if (!success) {
+                GenshinImpactMod.LOGGER.warn(String.format("Cannot find %s attribute", x.getKey()));
+            }
+
+            return success;
+        });
     }
 
     private static boolean addModifier(AttributeInstance instance, UUID id, String name, float level) {
         if (instance != null) {
             instance.removeModifier(id);
-            instance.addPermanentModifier(new AttributeModifier(id, name, GenshinImpactMod.CONFIG.getKey().levelScaling.get() * level, AttributeModifier.Operation.MULTIPLY_TOTAL));
+            instance.addPermanentModifier(new AttributeModifier(id, name, Math.pow(GenshinImpactMod.CONFIG.getKey().levelScaling.get(), level), AttributeModifier.Operation.MULTIPLY_BASE));
             return true;
         }
 

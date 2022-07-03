@@ -11,18 +11,19 @@ public enum ArtifactSlotType {
                 put(ArtifactStat.ATTACK_PERCENT, 10.53);
                 put(ArtifactStat.DEFENCE_PERCENT, 10.53);
                 put(ArtifactStat.RECHARGE, 10.53);
-                put(ArtifactStat.MAJESTY_PERCENT, 10.53);
+                put(ArtifactStat.MAJESTY, 10.53);
                 put(ArtifactStat.CRIT_RATE, 7.89);
                 put(ArtifactStat.CRIT_DAMAGE, 7.89);
             }}),
     FEATHER(Map.of(ArtifactStat.ATTACK, 100.),
             new HashMap<>() {{
                 put(ArtifactStat.HP, 15.79);
+                put(ArtifactStat.DEFENCE, 15.79);
                 put(ArtifactStat.HP_PERCENT, 10.53);
                 put(ArtifactStat.ATTACK_PERCENT, 10.53);
                 put(ArtifactStat.DEFENCE_PERCENT, 10.53);
                 put(ArtifactStat.RECHARGE, 10.53);
-                put(ArtifactStat.MAJESTY_PERCENT, 10.53);
+                put(ArtifactStat.MAJESTY, 10.53);
                 put(ArtifactStat.CRIT_RATE, 7.89);
                 put(ArtifactStat.CRIT_DAMAGE, 7.89);
             }}),
@@ -31,16 +32,17 @@ public enum ArtifactSlotType {
             ArtifactStat.ATTACK_PERCENT, 26.68,
             ArtifactStat.DEFENCE_PERCENT, 26.68,
             ArtifactStat.RECHARGE, 10.,
-            ArtifactStat.MAJESTY_PERCENT, 10.
+            ArtifactStat.MAJESTY, 10.
     ),
             new HashMap<>() {{
                 put(ArtifactStat.HP, 15.);
+                put(ArtifactStat.DEFENCE, 15.);
                 put(ArtifactStat.ATTACK, 15.);
                 put(ArtifactStat.HP_PERCENT, 10.);
                 put(ArtifactStat.ATTACK_PERCENT, 10.);
                 put(ArtifactStat.DEFENCE_PERCENT, 10.);
                 put(ArtifactStat.RECHARGE, 10.);
-                put(ArtifactStat.MAJESTY_PERCENT, 10.);
+                put(ArtifactStat.MAJESTY, 10.);
                 put(ArtifactStat.CRIT_RATE, 7.5);
                 put(ArtifactStat.CRIT_DAMAGE, 7.5);
             }}),
@@ -48,22 +50,24 @@ public enum ArtifactSlotType {
         put(ArtifactStat.HP_PERCENT, 21.25);
         put(ArtifactStat.ATTACK_PERCENT, 21.25);
         put(ArtifactStat.DEFENCE_PERCENT, 20.);
+        put(ArtifactStat.PHYSICAL, 5.);
         put(ArtifactStat.PYRO, 5.);
         put(ArtifactStat.ELECTRO, 5.);
         put(ArtifactStat.CRYO, 5.);
         put(ArtifactStat.HYDRO, 5.);
         put(ArtifactStat.ANEMO, 5.);
         put(ArtifactStat.GEO, 5.);
-        put(ArtifactStat.MAJESTY_PERCENT, 2.5);
+        put(ArtifactStat.MAJESTY, 2.5);
     }},
             new HashMap<>() {{
                 put(ArtifactStat.HP, 15.);
+                put(ArtifactStat.DEFENCE, 15.);
                 put(ArtifactStat.ATTACK, 15.);
                 put(ArtifactStat.HP_PERCENT, 10.);
                 put(ArtifactStat.ATTACK_PERCENT, 10.);
                 put(ArtifactStat.DEFENCE_PERCENT, 10.);
                 put(ArtifactStat.RECHARGE, 10.);
-                put(ArtifactStat.MAJESTY_PERCENT, 10.);
+                put(ArtifactStat.MAJESTY, 10.);
                 put(ArtifactStat.CRIT_RATE, 7.5);
                 put(ArtifactStat.CRIT_DAMAGE, 7.5);
             }}),
@@ -74,16 +78,17 @@ public enum ArtifactSlotType {
         put(ArtifactStat.CRIT_RATE, 10.);
         put(ArtifactStat.CRIT_DAMAGE, 10.);
         put(ArtifactStat.HEAL, 10.);
-        put(ArtifactStat.MAJESTY_PERCENT, 4.);
+        put(ArtifactStat.MAJESTY, 4.);
     }},
             new HashMap<>() {{
                 put(ArtifactStat.HP, 15.);
+                put(ArtifactStat.DEFENCE, 15.);
                 put(ArtifactStat.ATTACK, 15.);
                 put(ArtifactStat.HP_PERCENT, 10.);
                 put(ArtifactStat.ATTACK_PERCENT, 10.);
                 put(ArtifactStat.DEFENCE_PERCENT, 10.);
                 put(ArtifactStat.RECHARGE, 10.);
-                put(ArtifactStat.MAJESTY_PERCENT, 10.);
+                put(ArtifactStat.MAJESTY, 10.);
                 put(ArtifactStat.CRIT_RATE, 7.5);
                 put(ArtifactStat.CRIT_DAMAGE, 7.5);
             }});

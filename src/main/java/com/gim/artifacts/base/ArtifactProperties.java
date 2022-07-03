@@ -34,6 +34,11 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         // primal
         primal = type.getRandomPrimal(random);
 
+        // DEBUG
+        if (type.ordinal() > 1) {
+            primal = ArtifactStat.ATTACK_PERCENT;
+        }
+
         // adding sub stats
         int end = rarity.getInititalSubstats(random);
         for (int i = 0; i < end; i++) {
@@ -138,7 +143,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         int oldLevel = getRarity().getLevel(getExp());
 
         // adding exp to artifact
-        this.exp += toAdd;
+        this.exp = (int) Math.min(getRarity().getMaxExp(), this.exp + toAdd);
 
         // retrieving new level
         int current = getRarity().getLevel(getExp());
@@ -188,8 +193,8 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         return ImmutableList.copyOf(subStats);
     }
 
-    public void addModifiers(Multimap<Attribute, AttributeModifier> builder) {
-        addModifiers(builder, 1);
+    public void addModifiers(Multimap<Attribute, AttributeModifier> builder, ArtifactSlotType type) {
+        addModifiers(builder, 1, type);
     }
 
     /**
@@ -197,13 +202,14 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
      *
      * @param builder  - builder
      * @param modifier - applying modifier
+     * @param type
      */
-    private void addModifiers(Multimap<Attribute, AttributeModifier> builder, double modifier) {
+    private void addModifiers(Multimap<Attribute, AttributeModifier> builder, double modifier, ArtifactSlotType type) {
         if (primal != null)
-            primal.apply(builder, this, modifier);
+            primal.apply(builder, this, modifier, type);
 
         for (ArtifactProperties properties : subStats) {
-            properties.addModifiers(builder, modifier / 3.4);
+            properties.addModifiers(builder, modifier / ArtifactStat.SUB_STAT_MODIFIER, type);
         }
     }
 }

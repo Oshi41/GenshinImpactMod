@@ -144,6 +144,10 @@ public class ShowDamage {
             return text;
         }
 
+        public int age() {
+            return livingTicks;
+        }
+
         public Entity getOwner() {
             return owner;
         }
@@ -160,7 +164,8 @@ public class ShowDamage {
     }
 
     /**
-     * Indicating type for particle
+     * Indicating type for particle.
+     * Order enum type is used as priority to show
      */
     public enum IndicatingType {
         DAMAGE,
@@ -265,8 +270,17 @@ public class ShowDamage {
         particles.add(particle);
     }
 
+    /**
+     * Sorted particles to render
+     * Immutable list
+     */
     @OnlyIn(Dist.CLIENT)
-    public static ImmutableList<TextParticle> getAll() {
-        return ImmutableList.copyOf(particles);
+    public static List<TextParticle> getAll() {
+        return particles.stream()
+                // Sorting by type of particles
+                .sorted(Comparator.comparing(ShowDamage.TextParticle::getType))
+                // sorting by age (new one at the end of list so they gonna cover old dmg indicators)
+                .sorted(Comparator.comparing(ShowDamage.TextParticle::age))
+                .toList();
     }
 }

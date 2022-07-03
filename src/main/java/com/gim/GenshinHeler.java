@@ -5,18 +5,26 @@ import com.gim.capability.shield.IShield;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.AtomicDouble;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.*;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
@@ -26,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.List;
 
 public class GenshinHeler {
 
@@ -47,15 +56,18 @@ public class GenshinHeler {
 
     /**
      * Defence bonus
+     * https://genshin-impact.fandom.com/wiki/Damage#Defense
      *
      * @param e - current entity
      * @return - bonus of defence attribute
      */
-    public static float defenceBonus(Entity e) {
-        double defenceRaw = Math.max(0, safeGetAttribute(e, Attributes.defence));
-        int level = (int) Math.max(1, safeGetAttribute(e, Attributes.level));
+    public static float defenceBonus(Entity e, float damage, double attackerLevel) {
+        double defence = safeGetAttribute(e, Attributes.defence);
+        double victimLevel = safeGetAttribute(e, Attributes.level);
 
-        return (float) (defenceRaw / (defenceRaw + 5f * level));
+        double reduction = (defence + (int) victimLevel) / (30 + defence + 3 * attackerLevel);
+        double multiplier = 1 - reduction;
+        return (float) (damage * multiplier);
     }
 
     /**
@@ -73,8 +85,6 @@ public class GenshinHeler {
         float elementalBonus = 0;
         // elemental resistance. Can be 0 if non elemental attack happens
         float elementalResistance = 0;
-        // current defence bonus. Can be negative (kinda debuff, multiplying incoming damage)
-        float defence = 0;
 
         // some null checking
         if (source.getEntity() instanceof LivingEntity) {
@@ -99,19 +109,18 @@ public class GenshinHeler {
             }
 
             if ((!(source instanceof GenshinDamageSource) || !((GenshinDamageSource) source).shouldIgnoreResistance())) {
-                defence = defenceBonus(attacker);
+                double level = safeGetAttribute(attacker, Attributes.level);
+                damage = defenceBonus(entity, damage, Math.max(0, level));
             }
         }
 
         // calcuating raw damage (by  majesty and elemental bonuses)
         float rawDamage = damage * (1 + majesty + elementalBonus);
-        // calculating defence by raw damage
-        float defenceValue = rawDamage * defence;
         // calculating resistance for raw damage
         float resist = rawDamage * (elementalResistance + majesty);
 
         // final result is damage without resist with defence
-        AtomicDouble result = new AtomicDouble(rawDamage - defenceValue - resist);
+        AtomicDouble result = new AtomicDouble(rawDamage - resist);
 
         // applying shield values
         LazyOptional<IShield> optional = entity.getCapability(Capabilities.SHIELDS, null);
@@ -390,5 +399,63 @@ public class GenshinHeler {
         }
 
         return new AttributeSupplier(instanceMap);
+    }
+
+    /**
+     * Prints all info about current modifiers
+     *
+     * @param map - modifiers map
+     */
+    public static List<Component> from(Multimap<Attribute, AttributeModifier> map) {
+        int i = 0;
+        ArrayList<Component> components = new ArrayList<>();
+
+        for (Map.Entry<Attribute, AttributeModifier> entry : map.entries()) {
+            AttributeModifier attributemodifier = entry.getValue();
+            double d0 = attributemodifier.getAmount();
+            boolean flag = false;
+
+            double d1;
+            if (attributemodifier.getOperation() != AttributeModifier.Operation.MULTIPLY_BASE && attributemodifier.getOperation() != AttributeModifier.Operation.MULTIPLY_TOTAL) {
+                if (entry.getKey().equals(net.minecraft.world.entity.ai.attributes.Attributes.KNOCKBACK_RESISTANCE)) {
+                    d1 = d0 * 10.0D;
+                } else {
+                    d1 = d0;
+                }
+            } else {
+                d1 = d0 * 100.0D;
+            }
+
+            if (i == 0) {
+                components.add(new TranslatableComponent(GenshinImpactMod.ModID + ".main_stat"));
+            }
+
+            if (flag) {
+                components.add((new net.minecraft.network.chat.TextComponent(" ")).append(new TranslatableComponent("attribute.modifier.equals." + attributemodifier.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), new TranslatableComponent(entry.getKey().getDescriptionId()))).withStyle(ChatFormatting.DARK_GREEN));
+            } else if (d0 > 0.0D) {
+                components.add((new TranslatableComponent("attribute.modifier.plus." + attributemodifier.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), new TranslatableComponent(entry.getKey().getDescriptionId()))).withStyle(ChatFormatting.BLUE));
+            } else if (d0 < 0.0D) {
+                d1 *= -1.0D;
+                components.add((new TranslatableComponent("attribute.modifier.take." + attributemodifier.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), new TranslatableComponent(entry.getKey().getDescriptionId()))).withStyle(ChatFormatting.RED));
+            }
+
+            i++;
+        }
+
+        return components;
+    }
+
+    public static List<Component> from(AttributeMap map) {
+        HashMultimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
+
+        for (Attribute attribute : ForgeRegistries.ATTRIBUTES.getValues()) {
+            if (map.hasAttribute(attribute)) {
+                for (AttributeModifier attributeModifier : map.getInstance(attribute).getModifiers()) {
+                    multimap.put(attribute, attributeModifier);
+                }
+            }
+        }
+
+        return from(multimap);
     }
 }

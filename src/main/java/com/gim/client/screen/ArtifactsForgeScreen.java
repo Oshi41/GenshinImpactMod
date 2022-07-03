@@ -89,6 +89,7 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
         if (!artifact.isEmpty() && getMenu().isCanApply() && getMenu().getApplyingLevels() > 0) {
             ArtifactProperties properties = ((ArtefactItem) artifact.getItem()).from(artifact);
 
+            int totalModifiers = properties.getSubModifiers().size();
             int subStatAdded = 0;
             int subStatUpgraded = 0;
 
@@ -98,16 +99,15 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
                     properties.getPrimal().getForLevel(properties.getRarity(),
                             properties.getRarity().getLevel(properties.getExp()));
 
-            for (int i = properties.getRarity().getLevel(properties.getExp()) + 1; i < getMenu().getApplyingLevels(); i++) {
+            for (int i = properties.getRarity().getLevel(properties.getExp()) + 1, end = i + getMenu().getApplyingLevels(); i < end; i++) {
                 if (i % 4 == 0) {
-                    subStatAdded++;
+                    if (totalModifiers < 4) {
+                        totalModifiers++;
+                        subStatAdded++;
+                    } else {
+                        subStatUpgraded++;
+                    }
                 }
-            }
-
-            if (properties.getSubModifiers().size() + subStatAdded > 4) {
-                int i = 4 - properties.getSubModifiers().size();
-                subStatUpgraded = subStatAdded - i;
-                subStatAdded = i;
             }
 
             ArrayList<Component> list = new ArrayList<>();
@@ -116,13 +116,11 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
                     new TranslatableComponent(properties.getPrimal().getAttribute().getDescriptionId()))
                     .withStyle(ChatFormatting.YELLOW)));
 
-            if (subStatAdded > 0) {
+            if (subStatAdded > 0)
                 list.add(new TranslatableComponent(GenshinImpactMod.ModID + ".sub_stat_added", subStatAdded).withStyle(ChatFormatting.WHITE));
-            }
 
-            if (subStatUpgraded > 0) {
+            if (subStatUpgraded > 0)
                 list.add(new TranslatableComponent(GenshinImpactMod.ModID + ".sub_stat_upgraded", subStatUpgraded).withStyle(ChatFormatting.WHITE));
-            }
 
             int xStart = this.leftPos + this.imageWidth - 102 - 4 - minecraft.font.width("exp");
             int yStart = y + 40 + minecraft.font.lineHeight;

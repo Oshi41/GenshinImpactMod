@@ -79,11 +79,11 @@ public enum ArtifactRarity {
     }
 
     public double getMinExp() {
-        return expLevels.get(0);
+        return fullXpLevels.get(0);
     }
 
     public double getMaxExp() {
-        return expLevels.get(expLevels.size() - 1);
+        return fullXpLevels.get(expLevels.size() - 1);
     }
 
     public int getMaxLevel() {

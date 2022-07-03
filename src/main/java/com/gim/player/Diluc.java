@@ -21,7 +21,7 @@ import static com.gim.GenshinHeler.safeGetAttribute;
 public class Diluc {
 
     public final Map<Attribute, Double> initAttributes = new HashMap<>() {{
-        put(Attributes.attack_bonus, 7d);
+        put(Attributes.physical_bonus, 7d);
         put(Attributes.defence, 10d);
 
         put(Attributes.skill_cooldown, 5 * 20d);
@@ -35,7 +35,7 @@ public class Diluc {
     public final UUID id = UUID.fromString("a4509964-a79a-4386-becf-3f6fa3d7bfa6");
 
     public void onLevelChanged(@NotNull LivingEntity entity, int level) {
-        safeAddModifier(entity, Attributes.attack_bonus, new AttributeModifier(id, name, level + 1, AttributeModifier.Operation.MULTIPLY_BASE));
+        safeAddModifier(entity, Attributes.physical_bonus, new AttributeModifier(id, name, level + 1, AttributeModifier.Operation.MULTIPLY_BASE));
         safeAddModifier(entity, Attributes.defence, new AttributeModifier(id, name, level, AttributeModifier.Operation.MULTIPLY_BASE));
 
         // special stat

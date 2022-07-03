@@ -32,7 +32,7 @@ public class GenshinConfig {
         levelScaling = builder
                 .comment("Value for level attributes scaling. Currently scales 4 attributes: health, attack and armor and special attribute for player")
                 .translation(String.format("%s.configgui.levelScaling", GenshinImpactMod.ModID))
-                .defineInRange("levelUpTime", 1.13, 1 + Double.MIN_NORMAL, Integer.MAX_VALUE);
+                .defineInRange("levelScaling", 1.13, 1 + Double.MIN_NORMAL, Integer.MAX_VALUE);
 
     }
 }

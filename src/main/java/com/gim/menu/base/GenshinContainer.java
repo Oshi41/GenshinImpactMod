@@ -59,7 +59,7 @@ public class GenshinContainer implements Container, INBTSerializable<CompoundTag
         ItemStack prev = items.get(slotIndex).copy();
         ItemStack itemstack = ContainerHelper.removeItem(this.items, slotIndex, count);
         if (!itemstack.isEmpty()) {
-            onChange(slotIndex, prev, items.get(slotIndex), true);
+            onChange(slotIndex, prev, items.get(slotIndex), false);
         }
 
         return itemstack;
@@ -89,7 +89,7 @@ public class GenshinContainer implements Container, INBTSerializable<CompoundTag
             stack.setCount(this.getMaxStackSize());
         }
 
-        this.onChange(slotIndex, prev, stack, true);
+        this.onChange(slotIndex, prev, items.get(slotIndex), false);
     }
 
     @Override

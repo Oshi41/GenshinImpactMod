@@ -29,8 +29,15 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import java.util.List;
+import java.util.Optional;
+
+@OnlyIn(Dist.CLIENT)
 public class ArtifactsStationScreen extends GenshinScreenBase<ArtifactsStationMenu> {
+    private final static ResourceLocation QUESTIONMARK_LOCATION = new ResourceLocation("realms", "textures/gui/realms/questionmark.png");
     private Button left;
     private Button right;
 
@@ -54,8 +61,8 @@ public class ArtifactsStationScreen extends GenshinScreenBase<ArtifactsStationMe
     }
 
     @Override
-    protected void renderBg(PoseStack p_97787_, float p_97788_, int p_97789_, int p_97790_) {
-        super.renderBg(p_97787_, p_97788_, p_97789_, p_97790_);
+    protected void renderBg(PoseStack p_97787_, float p_97788_, int xMouse, int yMouse) {
+        super.renderBg(p_97787_, p_97788_, xMouse, yMouse);
 
         int i = this.leftPos;
         int j = (this.height - this.imageHeight) / 2;
@@ -71,6 +78,21 @@ public class ArtifactsStationScreen extends GenshinScreenBase<ArtifactsStationMe
         BaseComponent component = getMenu().current().getAssotiatedPlayer().getName();
 
         drawPLayerName(component, p_97787_, this.leftPos + 114, this.topPos + minecraft.font.lineHeight * 2);
+
+        RenderSystem.setShaderTexture(0, QUESTIONMARK_LOCATION);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        int size = 16;
+        int xPos = i + this.imageWidth - 4 - size;
+        int yPos = j + 3;
+
+        blit(p_97787_, xPos, yPos, 0, 0, size, size, size * 2, size);
+
+        if (xPos <= xMouse && xMouse <= xPos + size
+                &&
+                yPos <= yMouse && yMouse <= yPos + size) {
+            List<Component> components = LevelStationScreen.from(getMenu().current().getAttributes());
+            renderTooltip(p_97787_, components, Optional.empty(), xMouse, yMouse);
+        }
     }
 
     @Override

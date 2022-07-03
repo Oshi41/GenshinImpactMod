@@ -1,5 +1,6 @@
 package com.gim.items;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.artifacts.base.ArtifactProperties;
 import com.gim.artifacts.base.ArtifactRarity;
@@ -63,45 +64,9 @@ public class ArtefactItem extends Item {
         components.add(TextComponent.EMPTY);
         components.add(new TranslatableComponent("item.modifiers.artifacts").withStyle(ChatFormatting.GRAY));
 
-        Multimap<Attribute, AttributeModifier> modifiers = getAttributeModifiers(null, stack);
-
-        int i = 0;
-
-        for (Map.Entry<Attribute, AttributeModifier> entry : modifiers.entries()) {
-            AttributeModifier attributemodifier = entry.getValue();
-            double d0 = attributemodifier.getAmount();
-            boolean flag = false;
-
-            double d1;
-            if (attributemodifier.getOperation() != AttributeModifier.Operation.MULTIPLY_BASE && attributemodifier.getOperation() != AttributeModifier.Operation.MULTIPLY_TOTAL) {
-                if (entry.getKey().equals(Attributes.KNOCKBACK_RESISTANCE)) {
-                    d1 = d0 * 10.0D;
-                } else {
-                    d1 = d0;
-                }
-            } else {
-                d1 = d0 * 100.0D;
-            }
-
-            if (i == 0) {
-                components.add(new TranslatableComponent(GenshinImpactMod.ModID + ".main_stat"));
-            }
-
-            if (flag) {
-                components.add((new TextComponent(" ")).append(new TranslatableComponent("attribute.modifier.equals." + attributemodifier.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), new TranslatableComponent(entry.getKey().getDescriptionId()))).withStyle(ChatFormatting.DARK_GREEN));
-            } else if (d0 > 0.0D) {
-                components.add((new TranslatableComponent("attribute.modifier.plus." + attributemodifier.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), new TranslatableComponent(entry.getKey().getDescriptionId()))).withStyle(ChatFormatting.BLUE));
-            } else if (d0 < 0.0D) {
-                d1 *= -1.0D;
-                components.add((new TranslatableComponent("attribute.modifier.take." + attributemodifier.getOperation().toValue(), ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d1), new TranslatableComponent(entry.getKey().getDescriptionId()))).withStyle(ChatFormatting.RED));
-            }
-
-            if (i == 0) {
-                components.add(TextComponent.EMPTY);
-            }
-
-            i++;
-        }
+        List<Component> from = GenshinHeler.from(getAttributeModifiers(null, stack));
+        from.add(2, TextComponent.EMPTY);
+        components.addAll(from);
 
         List<IArtifactSet> setList = sets.get();
         if (!setList.isEmpty()) {
@@ -123,7 +88,7 @@ public class ArtefactItem extends Item {
         Random random = new Random();
         ArtifactRarity[] rarities = ArtifactRarity.values();
         ArtifactRarity rarity = rarities[random.nextInt(rarities.length)];
-        CompoundTag tag = new ArtifactProperties(rarity, getType(), random).serializeNBT();
+        CompoundTag tag = new ArtifactProperties(ArtifactRarity.FIVE, getType(), random).serializeNBT();
 
         stack.getOrCreateTag().put(tagName, tag);
         return stack;
@@ -142,7 +107,7 @@ public class ArtefactItem extends Item {
         if (slot == null) {
             CompoundTag tag = stack.getOrCreateTag().getCompound(tagName);
             Multimap<Attribute, AttributeModifier> builder = LinkedHashMultimap.create();
-            new ArtifactProperties(tag).addModifiers(builder);
+            new ArtifactProperties(tag).addModifiers(builder, getType());
             return builder;
         }
 

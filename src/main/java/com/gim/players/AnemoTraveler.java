@@ -55,7 +55,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 new TranslatableComponent(GenshinImpactMod.ModID + ".traveler.name"),
                 () -> AttributeSupplier.builder()
                         .add(Attributes.defence, 3)
-                        .add(Attributes.attack_bonus, 2)
+                        .add(Attributes.physical_bonus, 2)
                         .add(Attributes.burst_cost, 60d)
                         .add(Attributes.burst_cooldown, 20 * 15)
                         .add(Attributes.skill_cooldown, 20 * 8),
@@ -149,10 +149,10 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    public AscendInfo fromLevel(int level) {
+    public AscendInfo fromLevel(int level, GenshinEntityData data) {
         // special attribute starting to scale since 5 level
         Attribute special = level >= 5
-                ? Attributes.attack_bonus
+                ? Attributes.physical_bonus
                 : null;
 
         List<ItemStack> stacks = new ArrayList<>();
@@ -180,14 +180,19 @@ public class AnemoTraveler extends GenshinPlayerBase {
         Component text = null;
 
         if (level == 3 || level == 15) {
-            text = new TranslatableComponent(GenshinImpactMod.ModID + "talent.unlocked",
+            text = new TranslatableComponent(GenshinImpactMod.ModID + ".talent.unlocked",
                     new TranslatableComponent(String.format("%s.%s.passive.%s",
                             getRegistryName().getNamespace(),
                             getRegistryName().getPath(),
                             level > 3 ? 2 : 1)));
         }
 
-        return new AscendInfo(level, (level + 1) * 2, special, text, stacks.toArray(ItemStack[]::new));
+        int expLevels = (level + 1) * 3;
+        if (level >= Attributes.level.getMaxValue()) {
+            expLevels = -1;
+        }
+
+        return new AscendInfo(data.getAttributes(), level, expLevels, special, text, stacks.toArray(ItemStack[]::new));
     }
 
     @Override

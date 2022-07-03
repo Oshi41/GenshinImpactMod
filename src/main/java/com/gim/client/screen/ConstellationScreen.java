@@ -47,10 +47,10 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
         this.imageHeight = 256;
 
         this.titleLabelX = 50;
-        this.titleLabelY = 6;
+        this.titleLabelY = 9;
 
         this.inventoryLabelX = 8;
-        this.inventoryLabelY = this.imageHeight - (18 * 5) - 4;
+        this.inventoryLabelY = this.imageHeight - (18 * 5) - 2;
     }
 
     @Override
@@ -153,7 +153,8 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
         }
 
         Item item = ForgeRegistries.ITEMS.getValues().stream()
-                .filter(item1 -> item1 instanceof ConstellationItem && Objects.equals(((ConstellationItem) item1).assignedTo.get(), current))
+                .filter(item1 -> item1 instanceof ConstellationItem)
+                .filter(item1 -> Objects.equals(((ConstellationItem) item1).assignedTo.get(), genshinEntityData.getAssotiatedPlayer()))
                 .findFirst()
                 .orElse(Items.AIR);
 
@@ -161,28 +162,47 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
     }
 
     @Override
-    protected void renderBg(PoseStack poseStack, float p_97788_, int p_97789_, int p_97790_) {
+    protected void renderBg(PoseStack poseStack, float p_97788_, int mouseX, int mouseY) {
         GenshinEntityData genshinEntityData = getMenu().current();
+        int i = this.leftPos;
+        int j = (this.height - this.imageHeight) / 2;
 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, GUI);
-        int i = this.leftPos;
-        int j = (this.height - this.imageHeight) / 2;
         this.blit(poseStack, i, j, 0, 0, this.imageWidth, this.imageHeight);
 
         ResourceLocation location = genshinEntityData.getAssotiatedPlayer().getRegistryName();
+        // fixed constellation image position!
         location = new ResourceLocation(location.getNamespace(), String.format("textures/players/%s/constellation.png", location.getPath()));
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, location);
 
+        // start of image position
         i += 34;
         j += 34;
+
+        // refreshing stars by actual texture position (0:0 means image start)
+        tryRefresh(genshinEntityData, i, j);
+
         int size = 128;
         this.blit(poseStack, i, j, 0, 0, size, size, size, size);
 
-        tryRefresh(genshinEntityData, i, j);
+
+        // returning back
+        i -= 34;
+        j -= 34;
+        Slot firstSlot = getMenu().getSlot(0);
+        itemRenderer.renderGuiItem(stack, i + firstSlot.x, j + firstSlot.y - 18);
+
+        // should render at the last order to hover everything
+        if (i + firstSlot.x <= mouseX && mouseX <= i + firstSlot.x + 16
+                &&
+                j + firstSlot.y - 18 <= mouseY && mouseY <= j + firstSlot.y - 18 + 16) {
+            // render tooltip for star
+            renderTooltip(poseStack, stack, mouseX, mouseY);
+        }
     }
 
     private void renderStackTooltip(PoseStack stack, FormattedText text, int xPos, int yPos) {
@@ -199,7 +219,6 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
 
     @Override
     protected void renderLabels(PoseStack p_97808_, int p_97809_, int p_97810_) {
-        super.renderLabels(p_97808_, p_97809_, p_97810_);
 
         BaseComponent text = getMenu().current().getAssotiatedPlayer().getName().plainCopy();
         text.setStyle(text.getStyle()
@@ -207,16 +226,13 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
                 .withUnderlined(true)
         );
 
-        this.font.draw(p_97808_, text, (float) this.titleLabelX, (float) this.titleLabelY + 18, 4210752);
-    }
 
-    @Override
-    protected void renderTooltip(PoseStack p_97791_, int x, int y) {
-        super.renderTooltip(p_97791_, x, y);
-
-        if (hoveredSlot != null && !hoveredSlot.hasItem() && hoveredSlot.index == 0 && !stack.isEmpty()) {
-            renderTooltip(p_97791_, stack, x, y);
-        }
+        // Menu title (above)
+        drawCenteredString(p_97808_, this.font, this.title, imageWidth / 2, this.titleLabelY, -1);
+        // Character text (in a middle)
+        drawCenteredString(p_97808_, this.font, text, imageWidth / 2, 34 - 2 - font.lineHeight, -1);
+        // inventory text below
+        this.font.draw(p_97808_, this.playerInventoryTitle, (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
     }
 
     @Override
@@ -247,7 +263,7 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             StarInfo starInfo = (StarInfo) o;
-            return index == starInfo.index && isOpen == starInfo.isOpen && text.equals(starInfo.text) && pos.equals(starInfo.pos);
+            return index == starInfo.index && isOpen == starInfo.isOpen && text.getString().equals(starInfo.text.getString()) && pos.equals(starInfo.pos);
         }
 
         @Override

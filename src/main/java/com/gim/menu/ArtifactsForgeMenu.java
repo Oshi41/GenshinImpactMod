@@ -42,19 +42,12 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
                         return false;
                     }
 
-                    ArtefactItem artefactItem = (ArtefactItem) itemStack.getItem();
-
-                    // different artifact types
-                    if (getSlotType() != null && !Objects.equals(getSlotType(), artefactItem.getType())) {
-                        return false;
-                    }
-
                     // if artifact can be upgraded
                     if (getArtifactExpToMaxLevel() > 0
                             // have any items to consume
                             && getApplyingExp() > 0
                             // if already can upgrade to max level
-                            && getArtifactExpToMaxLevel() <= getApplyingExp()) {
+                            && getArtifactExpToMaxLevel() <= getArtifactExp() + getApplyingExp()) {
                         return false;
                     }
 
@@ -78,17 +71,15 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
     @Override
     public void slotChanged(AbstractContainerMenu p_39315_, int slotIndex, ItemStack p_39317_) {
         // any artifact possible
-        if (own.isEmpty()) {
+        if (own.getItem(0).isEmpty()) {
             setSlotType(null);
             // if putting very first
         } else if (getSlotType() == null) {
-            for (int i = 0; i < own.getContainerSize(); i++) {
-                ItemStack itemStack = own.getItem(i);
-                if (itemStack.getItem() instanceof ArtefactItem) {
-                    // finding very first artifact and detecting its
-                    setSlotType(((ArtefactItem) itemStack.getItem()).getType());
-                    break;
-                }
+
+            ItemStack itemStack = own.getItem(0);
+            if (itemStack.getItem() instanceof ArtefactItem) {
+                // finding very first artifact and detecting its
+                setSlotType(((ArtefactItem) itemStack.getItem()).getType());
             }
         }
 

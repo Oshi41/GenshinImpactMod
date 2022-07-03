@@ -1,21 +1,18 @@
 package com.gim.players.base;
 
 import com.gim.GenshinImpactMod;
+import com.gim.events.LevelScaling;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.stream.Streams;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class AscendInfo {
@@ -24,23 +21,34 @@ public class AscendInfo {
     public final int playerLevels;
     public final long ticksTillLevel;
 
-    public AscendInfo(int level, int playerLevels, @Nullable Attribute specialAttribute, @Nullable Component add, ItemStack... materials) {
+    public AscendInfo(@Nullable AttributeMap map, int level, int playerLevels, @Nullable Attribute specialAttribute, @Nullable Component add, ItemStack... materials) {
         this.playerLevels = playerLevels;
-        ticksTillLevel = (level + 1) * GenshinImpactMod.CONFIG.getKey().levelUpTime.get() * 60L * 24;
+        // based on world level up time but 10 times faster
+        ticksTillLevel = (level + 1) * GenshinImpactMod.CONFIG.getKey().levelUpTime.get() * 60L * 24 / 10;
+
+        // all characters increases this stat
+        List<Attribute> stats = new ArrayList<>(LevelScaling.SCALING_MODIFIERS.get().keySet());
+        if (specialAttribute != null) {
+            stats.add(specialAttribute);
+        }
+
+        // already at max level
         if (level >= com.gim.registry.Attributes.level.getMaxValue()) {
+            // no materials
             this.materials = NonNullList.create();
-            info.add(new TextComponent("MAX").withStyle(ChatFormatting.DARK_GREEN));
+            // show only MAX LEVEL
+            info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".max_level").withStyle(ChatFormatting.DARK_GREEN));
             return;
         }
 
+        // adding materials
         this.materials = NonNullList.of(ItemStack.EMPTY, Arrays.stream(materials).filter(x -> x != null && !x.isEmpty()).toArray(ItemStack[]::new));
 
-        info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".level.upgrading", level, level + 1));
+        // level scaling, for exapmle 2 --> 3
+        info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".level", String.format("%s --> %s", level, level + 1)));
 
-        List<Attribute> stats = Stream.of(Attributes.MAX_HEALTH, Attributes.ARMOR, Attributes.ATTACK_DAMAGE, specialAttribute)
-                .filter(Objects::nonNull)
-                .toList();
 
+        // using same modifier for all attributes, need to show them
         for (Attribute attribute : stats) {
             Double scale = GenshinImpactMod.CONFIG.getKey().levelScaling.get();
 

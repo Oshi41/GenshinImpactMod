@@ -5,6 +5,8 @@ import com.gim.GenshinImpactMod;
 import com.gim.registry.Attributes;
 import com.gim.registry.ElementalReactions;
 import com.gim.registry.Elementals;
+import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -15,8 +17,15 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class DamageEvent {
+
+    // physical damage
+    private final static Set<String> attackNames = Set.of("mob", "player");
 
     // region APPLYING ELEMENTAL EFFECTS
 
@@ -118,22 +127,28 @@ public class DamageEvent {
      * @return
      */
     private static boolean handleBonusAttack(LivingDamageEvent e) {
-        double bonus = Math.max(0, GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.attack_bonus)) + 1;
-        float actualDamage = GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), (float) (e.getAmount() * bonus));
-
-        if (actualDamage != e.getAmount()) {
-            e.setAmount(actualDamage);
-
-            // reduce all damage
-            // todo think about no pushing if reducing all damage
-            if (actualDamage == 0) {
-                e.setCanceled(true);
-            }
-
-            return true;
+        // only physical damage (by mob and player attack)
+        if (attackNames.contains(e.getSource().getMsgId())) {
+            double bonus = Math.max(0, GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.physical_bonus)) + 1;
+            e.setAmount((float) (e.getAmount() * bonus));
         }
 
-        return false;
+        float actualDamage = GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), e.getAmount());
+
+        // same value as was
+        if (actualDamage == e.getAmount()) {
+            return false;
+        }
+
+        e.setAmount(actualDamage);
+
+        // reduce all damage
+        // todo think about no pushing if reducing all damage
+        if (actualDamage <= 0) {
+            e.setCanceled(true);
+        }
+
+        return true;
     }
 
     // endregion

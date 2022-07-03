@@ -16,7 +16,7 @@ public class Attributes {
     public static final RangedAttribute heal_bonus = null;
     public static final RangedAttribute defence = null;
     public static final RangedAttribute elemental_majesty = null;
-    public static final RangedAttribute attack_bonus = null;
+    public static final RangedAttribute physical_bonus = null;
     public static final RangedAttribute crit_rate = null;
     public static final RangedAttribute crit_bonus = null;
     public static final RangedAttribute skill_cooldown = null;
@@ -55,16 +55,16 @@ public class Attributes {
                 new RangedAttribute("genshin.heal_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "heal_bonus"),
-                new RangedAttribute("genshin.defence", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.defence", 1, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "defence"),
                 new RangedAttribute("genshin.elemental_majesty", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "elemental_majesty"),
-                new RangedAttribute("genshin.attack_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
+                new RangedAttribute("genshin.physical_bonus", 0, Integer.MIN_VALUE, Double.MAX_VALUE)
                         .setSyncable(true)
-                        .setRegistryName(GenshinImpactMod.ModID, "attack_bonus"),
-                new RangedAttribute("genshin.crit_rate", 0.05, 0, Double.MAX_VALUE)
+                        .setRegistryName(GenshinImpactMod.ModID, "physical_bonus"),
+                new RangedAttribute("genshin.crit_rate", 0.05, 0, 1)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "crit_rate"),
                 new RangedAttribute("genshin.crit_bonus", 1, 0, Double.MAX_VALUE)
@@ -135,7 +135,7 @@ public class Attributes {
                 new RangedAttribute("genshin.skill_level", 0, 0, 20)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "skill_level"),
-                new RangedAttribute("genshin.constellations", 0, 0, 6)
+                new RangedAttribute("genshin.hidden.constellations", 0, 0, 6)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "constellations")
         );

@@ -2,6 +2,7 @@ package com.gim;
 
 import com.gim.client.overlay.GenshinRender;
 import com.gim.config.GenshinConfig;
+import com.gim.registry.MaxHealthPatch;
 import com.gim.registry.Network;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
@@ -53,6 +54,8 @@ public class GenshinImpactMod {
         MinecraftForge.EVENT_BUS.register(this);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CONFIG.getRight());
+
+        MaxHealthPatch.patchMaxHealth();
     }
 
     private void setup(final FMLCommonSetupEvent event) {

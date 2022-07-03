@@ -1,21 +1,30 @@
 package com.gim.events;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.registry.Attributes;
+import com.gim.registry.Elementals;
+import com.google.common.collect.Lists;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -26,6 +35,8 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -37,10 +48,12 @@ public class GenshinStatsRender {
     @SubscribeEvent
     public static void onNameTagRender(RenderNameplateEvent event) {
         if (event.getEntity() instanceof LivingEntity) {
-            AttributeInstance attributeInstance = ((LivingEntity) event.getEntity()).getAttribute(Attributes.level);
+            LivingEntity livingEntity = (LivingEntity) event.getEntity();
+
+            AttributeInstance attributeInstance = livingEntity.getAttribute(Attributes.level);
             if (attributeInstance != null && attributeInstance.getValue() > 0) {
                 int entityLevel = (int) attributeInstance.getValue();
-                int playerLevel = (int) Minecraft.getInstance().player.getAttributeValue(Attributes.level);
+                int playerLevel = (int) GenshinHeler.safeGetAttribute(Minecraft.getInstance().player, Attributes.level);
 
                 ChatFormatting chatFormatting = entityLevel == playerLevel
                         ? ChatFormatting.YELLOW
@@ -48,19 +61,32 @@ public class GenshinStatsRender {
                         ? ChatFormatting.GREEN
                         : ChatFormatting.RED;
 
-                Component component = new TranslatableComponent(GenshinImpactMod.ModID + ".level", entityLevel).withStyle(chatFormatting);
+                ///////////////////////////////////////////////////
+                // List of text that should be rendered as tag name
+                ///////////////////////////////////////////////////
+                List<Component> contents = new ArrayList<>();
+                contents.add(0, event.getContent());
+                contents.add(0, new TranslatableComponent(GenshinImpactMod.ModID + ".level", entityLevel).withStyle(chatFormatting));
+                contents.add(0, new TextComponent(((int) livingEntity.getHealth()) + "/" + ((int) livingEntity.getMaxHealth())));
 
-                renderNameTag(event.getEntity(), component, event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(),
-                        new Vec3(0, event.getEntity().getBbHeight() + 0.5, 0),
-                        0.025f,
-                        true,
-                        0.25f);
+                double heightOffset = 0.5;
+                double offsetStep = 0.25;
 
-                renderNameTag(event.getEntity(), event.getContent(), event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight(),
-                        new Vec3(0, event.getEntity().getBbHeight() + 0.75, 0),
-                        0.025f,
-                        true,
-                        0.25f);
+                for (int i = 0; i < contents.size(); i++) {
+                    Component txt = contents.get(i);
+
+                    renderNameTag(
+                            event.getEntity(),
+                            txt,
+                            event.getPoseStack(),
+                            event.getMultiBufferSource(),
+                            event.getPackedLight(),
+                            new Vec3(0, event.getEntity().getBbHeight() + heightOffset + offsetStep * i, 0),
+                            0.025f,
+                            true,
+                            0.25f
+                    );
+                }
 
                 event.setResult(Event.Result.DENY);
             }
@@ -69,10 +95,7 @@ public class GenshinStatsRender {
 
     @SubscribeEvent
     public static void onEndLevelRender(RenderLevelLastEvent event) {
-        // need to show reactions at last
-        List<ShowDamage.TextParticle> list = ShowDamage.getAll().stream().sorted(Comparator.comparing(ShowDamage.TextParticle::getType)).toList();
-
-        for (ShowDamage.TextParticle particle : list) {
+        for (ShowDamage.TextParticle particle : ShowDamage.getAll()) {
 
             // do not showing damage stats
             if (ShowDamage.IndicatingType.DAMAGE.equals(particle.getType()) && !GenshinImpactMod.CONFIG.getKey().indicateDamage.get()) {
@@ -84,34 +107,29 @@ public class GenshinStatsRender {
                 continue;
             }
 
-            Vec3 position = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-            Vec3 particlePos = particle.getPos();
-            Vec3 prevPos = particle.getPrevPos();
+            Vec3 particlePosition = particle.getPos();
+            Vec3 prevParticlePosition = particle.getPrevPos();
+            Vec3 cameraPosition = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
 
-            double d0 = Mth.lerp(event.getPartialTick(), prevPos.x, particlePos.x);
-            double d1 = Mth.lerp(event.getPartialTick(), prevPos.y, particlePos.y);
-            double d2 = Mth.lerp(event.getPartialTick(), prevPos.z, particlePos.z);
-
-            event.getPoseStack().pushPose();
-            event.getPoseStack().translate(
-                    d0 - position.x,
-                    d1 - position.y,
-                    d2 - position.z
+            Vec3 prevParticlePos = new Vec3(
+                    Mth.lerp(event.getPartialTick(), prevParticlePosition.x, particlePosition.x),
+                    Mth.lerp(event.getPartialTick(), prevParticlePosition.y, particlePosition.y),
+                    Mth.lerp(event.getPartialTick(), prevParticlePosition.z, particlePosition.z)
             );
 
+            Vec3 transformPos = prevParticlePos.subtract(cameraPosition);
+
             renderNameTag(
-                    particle.getOwner(),
+                    Minecraft.getInstance().player,
                     particle.getText(),
                     event.getPoseStack(),
                     Minecraft.getInstance().renderBuffers().bufferSource(),
                     packedLight,
-                    Vec3.ZERO,
+                    transformPos,
                     particle.getScale(),
                     false,
                     1
             );
-
-            event.getPoseStack().popPose();
         }
     }
 
