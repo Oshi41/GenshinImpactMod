@@ -123,5 +123,14 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
      * @param level - from  which level we want to share
      * @param data
      */
-    AscendInfo fromLevel(int level, GenshinEntityData data);
+    AscendInfo ascendingInfo(int level, GenshinEntityData data);
+
+    /**
+     * Returns talent ascending info
+     *
+     * @param level - for level
+     * @param data  - character data
+     * @return
+     */
+    TalentAscendInfo talentInfo(int level, GenshinEntityData data);
 }

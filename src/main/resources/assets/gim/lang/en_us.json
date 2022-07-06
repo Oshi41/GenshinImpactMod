@@ -97,5 +97,14 @@
   "gim.crafting.level_station": "Levels table",
   "block.gim.wind_astra": "Windwheel aster",
   "gim.max_level": "Max level",
-  "gim.level_ascending_cooldown": "Next level in:"
+  "gim.level_ascending_cooldown": "Next level in:",
+  "gim.talent.low_character_level": "Reach ascending phase %s",
+  "gim.tornado_damage": "Tornado DMG: %s",
+  "gim.attack_1": "First attack: %s",
+  "gim.attack_2": "Second attack: %s",
+  "gim.attack_3": "Third attack: %s",
+  "gim.attack_4": "Forth attack: %s",
+  "gim.attack_5": "Fifth attack: %s",
+  "gim.attack_6": "Sixth attack: %s",
+  "gim.anemo_traveler.vortex_damage": "Palm Vortex DMG: %s"
 }

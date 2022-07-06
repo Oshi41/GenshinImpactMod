@@ -12,12 +12,15 @@ import com.gim.entity.Tornado;
 import com.gim.players.base.AscendInfo;
 import com.gim.players.base.GenshinPhase;
 import com.gim.players.base.GenshinPlayerBase;
+import com.gim.players.base.TalentAscendInfo;
 import com.gim.registry.Attributes;
 import com.gim.registry.Blocks;
 import com.gim.registry.Elementals;
 import com.gim.registry.Items;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.CombatEntry;
@@ -39,12 +42,15 @@ import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class AnemoTraveler extends GenshinPlayerBase {
-    public static int SKILL_ANIM_TIME = 20 * 2;
-    public static int BURST_ANIM_TIME = 20 * 2;
+    public static final int SKILL_ANIM_TIME = 20 * 2;
+    public static final int BURST_ANIM_TIME = 20 * 2;
+    public static final double SKILL_ZERO_MULTIPLIER = 1.92;
+    public static final double SKILL_MAX_MULTIPLIER = 4.08;
 
     public static final UUID RECHARGE_MODIFIER = UUID.fromString("a4509964-a79a-4386-becf-3f6fa3d7bfa6");
 
@@ -64,8 +70,21 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         new Vec2(8, 85),
                         new Vec2(79, 47),
                         new Vec2(102, 81)
-                )
-        );
+                ),
+                List.of(
+                        0.445,
+                        0.434,
+                        0.53,
+                        0.583,
+                        0.708
+                ),
+                List.of(
+                        0.941,
+                        0.919,
+                        1.12,
+                        1.23,
+                        1.5
+                ));
 
         handleForgeEventForCurrentPlayer(LivingAttackEvent.class, x -> x.getSource().getEntity(), this::handleAttack);
         handleForgeEventForCurrentPlayer(LivingDeathEvent.class, x -> x.getSource().getEntity(), this::handleDeath);
@@ -93,10 +112,10 @@ public class AnemoTraveler extends GenshinPlayerBase {
             double skillLevel = info.getPersonInfo(this).getAttributes().getInstance(Attributes.skill_level).getValue();
 
             if (skillLevel >= 13) {
+                int minAttacksCount = 5;
+
                 // 4 attacks should be done within 2 seconds
                 int earliestTime = holder.tickCount - 20 * 2;
-
-                int minAttacksCount = 5;
 
                 List<CombatEntry> entries = genshinCombatTracker.getAttacks()
                         .filter(x -> x.getTime() >= earliestTime)
@@ -149,7 +168,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    public AscendInfo fromLevel(int level, GenshinEntityData data) {
+    public AscendInfo ascendingInfo(int level, GenshinEntityData data) {
         // special attribute starting to scale since 5 level
         Attribute special = level >= 5
                 ? Attributes.physical_bonus
@@ -196,8 +215,89 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
+    public TalentAscendInfo talentInfo(int level, GenshinEntityData data) {
+        int expLevel = -1;
+        int characterLevel = -1;
+        List<Component> info = new ArrayList<>();
+        NonNullList<ItemStack> materials = NonNullList.create();
+
+        if (level < 1) {
+            info.add(new TextComponent("MIN"));
+        } else if (level >= Attributes.skill_level.getMaxValue()) {
+            info.add(new TextComponent("MAX"));
+        } else {
+            expLevel = level;
+            characterLevel = (int) Mth.clamp(3 + Math.floor(level) / 2, 3, Attributes.level.getMaxValue());
+
+            double max = 20;
+
+            if (level <= max) {
+                materials.add(new ItemStack(Items.mask, (int) Math.floor((6 + (64 - 6) / max * level))));
+                materials.add(new ItemStack(Items.resistance_scroll, (int) Math.floor(3 + (64 - 3) / max * level)));
+            } else {
+                level -= max;
+                max = Attributes.skill_level.getMaxValue() - max;
+
+                materials.add(new ItemStack(Items.hard_mask, (int) Math.floor(4 + (64 - 4) / max * level)));
+                materials.add(new ItemStack(Items.resistance_scroll_2, (int) Math.floor(3 + (64 - 3) / max * level)));
+
+                if (level >= 7) {
+                    level -= 7;
+                    max -= 7;
+                    materials.add(new ItemStack(Items.dragon_claw, (int) Math.floor(1 + (2 - 1) / max * level)));
+
+                    if (level + 3 >= max) {
+                        materials.add(new ItemStack(Items.crown, 1));
+                    }
+                }
+            }
+
+            // character level is too low
+            if (characterLevel < GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.level)) {
+                info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".talent.low_character_level", characterLevel));
+            }
+
+            DecimalFormat decimalFormat = new DecimalFormat("###.##");
+
+            //////////////////
+            // strike attacks
+            //////////////////
+            // iterating through attack strikes
+            for (Map.Entry<Integer, Map<Integer, Double>> entry : getStrikes().rowMap().entrySet()) {
+                String formattedStr = String.format("%s --> %s",
+                        decimalFormat.format(entry.getValue().get(level - 1)),
+                        decimalFormat.format(entry.getValue().get(level))
+                );
+
+                info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".attack_" + (entry.getKey() + 1), formattedStr));
+            }
+
+            ////////
+            // skill
+            ////////
+            String formattedStr = String.format("%s --> %s",
+                    decimalFormat.format(skillMultiplier(level - 1)),
+                    decimalFormat.format(skillMultiplier(level))
+            );
+            info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".anemo_traveler.vortex_damage", formattedStr));
+
+
+            //////////////////
+            // tornado scaling
+            //////////////////
+            formattedStr = String.format("%s --> %s",
+                    decimalFormat.format(Tornado.getMultiplier(level - 1)),
+                    decimalFormat.format(Tornado.getMultiplier(level))
+            );
+            info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".tornado_damage", formattedStr));
+        }
+
+        return new TalentAscendInfo(materials, info, expLevel, characterLevel);
+    }
+
+    @Override
     protected void onSkillTick(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, GenshinPhase phase) {
-        double skillAdditive = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.skill_level)) / 7f;
+        double skillAdditive = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.skill_level)) / Attributes.skill_level.getMaxValue() * 1.5;
         double starCount = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.constellations));
         double range = 0;
 
@@ -301,12 +401,23 @@ public class AnemoTraveler extends GenshinPlayerBase {
      * @return - calculated damage per entity
      */
     private float createDamage(float diameter, double attackPercent, double skill, double starCount, double attackDamage) {
-        double minAttackBonus = 1.92;
-        double maxAttackBonus = 4.08;
-
-        double attackBonus = minAttackBonus + (maxAttackBonus - minAttackBonus) / Attributes.skill_level.getMaxValue() * skill;
+        double attackBonus = skillMultiplier((int) skill);
         double result = attackDamage * attackBonus * attackPercent * (1 + diameter);
         return (float) result;
+    }
+
+    /**
+     * Calculates vortex attack multiplier
+     *
+     * @param skill - current skill level
+     * @return
+     */
+    private static double skillMultiplier(int skill) {
+        double minAttackBonus = SKILL_ZERO_MULTIPLIER;
+        double maxAttackBonus = SKILL_MAX_MULTIPLIER;
+
+        double attackBonus = minAttackBonus + (maxAttackBonus - minAttackBonus) / Attributes.skill_level.getMaxValue() * skill;
+        return attackBonus;
     }
 
     /**

@@ -24,8 +24,19 @@ import java.util.List;
 import java.util.Objects;
 
 public class Tornado extends Projectile {
+    /**
+     * Attack multiplier for 0 skill level
+     */
+    private static final double ZERO_LEVEL_MULTIPLIER = 0.808;
+
+    /**
+     * Attack multiplier for max skill level
+     */
+    private static final double MAX_LEVEL_MULTIPLIER = 1.82;
+
     private static final List<Elementals> SPREADING = ImmutableList.of(Elementals.HYDRO, Elementals.PYRO, Elementals.ELECTRO, Elementals.CRYO, Elementals.DENDRO);
     private static final EntityDataAccessor<String> ELEMENT = SynchedEntityData.defineId(Tornado.class, EntityDataSerializers.STRING);
+    private double currentAttack;
     private int liveTime = Integer.MAX_VALUE;
     private Vec3 moveVec;
 
@@ -51,6 +62,8 @@ public class Tornado extends Projectile {
         // launching tornado
         shoot(lookAngle.x, lookAngle.y, lookAngle.z, 0.2f, 0);
         moveVec = getDeltaMovement();
+
+        currentAttack = getCurrentAttack(owner);
     }
 
     @Override
@@ -165,10 +178,7 @@ public class Tornado extends Projectile {
             }
         }
 
-        double skill = Math.max(0, GenshinHeler.safeGetAttribute(getOwner(), Attributes.skill_level)) + 1;
-        double level = Math.max(0, GenshinHeler.safeGetAttribute(getOwner(), Attributes.level)) + 1;
-
-        float damage = (float) (skill * level);
+        float damage = (float) currentAttack;
 
         // +30.7% percent of damage
         if (element != Elementals.ANEMO) {
@@ -240,5 +250,33 @@ public class Tornado extends Projectile {
         AABB result = boundingBox.expandTowards(vec3).expandTowards(vec3.reverse());
 
         return result;
+    }
+
+    /**
+     * Returns attacks value for current tornado
+     *
+     * @param owner - attacker
+     */
+    private double getCurrentAttack(Entity owner) {
+        int level = (int) Math.max(0, GenshinHeler.safeGetAttribute(owner, Attributes.skill_level));
+        double attack = GenshinHeler.safeGetAttribute(owner, net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+        double damageMultiplier = getMultiplier(level);
+        return attack * damageMultiplier;
+    }
+
+    /**
+     * Returns multiplier of damage for tornado entity
+     *
+     * @param level - skill level
+     * @return
+     */
+    public static double getMultiplier(int level) {
+        // zero level multiplier
+        double min = ZERO_LEVEL_MULTIPLIER;
+        // max level multiplier
+        double max = MAX_LEVEL_MULTIPLIER;
+
+        double multiplier = min + (max - min) * level / Attributes.skill_level.getMaxValue();
+        return multiplier;
     }
 }

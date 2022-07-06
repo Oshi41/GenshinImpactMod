@@ -9,7 +9,6 @@ import com.gim.players.base.AscendInfo;
 import com.gim.registry.Attributes;
 import com.gim.registry.Blocks;
 import com.gim.registry.Menus;
-import jdk.jfr.Timespan;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,15 +17,12 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-
-import java.time.Duration;
 
 public class LevelStationMenu extends GenshinIterableMenuBase implements SlotListener {
     private AscendInfo forCurrent;
@@ -97,7 +93,7 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
     public void refreshByIndex(boolean saveInventory) {
         GenshinEntityData entityData = current();
         int current = (int) entityData.getAttributes().getValue(Attributes.level);
-        forCurrent = entityData.getAssotiatedPlayer().fromLevel(current, entityData);
+        forCurrent = entityData.getAssotiatedPlayer().ascendingInfo(current, entityData);
 
         if (!saveInventory) {
             // removing all items

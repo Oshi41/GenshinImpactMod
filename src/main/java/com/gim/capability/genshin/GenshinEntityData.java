@@ -46,6 +46,8 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
 
     private final Set<IArtifactSet> activeSets = new HashSet<>();
 
+    private final List<Integer> rowAttacks = new ArrayList<>();
+
     public GenshinEntityData(LivingEntity holder, IGenshinPlayer assotiatedPlayer, int energy) {
         // creating weak reference
         WeakReference<LivingEntity> weakReference = new WeakReference<>(holder);
@@ -346,6 +348,13 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
      */
     public CompoundTag getAdditional() {
         return additive;
+    }
+
+    /**
+     * Info about attacks in a row. Each one is more efficient
+     */
+    public List<Integer> getRowAttacks() {
+        return rowAttacks;
     }
 
     public void setHealth(LivingEntity livingEntity, float health) {

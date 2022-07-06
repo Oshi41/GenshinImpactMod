@@ -7,6 +7,8 @@ import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.chat.BaseComponent;
@@ -22,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.registries.ForgeRegistryEntry;
@@ -39,10 +42,69 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
     protected AttributeMap attributeMap;
     private List<Vec2> starPoses;
 
-    protected GenshinPlayerBase(BaseComponent name, Supplier<AttributeSupplier.Builder> attributes, List<Vec2> starPoses) {
+    private final Table<Integer, Integer, Double> strikes = HashBasedTable.create();
+
+    /**
+     * @param name              - localized name of character
+     * @param attributes        - initial character attributes. Can be only Genshin attributes, no need to store health there
+     * @param starPoses         - position of stars inside the constellation table
+     * @param strikesOn0Level   - strike row multiplier on 0 skill level
+     * @param strikesOnMaxLevel - strike row multiplier on max skill level
+     */
+    protected GenshinPlayerBase(BaseComponent name, Supplier<AttributeSupplier.Builder> attributes, List<Vec2> starPoses,
+                                List<Double> strikesOn0Level, List<Double> strikesOnMaxLevel) {
         this.name = name;
         this.builder = attributes;
         this.starPoses = starPoses;
+
+        if (strikesOn0Level.size() != strikesOnMaxLevel.size()) {
+            throw new IllegalArgumentException("Strike stats for " + name.getString() + " should be the same size!");
+        }
+
+        for (int row = 0; row < strikesOn0Level.size(); row++) {
+            Double min = strikesOn0Level.get(row);
+            Double max = strikesOnMaxLevel.get(row);
+
+            for (int column = 0; column <= Attributes.skill_level.getMaxValue(); column++) {
+                double current = min + (max - min) / Attributes.skill_level.getMaxValue() * column;
+                getStrikes().put(row, column, current);
+            }
+        }
+
+        handleForgeEventForCurrentPlayer(LivingDamageEvent.class, e -> e.getSource().getEntity(), this::handleAttackInRaw);
+    }
+
+    /**
+     * Handle row strikes
+     *
+     * @param event  - damage event
+     * @param entity - genshin data holder
+     * @param info   - genshin info
+     */
+    private void handleAttackInRaw(LivingDamageEvent event, LivingEntity entity, IGenshinInfo info) {
+        // should be regular player attack
+        if (!"player".equals(event.getSource().getMsgId())) {
+            return;
+        }
+
+        GenshinEntityData genshinEntityData = info.getPersonInfo(this);
+        List<Integer> attacks = genshinEntityData.getRowAttacks();
+
+        // attacks is more than max row strike for character
+        if (attacks.size() >= getStrikes().rowMap().size()) {
+            attacks.clear();
+        }
+
+        // record current attack
+        attacks.add(entity.tickCount);
+
+        // index of current hit (row)
+        int rowIndex = attacks.size() - 1;
+        // skill level for current character (column)
+        int column = (int) Math.max(0, GenshinHeler.safeGetAttribute(entity, Attributes.skill_level));
+        if (getStrikes().contains(rowIndex, column)) {
+            event.setAmount((float) (event.getAmount() * getStrikes().get(rowIndex, column)));
+        }
     }
 
     /**
@@ -225,4 +287,14 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
      * @param phase   - current tick phase
      */
     protected abstract void onBurstTick(LivingEntity entity, IGenshinInfo info, GenshinCombatTracker tracker, GenshinPhase phase);
+
+    /**
+     * Table for strike hit multiplier.
+     * Row - Hit row index
+     * Column - skill level
+     * Value - damage multiplier
+     */
+    protected Table<Integer, Integer, Double> getStrikes() {
+        return strikes;
+    }
 }

@@ -33,6 +33,8 @@ public class Items {
     public static final Item brilliant_large = null;
     public static final Item mask = null;
     public static final Item hard_mask = null;
+    public static final Item dragon_claw = null;
+    public static final Item crown = null;
 
     public static final ArtefactItem adventure_clock = null;
     public static final ArtefactItem adventure_cup = null;
@@ -72,7 +74,12 @@ public class Items {
                 new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.UNCOMMON))
                         .setRegistryName(GenshinImpactMod.ModID, "mask"),
                 new GenshinMaterialItem(new GenshinMaterialItem.GenshinProperties().setNoRepair().rarity(Rarity.RARE))
-                        .setRegistryName(GenshinImpactMod.ModID, "hard_mask")
+                        .setRegistryName(GenshinImpactMod.ModID, "hard_mask"),
+
+                new GenshinMaterialItem(new Item.Properties().setNoRepair().rarity(Rarity.EPIC))
+                        .setRegistryName(GenshinImpactMod.ModID, "crown"),
+                new GenshinMaterialItem(new Item.Properties().setNoRepair().rarity(Rarity.EPIC))
+                        .setRegistryName(GenshinImpactMod.ModID, "dragon_claw")
         );
 
         event.getRegistry().registerAll(createSet("adventure"));

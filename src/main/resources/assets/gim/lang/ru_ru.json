@@ -97,5 +97,15 @@
   "gim.crafting.level_station": "Стол уровней",
   "block.gim.wind_astra": "Ветряная астра",
   "gim.max_level": "Максимальный уровень",
-  "gim.level_ascending_cooldown": "След. уровень через:"
+  "gim.level_ascending_cooldown": "След. уровень через:",
+  "gim.talent.low_character_level": "Достигните фазы возвышения %s",
+  "gim.tornado_damage": "Урон торнадо: %s",
+  "gim.attack_1": "Первая атака: %s",
+  "gim.attack_2": "Вторая атака: %s",
+  "gim.attack_3": "Третья атака: %s",
+  "gim.attack_4": "Четвертая атака: %s",
+  "gim.attack_5": "Пятая атака: %s",
+  "gim.attack_6": "Шестая атака: %s",
+  "gim.anemo_traveler.vortex_damage": "Урон ладони вихря: %s"
+
 }

@@ -132,7 +132,7 @@ public class Attributes {
                         .setRegistryName(GenshinImpactMod.ModID, "shield_strength"),
                 new RangedAttribute("genshin.burst_cost", 90, 0, Double.MAX_VALUE)
                         .setRegistryName(GenshinImpactMod.ModID, "burst_cost"),
-                new RangedAttribute("genshin.skill_level", 0, 0, 20)
+                new RangedAttribute("genshin.skill_level", 0, 0, 35)
                         .setSyncable(true)
                         .setRegistryName(GenshinImpactMod.ModID, "skill_level"),
                 new RangedAttribute("genshin.hidden.constellations", 0, 0, 6)
