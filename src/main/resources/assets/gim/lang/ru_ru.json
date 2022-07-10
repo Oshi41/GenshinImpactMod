@@ -106,6 +106,7 @@
   "gim.attack_4": "Четвертая атака: %s",
   "gim.attack_5": "Пятая атака: %s",
   "gim.attack_6": "Шестая атака: %s",
-  "gim.anemo_traveler.vortex_damage": "Урон ладони вихря: %s"
-
+  "gim.anemo_traveler.vortex_damage": "Урон ладони вихря: %s",
+  "block.gim.skill_station": "Стол навыков",
+  "gim.crafting.skill_station": "Стол навыков"
 }

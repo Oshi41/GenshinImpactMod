@@ -37,7 +37,7 @@ public enum ElementalReactions {
 
     ElementalReactions(String langKey, Predicate<LivingDamageEvent> predicate, ChatFormatting formatting) {
         this.predicate = predicate;
-        this.text = new TranslatableComponent(GenshinImpactMod.ModID + ".reactions." + langKey);
+        this.text = new TranslatableComponent("gim.reactions." + langKey);
         text.setStyle(text.getStyle().withColor(formatting));
     }
 

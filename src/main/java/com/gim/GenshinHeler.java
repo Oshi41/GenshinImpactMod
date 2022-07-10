@@ -427,7 +427,7 @@ public class GenshinHeler {
             }
 
             if (i == 0) {
-                components.add(new TranslatableComponent(GenshinImpactMod.ModID + ".main_stat"));
+                components.add(new TranslatableComponent("gim.main_stat"));
             }
 
             if (flag) {

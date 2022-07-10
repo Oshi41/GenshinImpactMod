@@ -66,7 +66,7 @@ public class GenshinStatsRender {
                 ///////////////////////////////////////////////////
                 List<Component> contents = new ArrayList<>();
                 contents.add(0, event.getContent());
-                contents.add(0, new TranslatableComponent(GenshinImpactMod.ModID + ".level", entityLevel).withStyle(chatFormatting));
+                contents.add(0, new TranslatableComponent("gim.level", entityLevel).withStyle(chatFormatting));
                 contents.add(0, new TextComponent(((int) livingEntity.getHealth()) + "/" + ((int) livingEntity.getMaxHealth())));
 
                 double heightOffset = 0.5;

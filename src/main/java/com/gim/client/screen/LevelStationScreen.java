@@ -63,7 +63,7 @@ public class LevelStationScreen extends GenshinScreenBase<LevelStationMenu> {
     protected void init() {
         super.init();
 
-        TranslatableComponent component = new TranslatableComponent(GenshinImpactMod.ModID + ".upgrade");
+        TranslatableComponent component = new TranslatableComponent("gim.upgrade");
         int buttonWidth = 56;
 
         applyBtn = addRenderableWidget(new Button(this.leftPos + 98, this.topPos + 151, buttonWidth, 18, component,
@@ -158,7 +158,7 @@ public class LevelStationScreen extends GenshinScreenBase<LevelStationMenu> {
             }
 
             // header with text
-            MutableComponent component = new TranslatableComponent(GenshinImpactMod.ModID + ".level_ascending_cooldown")
+            MutableComponent component = new TranslatableComponent("gim.level_ascending_cooldown")
                     .append(" ")
                     .append(new TextComponent(String.join(":", list)).withStyle(getMinecraft().player.isCreative() ? ChatFormatting.GREEN : ChatFormatting.RED));
             texts.add(component);

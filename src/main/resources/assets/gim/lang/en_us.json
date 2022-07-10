@@ -86,7 +86,7 @@
   "item.gim.freedom_scroll": "Knowledge of freedom",
   "item.gim.freedom_scroll_2": "Philosophy of freedom",
   "item.gim.resistance_scroll": "Knowledge of resistance",
-    "item.gim.resistance_scroll_2": "Philosophy of resistance",
+  "item.gim.resistance_scroll_2": "Philosophy of resistance",
   "item.gim.ballad_scroll": "Knowledge of poetry",
   "item.gim.ballad_scroll_2": "Philosophy of poetry",
   "item.gim.brilliant": "Brilliant",
@@ -106,5 +106,13 @@
   "gim.attack_4": "Forth attack: %s",
   "gim.attack_5": "Fifth attack: %s",
   "gim.attack_6": "Sixth attack: %s",
-  "gim.anemo_traveler.vortex_damage": "Palm Vortex DMG: %s"
+  "gim.anemo_traveler.vortex_damage": "Palm Vortex DMG: %s",
+  "block.gim.skill_station": "Skill station",
+  "gim.crafting.skill_station": "Skill station",
+  "gim.anemo_traveler.attack_skill": "Normal attack: perform up to 5 rapid strikes",
+  "gim.anemo_traveler.elemental_skill": "Palm Vortex: Grasping the wind's might, you form a vortex of vacuum in your palm, causing continuous Anemo DMG to opponents in front of you.\nThe vacuum vortex explodes when the skill duration ends, causing a greater amount of Anemo DMG over a larger area.\nElemental Absorption\nIf the vortex comes into contact with §9Hydro§r/§cPyro§r/§bCryo§r/§dElectro§r, it will deal additional Elemental DMG of that type.\nElemental Absorption may only occur once per use",
+  "gim.anemo_traveler.burst_skill": "Gust Surge: Guiding the path of the wind currents, you summon a forward-moving tornado that pulls objects and opponents towards itself, dealing continuous Anemo DMG.\nElemental Absorption\nIf the tornado comes into contact with §9Hydro§r/§cPyro§r/§bCryo§r/§dElectro§r, it will deal additional Elemental DMG of that type.\nElemental Absorption may only occur once per use.",
+  "gim.anemo_traveler.passive_skill_1": "Slitting Wind: The last hit of a Normal Attack combo unleashes a wind blade, dealing 60% of ATK as Anemo DMG to all opponents in its path.",
+  "gim.anemo_traveler.passive_skill_2": "Second Wind: Palm Vortex kills regenerate 2% HP for 5s. This effect can only occur once every 5s.",
+  "gim.will_open_on_level": "Will open on %s level"
 }

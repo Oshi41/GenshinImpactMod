@@ -24,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -37,12 +38,13 @@ import java.util.stream.Collectors;
 
 public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlayer> implements IGenshinPlayer {
 
+
     protected BaseComponent name;
     protected Supplier<AttributeSupplier.Builder> builder;
     protected AttributeMap attributeMap;
     private List<Vec2> starPoses;
 
-    private final Table<Integer, Integer, Double> strikes = HashBasedTable.create();
+    private final Lazy<Table<Integer, Integer, Double>> tableLazy;
 
     /**
      * @param name              - localized name of character
@@ -61,15 +63,22 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
             throw new IllegalArgumentException("Strike stats for " + name.getString() + " should be the same size!");
         }
 
-        for (int row = 0; row < strikesOn0Level.size(); row++) {
-            Double min = strikesOn0Level.get(row);
-            Double max = strikesOnMaxLevel.get(row);
+        tableLazy = Lazy.of(() -> {
+            Table<Integer, Integer, Double> strikes = HashBasedTable.create();
 
-            for (int column = 0; column <= Attributes.skill_level.getMaxValue(); column++) {
-                double current = min + (max - min) / Attributes.skill_level.getMaxValue() * column;
-                getStrikes().put(row, column, current);
+            for (int row = 0; row < strikesOn0Level.size(); row++) {
+                Double min = strikesOn0Level.get(row);
+                Double max = strikesOnMaxLevel.get(row);
+
+                for (int column = 0; column <= Attributes.skill_level.getMaxValue(); column++) {
+                    double current = min + (max - min) / Attributes.skill_level.getMaxValue() * column;
+                    strikes.put(row, column, current);
+                }
             }
-        }
+
+            return strikes;
+        });
+
 
         handleForgeEventForCurrentPlayer(LivingDamageEvent.class, e -> e.getSource().getEntity(), this::handleAttackInRaw);
     }
@@ -91,7 +100,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
         List<Integer> attacks = genshinEntityData.getRowAttacks();
 
         // attacks is more than max row strike for character
-        if (attacks.size() >= getStrikes().rowMap().size()) {
+        if (attacks.size() >= getStrikes(genshinEntityData).rowMap().size()) {
             attacks.clear();
         }
 
@@ -102,8 +111,8 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
         int rowIndex = attacks.size() - 1;
         // skill level for current character (column)
         int column = (int) Math.max(0, GenshinHeler.safeGetAttribute(entity, Attributes.skill_level));
-        if (getStrikes().contains(rowIndex, column)) {
-            event.setAmount((float) (event.getAmount() * getStrikes().get(rowIndex, column)));
+        if (getStrikes(genshinEntityData).contains(rowIndex, column)) {
+            event.setAmount((float) (event.getAmount() * getStrikes(genshinEntityData).get(rowIndex, column)));
         }
     }
 
@@ -294,7 +303,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
      * Column - skill level
      * Value - damage multiplier
      */
-    protected Table<Integer, Integer, Double> getStrikes() {
-        return strikes;
+    protected Table<Integer, Integer, Double> getStrikes(GenshinEntityData info) {
+        return tableLazy.get();
     }
 }

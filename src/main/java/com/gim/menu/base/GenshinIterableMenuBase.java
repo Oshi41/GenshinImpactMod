@@ -40,6 +40,7 @@ public abstract class GenshinIterableMenuBase extends GenshinMenuBase {
             case 0:
                 if (getIndex() > 0) {
                     setData(0, getIndex() - 1);
+                    refreshByIndex();
                 }
 
                 return true;
@@ -49,6 +50,7 @@ public abstract class GenshinIterableMenuBase extends GenshinMenuBase {
                 player.getCapability(Capabilities.GENSHIN_INFO).ifPresent(info -> {
                     if (info.getAllPersonages().size() > getIndex() + 1) {
                         setData(0, getIndex() + 1);
+                        refreshByIndex();
                     }
                 });
                 return true;

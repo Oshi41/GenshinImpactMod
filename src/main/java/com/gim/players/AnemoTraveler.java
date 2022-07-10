@@ -17,9 +17,12 @@ import com.gim.registry.Attributes;
 import com.gim.registry.Blocks;
 import com.gim.registry.Elementals;
 import com.gim.registry.Items;
+import com.google.common.collect.Iterators;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
@@ -56,9 +59,14 @@ public class AnemoTraveler extends GenshinPlayerBase {
 
     private final Lazy<List<Elementals>> swirling = Lazy.of(() -> List.of(Elementals.HYDRO, Elementals.ELECTRO, Elementals.PYRO, Elementals.CRYO));
 
+    private final Map<Integer, String> passiveTalents = new LinkedHashMap<>() {{
+        put(5, "gim.anemo_traveler.passive_skill_1");
+        put(15, "gim.anemo_traveler.passive_skill_2");
+    }};
+
     public AnemoTraveler() {
         super(
-                new TranslatableComponent(GenshinImpactMod.ModID + ".traveler.name"),
+                new TranslatableComponent("gim.traveler.name"),
                 () -> AttributeSupplier.builder()
                         .add(Attributes.defence, 3)
                         .add(Attributes.physical_bonus, 2)
@@ -198,12 +206,12 @@ public class AnemoTraveler extends GenshinPlayerBase {
 
         Component text = null;
 
-        if (level == 3 || level == 15) {
-            text = new TranslatableComponent(GenshinImpactMod.ModID + ".talent.unlocked",
+        if (passiveTalents.containsKey(level)) {
+            text = new TranslatableComponent("gim.talent.unlocked",
                     new TranslatableComponent(String.format("%s.%s.passive.%s",
                             getRegistryName().getNamespace(),
                             getRegistryName().getPath(),
-                            level > 3 ? 2 : 1)));
+                            Iterators.indexOf(passiveTalents.keySet().iterator(), integer -> level == integer))));
         }
 
         int expLevels = (level + 1) * 3;
@@ -215,84 +223,122 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    public TalentAscendInfo talentInfo(int level, GenshinEntityData data) {
+    public TalentAscendInfo talentInfo(int levelRaw, GenshinEntityData data) {
+        String openSymbol = "§a☑ ";
+        String closedSymbol = "§c☒ ";
+
+        NonNullList<ItemStack> materials = NonNullList.create();
+        List<MutableComponent> info = new ArrayList<>();
         int expLevel = -1;
         int characterLevel = -1;
-        List<Component> info = new ArrayList<>();
-        NonNullList<ItemStack> materials = NonNullList.create();
+        DecimalFormat decimalFormat = new DecimalFormat("###.##%");
 
-        if (level < 1) {
-            info.add(new TextComponent("MIN"));
-        } else if (level >= Attributes.skill_level.getMaxValue()) {
-            info.add(new TextComponent("MAX"));
-        } else {
-            expLevel = level;
+        // valid values
+        final int level = (int) Mth.clamp(levelRaw, 0, Attributes.skill_level.getMaxValue());
+        boolean maxLevel = level >= Attributes.skill_level.getMaxValue();
+
+        if (!maxLevel) {
+            // 3 ascending at least
+            // then growing at arithmetical progression
             characterLevel = (int) Mth.clamp(3 + Math.floor(level) / 2, 3, Attributes.level.getMaxValue());
 
+            /////////////////////
+            // Filling materials
+            /////////////////////
             double max = 20;
-
             if (level <= max) {
-                materials.add(new ItemStack(Items.mask, (int) Math.floor((6 + (64 - 6) / max * level))));
-                materials.add(new ItemStack(Items.resistance_scroll, (int) Math.floor(3 + (64 - 3) / max * level)));
+                materials.add(new ItemStack(Items.mask, (int) Math.floor((6 + (ItemStack.EMPTY.getMaxStackSize() - 6) / max * level))));
+                materials.add(new ItemStack(Items.resistance_scroll, (int) Math.floor(3 + (ItemStack.EMPTY.getMaxStackSize() - 3) / max * level)));
             } else {
-                level -= max;
-                max = Attributes.skill_level.getMaxValue() - max;
+                double maxPossible = Attributes.skill_level.getMaxValue();
 
-                materials.add(new ItemStack(Items.hard_mask, (int) Math.floor(4 + (64 - 4) / max * level)));
-                materials.add(new ItemStack(Items.resistance_scroll_2, (int) Math.floor(3 + (64 - 3) / max * level)));
+                // max improved items amount
+                double newMax = (Attributes.skill_level.getMaxValue() - max);
+                double currentAmount = level - max;
 
-                if (level >= 7) {
-                    level -= 7;
-                    max -= 7;
-                    materials.add(new ItemStack(Items.dragon_claw, (int) Math.floor(1 + (2 - 1) / max * level)));
+                materials.add(new ItemStack(Items.hard_mask, (int) Math.floor((6 + (ItemStack.EMPTY.getMaxStackSize() - 6) / newMax * (currentAmount)))));
+                materials.add(new ItemStack(Items.resistance_scroll_2, (int) Math.floor(3 + (ItemStack.EMPTY.getMaxStackSize() - 3) / newMax * (currentAmount))));
 
-                    if (level + 3 >= max) {
-                        materials.add(new ItemStack(Items.crown, 1));
-                    }
+                currentAmount = maxPossible - level;
+
+                // last 9 have claw(s)
+                if (currentAmount <= 9) {
+                    materials.add(new ItemStack(Items.dragon_claw, currentAmount >= 5 ? 1 : 2));
+                }
+
+                // last 3 have crown
+                if (currentAmount <= 3) {
+                    materials.add(new ItemStack(Items.crown, 1));
                 }
             }
-
-            // character level is too low
-            if (characterLevel < GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.level)) {
-                info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".talent.low_character_level", characterLevel));
-            }
-
-            DecimalFormat decimalFormat = new DecimalFormat("###.##");
-
-            //////////////////
-            // strike attacks
-            //////////////////
-            // iterating through attack strikes
-            for (Map.Entry<Integer, Map<Integer, Double>> entry : getStrikes().rowMap().entrySet()) {
-                String formattedStr = String.format("%s --> %s",
-                        decimalFormat.format(entry.getValue().get(level - 1)),
-                        decimalFormat.format(entry.getValue().get(level))
-                );
-
-                info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".attack_" + (entry.getKey() + 1), formattedStr));
-            }
-
-            ////////
-            // skill
-            ////////
-            String formattedStr = String.format("%s --> %s",
-                    decimalFormat.format(skillMultiplier(level - 1)),
-                    decimalFormat.format(skillMultiplier(level))
-            );
-            info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".anemo_traveler.vortex_damage", formattedStr));
-
-
-            //////////////////
-            // tornado scaling
-            //////////////////
-            formattedStr = String.format("%s --> %s",
-                    decimalFormat.format(Tornado.getMultiplier(level - 1)),
-                    decimalFormat.format(Tornado.getMultiplier(level))
-            );
-            info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".tornado_damage", formattedStr));
         }
 
-        return new TalentAscendInfo(materials, info, expLevel, characterLevel);
+        MutableComponent component = maxLevel
+                ? new TextComponent(String.format("MAX (%s)", level))
+                : new TranslatableComponent("gim.level", String.format("%s --> %s", level, level + 1));
+
+        info.add(component.withStyle(ChatFormatting.BLACK));
+
+        String current, result;
+
+        //////////////////
+        // strike attacks
+        //////////////////
+        // iterating through attack strikes
+        for (Map.Entry<Integer, Map<Integer, Double>> entry : getStrikes(data).rowMap().entrySet()) {
+            current = decimalFormat.format(entry.getValue().get(level));
+            result = maxLevel ? current : (current + " --> " + decimalFormat.format(entry.getValue().get(level + 1)));
+
+            info.add(new TranslatableComponent("gim.attack_" + (entry.getKey() + 1), result));
+        }
+
+        ////////
+        // skill
+        ////////
+        current = decimalFormat.format(skillMultiplier(level));
+        result = maxLevel ? current : (current + " --> " + decimalFormat.format(skillMultiplier(level + 1)));
+        info.add(new TranslatableComponent("gim.anemo_traveler.vortex_damage", result));
+
+
+        //////////////////
+        // tornado scaling
+        //////////////////
+        current = decimalFormat.format(Tornado.getMultiplier(level));
+        result = maxLevel ? current : (current + " --> " + decimalFormat.format(Tornado.getMultiplier(level + 1)));
+        info.add(new TranslatableComponent("gim.tornado_damage", result));
+
+
+        // character level is too low
+        if (characterLevel > GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.level)) {
+            info.add(new TranslatableComponent("gim.talent.low_character_level", characterLevel)
+                    .withStyle(ChatFormatting.RED));
+        }
+
+        // experience info
+        if (!maxLevel) {
+            info.add(new TranslatableComponent("container.enchant.level.requirement", level + 1));
+        }
+
+        List<MutableComponent> skillInfo = new ArrayList<>();
+        skillInfo.add(new TextComponent(openSymbol).append(new TranslatableComponent("gim.anemo_traveler.attack_skill"))
+                .append("\n"));
+        skillInfo.add(new TextComponent(openSymbol).append(new TranslatableComponent("gim.anemo_traveler.elemental_skill"))
+                .append("\n"));
+        skillInfo.add(new TextComponent(openSymbol).append(new TranslatableComponent("gim.anemo_traveler.burst_skill"))
+                .append("\n"));
+
+        passiveTalents.forEach((lvl, txtId) -> {
+            boolean valid = lvl <= level;
+            MutableComponent txt = new TextComponent(valid ? openSymbol : closedSymbol).append(new TranslatableComponent(txtId));
+            if (!valid) {
+                txt.append(new TranslatableComponent("gim.will_open_on_level", lvl));
+            }
+            txt.append("\n");
+
+            skillInfo.add(txt);
+        });
+
+        return new TalentAscendInfo(materials, info, expLevel, characterLevel, skillInfo);
     }
 
     @Override

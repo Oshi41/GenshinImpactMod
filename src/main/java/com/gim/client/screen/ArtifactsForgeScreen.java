@@ -42,7 +42,7 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
     protected void init() {
         super.init();
 
-        applyBtn = addRenderableWidget(new Button(this.leftPos + 118, this.topPos + 111, 51, 18, new TranslatableComponent(GenshinImpactMod.ModID + ".upgrade"),
+        applyBtn = addRenderableWidget(new Button(this.leftPos + 118, this.topPos + 111, 51, 18, new TranslatableComponent("gim.upgrade"),
                 p_93751_ -> this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, 0)
         ));
     }
@@ -117,10 +117,10 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
                     .withStyle(ChatFormatting.YELLOW)));
 
             if (subStatAdded > 0)
-                list.add(new TranslatableComponent(GenshinImpactMod.ModID + ".sub_stat_added", subStatAdded).withStyle(ChatFormatting.WHITE));
+                list.add(new TranslatableComponent("gim.sub_stat_added", subStatAdded).withStyle(ChatFormatting.WHITE));
 
             if (subStatUpgraded > 0)
-                list.add(new TranslatableComponent(GenshinImpactMod.ModID + ".sub_stat_upgraded", subStatUpgraded).withStyle(ChatFormatting.WHITE));
+                list.add(new TranslatableComponent("gim.sub_stat_upgraded", subStatUpgraded).withStyle(ChatFormatting.WHITE));
 
             int xStart = this.leftPos + this.imageWidth - 102 - 4 - minecraft.font.width("exp");
             int yStart = y + 40 + minecraft.font.lineHeight;

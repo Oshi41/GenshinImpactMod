@@ -120,8 +120,8 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
     /**
      * Returns ascending info about levelling
      *
-     * @param level - from  which level we want to share
-     * @param data
+     * @param level - which level we have (valid values from 0 to Attributes.skill_level.getMaxValue()
+     * @param data  - entity data
      */
     AscendInfo ascendingInfo(int level, GenshinEntityData data);
 

@@ -3,10 +3,7 @@ package com.gim.registry;
 import com.gim.GenshinImpactMod;
 import com.gim.blocks.GenshinAnvilBlock;
 import com.gim.blocks.GenshinCraftingTableBlock;
-import com.gim.menu.ArtifactsForgeMenu;
-import com.gim.menu.ArtifactsStationMenu;
-import com.gim.menu.ConstellationMenu;
-import com.gim.menu.LevelStationMenu;
+import com.gim.menu.*;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.resources.ResourceLocation;
@@ -36,6 +33,7 @@ public class Blocks {
     public static final Block artifacts_station = null;
     public static final Block artifacts_forge = null;
     public static final Block level_station = null;
+    public static final Block skill_station = null;
     public static final Block wind_astra = null;
 
     @SubscribeEvent
@@ -93,6 +91,17 @@ public class Blocks {
                 new Item.Properties().setNoRepair().tab(CreativeModeTab.TAB_MISC),
                 "level_station");
 
+        registerBlock(
+                event,
+                new GenshinCraftingTableBlock(
+                        BlockBehaviour.Properties.of(Material.STONE)
+                                .strength(2.5f)
+                                .sound(SoundType.STONE)
+                                .requiresCorrectToolForDrops(),
+                        SkillStationMenu::new
+                ),
+                new Item.Properties().setNoRepair().tab(CreativeModeTab.TAB_MISC),
+                "skill_station");
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)

@@ -1,10 +1,7 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.menu.ArtifactsForgeMenu;
-import com.gim.menu.ArtifactsStationMenu;
-import com.gim.menu.ConstellationMenu;
-import com.gim.menu.LevelStationMenu;
+import com.gim.menu.*;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.event.RegistryEvent;
@@ -19,6 +16,7 @@ public class Menus {
     public static final MenuType<ArtifactsStationMenu> artifacts_station = null;
     public static final MenuType<ArtifactsForgeMenu> artifacts_forge = null;
     public static final MenuType<LevelStationMenu> level_station = null;
+    public static final MenuType<SkillStationMenu> skill_station = null;
 
     @SubscribeEvent
     public static void register(RegistryEvent.Register<MenuType<?>> event) {
@@ -33,7 +31,10 @@ public class Menus {
                         .setRegistryName(GenshinImpactMod.ModID, "artifacts_forge"),
 
                 IForgeMenuType.create(LevelStationMenu::new)
-                        .setRegistryName(GenshinImpactMod.ModID, "level_station")
+                        .setRegistryName(GenshinImpactMod.ModID, "level_station"),
+
+                IForgeMenuType.create(SkillStationMenu::new)
+                        .setRegistryName(GenshinImpactMod.ModID, "skill_station")
         );
     }
 }

@@ -37,7 +37,7 @@ public class AscendInfo {
             // no materials
             this.materials = NonNullList.create();
             // show only MAX LEVEL
-            info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".max_level").withStyle(ChatFormatting.DARK_GREEN));
+            info.add(new TranslatableComponent("gim.max_level").withStyle(ChatFormatting.DARK_GREEN));
             return;
         }
 
@@ -45,7 +45,7 @@ public class AscendInfo {
         this.materials = NonNullList.of(ItemStack.EMPTY, Arrays.stream(materials).filter(x -> x != null && !x.isEmpty()).toArray(ItemStack[]::new));
 
         // level scaling, for exapmle 2 --> 3
-        info.add(new TranslatableComponent(GenshinImpactMod.ModID + ".level", String.format("%s --> %s", level, level + 1)));
+        info.add(new TranslatableComponent("gim.level", String.format("%s --> %s", level, level + 1)));
 
 
         // using same modifier for all attributes, need to show them

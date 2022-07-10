@@ -59,7 +59,7 @@ public class ArtefactItem extends Item {
         ArtifactProperties properties = new ArtifactProperties(tag);
         int count = Arrays.stream(ArtifactRarity.values()).toList().indexOf(properties.getRarity()) + 1;
         components.add(new TextComponent("✯".repeat(count)));
-        components.add(new TranslatableComponent(GenshinImpactMod.ModID + ".level", properties.getRarity().getLevel(properties.getExp())));
+        components.add(new TranslatableComponent("gim.level", properties.getRarity().getLevel(properties.getExp())));
 
         components.add(TextComponent.EMPTY);
         components.add(new TranslatableComponent("item.modifiers.artifacts").withStyle(ChatFormatting.GRAY));

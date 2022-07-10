@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "gim:block/skill_station_top",
+    "north": "gim:block/skill_station_front",
+    "south": "gim:block/skill_station_front",
+    "east": "gim:block/skill_station_side",
+    "west": "gim:block/skill_station_side",
+    "up": "gim:block/skill_station_top",
+    "down": "minecraft:block/oak_planks"
+  }
+}

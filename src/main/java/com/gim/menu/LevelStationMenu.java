@@ -52,25 +52,25 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
             addSlot(new Slot(own, i, x, y) {
                 @Override
                 public boolean mayPlace(ItemStack toPlace) {
-                    if (getForCurrent() != null) {
+                    if (getForCurrent() == null)
+                        return false;
 
-                        // too big
-                        if (getForCurrent().materials.size() <= slotIndex) {
-                            return false;
-                        }
+                    // too big
+                    if (getForCurrent().materials.size() <= slotIndex) {
+                        return false;
+                    }
 
-                        // obtaining current info
-                        ItemStack itemStack = getForCurrent().materials.get(slotIndex);
+                    // obtaining current info
+                    ItemStack itemStack = getForCurrent().materials.get(slotIndex);
 
-                        // empty item, can't place here
-                        if (itemStack.isEmpty()) {
-                            return false;
-                        }
+                    // empty item, can't place here
+                    if (itemStack.isEmpty()) {
+                        return false;
+                    }
 
-                        // Checking same item
-                        if (!ItemStack.isSameItemSameTags(itemStack, toPlace)) {
-                            return false;
-                        }
+                    // Checking same item
+                    if (!ItemStack.isSameItemSameTags(itemStack, toPlace)) {
+                        return false;
                     }
 
                     return super.mayPlace(toPlace);
