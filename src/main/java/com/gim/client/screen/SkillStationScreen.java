@@ -51,7 +51,10 @@ public class SkillStationScreen extends GenshinScreenBase<SkillStationMenu> {
                 p_93751_ -> this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, 1)));
 
         addRenderableWidget(new Button(this.leftPos + 98, this.topPos + 151, buttonWidth, 18, component,
-                p_93751_ -> this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, 2)
+                p_93751_ -> {
+                    this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, 2);
+                    SkillStationScreen.this.getMenu().refreshByIndex();
+                }
         ) {
             @Override
             public void render(PoseStack p_93657_, int p_93658_, int p_93659_, float p_93660_) {
@@ -82,7 +85,7 @@ public class SkillStationScreen extends GenshinScreenBase<SkillStationMenu> {
                 this.minecraft.player,
                 assotiatedPlayer);
 
-        TalentAscendInfo talentAscendInfo = getMenu().info();
+        TalentAscendInfo talentAscendInfo = getMenu().info(true);
         if (talentAscendInfo == null)
             return;
 
@@ -136,7 +139,7 @@ public class SkillStationScreen extends GenshinScreenBase<SkillStationMenu> {
         if (i + this.imageWidth - 16 <= xMouse && xMouse <= i + this.imageWidth
                 &&
                 j + 4 <= yMouse && yMouse <= j + 4 + 16) {
-            List<Component> skillInfo = new ArrayList<>(getMenu().info().skillsInfo());
+            List<Component> skillInfo = new ArrayList<>(getMenu().info(false).skillsInfo());
             renderTooltip(p_97787_, skillInfo, Optional.empty(), xMouse, yMouse);
         }
     }

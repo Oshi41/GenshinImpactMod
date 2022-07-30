@@ -159,6 +159,46 @@ function initializeCoreMod() {
                 return method;
             }
         },
+
+        'GameTestRunner.runTestBatches': {
+            'target': {
+                'type': 'METHOD',
+                'class': 'net.minecraft.gametest.framework.GameTestRunner',
+                'methodName': 'runTestBatches',
+                'methodDesc': '(Ljava/util/Collection;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Rotation;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/gametest/framework/GameTestTicker;I)Ljava/util/Collection;'
+            },
+            'transformer': function (method) {
+                var desc = '(Ljava/util/Collection;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/Rotation;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/gametest/framework/GameTestTicker;I)V';
+                var type = 'net/minecraft/gametest/framework/GameTestBatchRunner';
+                var replacingType = 'com/gim/tests/register/CustomGameTestBatchRunner';
+
+                for (var i = 0; i < method.instructions.size(); i++) {
+                    var currentInstruction = method.instructions.get(i);
+
+                    // replacing NEW call
+                    if (Opcodes.NEW == currentInstruction.getOpcode() && currentInstruction.desc === type) {
+                        method.instructions.set(currentInstruction, new TypeInsnNode(Opcodes.NEW, replacingType));
+                    }
+
+                    // replacting ctor call
+                    if (Opcodes.INVOKESPECIAL == currentInstruction.getOpcode() && currentInstruction.desc === desc) {
+                        var ctorCall = ASMAPI.buildMethodCall(
+                            replacingType,
+                            currentInstruction.name,
+                            currentInstruction.desc,
+                            ASMAPI.MethodType.SPECIAL
+                        );
+                        // replacing ctor call
+                        method.instructions.set(currentInstruction, ctorCall);
+
+                        ASMAPI.log("INFO", 'From Genshin Impact, GameTestRunner.runTestBatches redirecting GameTestBatchRunner to CustomGameTestBatchRunner ctor');
+                    }
+                }
+
+                return method;
+            }
+        },
+
         //
         // 'render': {
         //     'target': {

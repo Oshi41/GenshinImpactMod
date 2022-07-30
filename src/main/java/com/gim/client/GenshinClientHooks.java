@@ -13,11 +13,17 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestBatch;
+import net.minecraft.gametest.framework.GameTestTicker;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Lazy;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,5 +74,9 @@ public class GenshinClientHooks {
 
     public static EntityRenderer getRenderer(IGenshinPlayer player) {
         return characterRenders.get(player).get();
+    }
+
+    public static void kek(Collection<GameTestBatch> p_127563_, BlockPos p_127564_, Rotation p_127565_, ServerLevel p_127566_, GameTestTicker p_127567_, int p_127568_) {
+
     }
 }

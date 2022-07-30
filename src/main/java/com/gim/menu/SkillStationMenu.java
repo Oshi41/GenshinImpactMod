@@ -58,11 +58,11 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
                 @Override
                 public boolean mayPlace(ItemStack toPlace) {
                     // no talent info
-                    if (info() == null) {
+                    if (info(false) == null) {
                         return false;
                     }
 
-                    NonNullList<ItemStack> itemStacks = info().materials();
+                    NonNullList<ItemStack> itemStacks = info(false).materials();
                     // this slot should be empty
                     if (slotIndex >= itemStacks.size()) {
                         return false;
@@ -100,6 +100,14 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
     }
 
     @Override
+    public void removed(Player p_38940_) {
+        super.removed(p_38940_);
+
+        // remove items from station
+        this.access.execute((p_39371_, p_39372_) -> this.clearContainer(playerInv.player, own));
+    }
+
+    @Override
     protected boolean checkBlock(BlockState state) {
         return state.getBlock().equals(Blocks.skill_station);
     }
@@ -107,21 +115,15 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
     @Override
     public void onChange(int slotId, ItemStack prev, ItemStack current) {
         if (slotId < own.getContainerSize()) {
-            boolean canApply = true;
-            TalentAscendInfo info = info();
+            boolean canApply = false;
+            TalentAscendInfo info = info(false);
 
             if (info != null) {
-                NonNullList<ItemStack> materials = info.materials();
+                canApply = true;
 
-                for (int i = 0; i < materials.size(); i++) {
-                    ItemStack fromContainer = own.getItem(i);
-                    ItemStack material = materials.get(i);
-
-                    // check item and count
-                    if (!ItemStack.isSameItemSameTags(fromContainer, material) || fromContainer.getCount() < material.getCount()) {
-                        canApply = false;
-                        break;
-                    }
+                // cannot take less 0 exp. levels
+                if (canApply && info.expLevel() < 0) {
+                    canApply = false;
                 }
 
                 // checking if not in the creative
@@ -133,8 +135,21 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
                     }
 
                     // character level is not enough
-                    if (canApply && info.minCharacterLevel() > GenshinHeler.safeGetAttribute(playerInv.player, Attributes.level)) {
+                    if (canApply && info.minCharacterLevel() > GenshinHeler.safeGetAttribute(current().getAttributes(), Attributes.level)) {
                         canApply = false;
+                    }
+                }
+
+                // The heaviest check is the last
+                NonNullList<ItemStack> materials = info.materials();
+                for (int i = 0; i < materials.size(); i++) {
+                    ItemStack fromContainer = own.getItem(i);
+                    ItemStack material = materials.get(i);
+
+                    // check item and count
+                    if (fromContainer.getCount() < material.getCount() || !ItemStack.isSameItemSameTags(fromContainer, material)) {
+                        canApply = false;
+                        break;
                     }
                 }
             }
@@ -154,7 +169,7 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
             case 2:
                 // if can apply
                 if (containerData.get(1) > 0) {
-                    TalentAscendInfo talentAscendInfo = info();
+                    TalentAscendInfo talentAscendInfo = info(false);
                     if (talentAscendInfo != null) {
                         GenshinEntityData genshinEntityData = current();
                         if (genshinEntityData != null) {
@@ -191,6 +206,10 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
                         }
                     }
                 }
+
+                // calling update
+                refreshByIndex();
+                onChange(0, ItemStack.EMPTY, ItemStack.EMPTY);
                 return true;
 
             default:
@@ -207,7 +226,11 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
     }
 
     @Nullable
-    public TalentAscendInfo info() {
+    public TalentAscendInfo info(boolean refresh) {
+        if (refresh) {
+            refreshByIndex();
+        }
+
         return talentInfo;
     }
 }

@@ -41,19 +41,21 @@ public abstract class GenshinIterableMenuBase extends GenshinMenuBase {
                 if (getIndex() > 0) {
                     setData(0, getIndex() - 1);
                     refreshByIndex();
+                    return true;
                 }
 
-                return true;
+                return false;
 
             // navigate forwards
             case 1:
-                player.getCapability(Capabilities.GENSHIN_INFO).ifPresent(info -> {
-                    if (info.getAllPersonages().size() > getIndex() + 1) {
-                        setData(0, getIndex() + 1);
-                        refreshByIndex();
-                    }
-                });
-                return true;
+                IGenshinInfo genshinInfo = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
+                if (genshinInfo != null && genshinInfo.getAllPersonages().size() > getIndex() + 1) {
+                    setData(0, getIndex() + 1);
+                    refreshByIndex();
+                    return true;
+                }
+
+                return false;
 
             default:
                 return false;

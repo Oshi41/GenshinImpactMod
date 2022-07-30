@@ -6,11 +6,9 @@ import com.gim.registry.MaxHealthPatch;
 import com.gim.registry.Network;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
@@ -26,6 +24,8 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import com.gim.tests.ConstellationMenuTests;
+import com.gim.tests.register.TestRegistry;
 
 import java.util.stream.Collectors;
 
@@ -49,6 +49,10 @@ public class GenshinImpactMod {
         // Register the processIMC method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientStarting);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::runTests);
+
+        MinecraftForge.EVENT_BUS.register(new TestRegistry());
+
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -77,6 +81,10 @@ public class GenshinImpactMod {
         LOGGER.info("Got IMC {}", event.getIMCStream().
                 map(m -> m.messageSupplier().get()).
                 collect(Collectors.toList()));
+    }
+
+    private void runTests(final RegisterGameTestsEvent event) {
+        TestRegistry.register();
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

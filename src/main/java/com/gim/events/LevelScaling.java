@@ -4,6 +4,8 @@ import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.registry.Attributes;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -14,6 +16,7 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -100,18 +103,20 @@ public class LevelScaling {
         attributeInstance.removeModifier(mainLevelModifierId);
         attributeInstance.addPermanentModifier(modifier);
 
-        // need to add all attributes
-        return SCALING_MODIFIERS.get().entrySet().stream().allMatch(x -> {
-            String[] strings = x.getKey().getDescriptionId().split("\\.");
-            String lastName = strings[strings.length - 1];
-            boolean success = addModifier(getAttribute.apply(x.getKey()), x.getValue(), "level_scaling." + lastName, level);
+        for (Map.Entry<Attribute, UUID> entry : SCALING_MODIFIERS.get().entrySet()) {
+            Attribute attribute = entry.getKey();
+            attributeInstance = getAttribute.apply(attribute);
+            if (attributeInstance == null)
+                continue;
 
-            if (!success) {
-                GenshinImpactMod.LOGGER.warn(String.format("Cannot find %s attribute", x.getKey()));
-            }
+            String lastName = Streams.findLast(Arrays.stream(attribute.getDescriptionId().split("\\."))).orElse(null);
+            if (lastName == null)
+                continue;
 
-            return success;
-        });
+            addModifier(attributeInstance, entry.getValue(), "level_scaling." + lastName, level);
+        }
+
+        return true;
     }
 
     private static boolean addModifier(AttributeInstance instance, UUID id, String name, float level) {

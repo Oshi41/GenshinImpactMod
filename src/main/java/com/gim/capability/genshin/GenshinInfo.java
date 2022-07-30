@@ -11,11 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.CombatTracker;
 import net.minecraft.world.damagesource.EntityDamageSource;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.commons.lang3.NotImplementedException;
@@ -35,17 +31,8 @@ public class GenshinInfo implements IGenshinInfo {
         // injecting own implementation for all entities
         tracker = ((GenshinCombatTracker) entity.getCombatTracker());
 
-        debug(entity);
-    }
-
-    /**
-     * !!! FOR DEBUG PURPOSES !!!
-     */
-    private void debug(LivingEntity entity) {
-
-        GenshinEntityData entityData = new GenshinEntityData(entity, GenshinCharacters.ANEMO_TRAVELER, 90);
-        allPlayers.put(GenshinCharacters.ANEMO_TRAVELER, entityData);
-        stackOrder.add(GenshinCharacters.ANEMO_TRAVELER);
+        // debug
+        addNewCharacter(GenshinCharacters.ANEMO_TRAVELER, entity);
     }
 
     @Override
@@ -127,8 +114,13 @@ public class GenshinInfo implements IGenshinInfo {
     }
 
     @Override
-    public void onAddPersonage(IGenshinPlayer newPlayer) {
-        getAllPersonages().add(newPlayer);
+    public void addNewCharacter(IGenshinPlayer character, LivingEntity holder) {
+        GenshinEntityData entityData = new GenshinEntityData(holder, character, 0);
+        allPlayers.put(character, entityData);
+
+        if (stackOrder.size() < 4) {
+            stackOrder.add(character);
+        }
     }
 
     @Override

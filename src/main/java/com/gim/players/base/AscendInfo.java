@@ -9,17 +9,15 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.stream.Streams;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public class AscendInfo {
-    public final NonNullList<ItemStack> materials;
-    public final List<Component> info = new ArrayList<>();
-    public final int playerLevels;
-    public final long ticksTillLevel;
+    private final NonNullList<ItemStack> materials;
+    private final List<Component> info = new ArrayList<>();
+    private final int playerLevels;
+    private final long ticksTillLevel;
 
     public AscendInfo(@Nullable AttributeMap map, int level, int playerLevels, @Nullable Attribute specialAttribute, @Nullable Component add, ItemStack... materials) {
         this.playerLevels = playerLevels;
@@ -37,7 +35,7 @@ public class AscendInfo {
             // no materials
             this.materials = NonNullList.create();
             // show only MAX LEVEL
-            info.add(new TranslatableComponent("gim.max_level").withStyle(ChatFormatting.DARK_GREEN));
+            this.info.add(new TranslatableComponent("gim.max_level").withStyle(ChatFormatting.DARK_GREEN));
             return;
         }
 
@@ -64,5 +62,21 @@ public class AscendInfo {
         if (add != null) {
             info.add(add);
         }
+    }
+
+    public int getPlayerLevels() {
+        return playerLevels;
+    }
+
+    public long getTicksTillLevel() {
+        return ticksTillLevel;
+    }
+
+    public NonNullList<ItemStack> getMaterials() {
+        return materials;
+    }
+
+    public List<Component> getInfo() {
+        return info;
     }
 }

@@ -187,9 +187,10 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
     /**
      * Called after player retrieves new character
      *
-     * @param newPlayer - new character
+     * @param character - new character
+     * @param holder
      */
-    void onAddPersonage(IGenshinPlayer newPlayer);
+    void addNewCharacter(IGenshinPlayer character, LivingEntity holder);
 
     void deserializeNBT(CompoundTag nbt, LivingEntity holder);
 

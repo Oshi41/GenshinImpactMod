@@ -70,20 +70,23 @@ public class ConstellationMenu extends GenshinIterableMenuBase {
         if (super.clickMenuButton(player, btnIndex))
             return true;
 
-        int starIndex = btnIndex >> 1;
+        int starIndex = (btnIndex >> 1) - 1;
+
 
         GenshinEntityData entityData = current();
         if (entityData != null) {
             IGenshinInfo genshinInfo = player.getCapability(Capabilities.GENSHIN_INFO).orElse(null);
             if (genshinInfo != null) {
                 AttributeInstance attributeInstance = entityData.getAttributes().getInstance(Attributes.constellations);
-                // clicked on correct star
-                if (attributeInstance != null && attributeInstance.getValue() == starIndex) {
+                // clicked on correct star and if any item presented
+                if (attributeInstance != null && attributeInstance.getValue() == starIndex && getSlot(0).hasItem()) {
                     AttributeModifier modifier = new AttributeModifier(id, "star", starIndex + 1, AttributeModifier.Operation.ADDITION);
                     attributeInstance.removeModifier(id);
                     attributeInstance.addPermanentModifier(modifier);
                     entityData.getAssotiatedPlayer().onStarAdded(player, genshinInfo, ((int) attributeInstance.getValue()));
-                    own.removeItem(0, 1);
+
+                    if (!playerInv.player.isCreative())
+                        own.removeItem(0, 1);
 
                     return true;
                 }

@@ -241,6 +241,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
             // 3 ascending at least
             // then growing at arithmetical progression
             characterLevel = (int) Mth.clamp(3 + Math.floor(level) / 2, 3, Attributes.level.getMaxValue());
+            expLevel = level;
 
             /////////////////////
             // Filling materials
@@ -327,16 +328,20 @@ public class AnemoTraveler extends GenshinPlayerBase {
         skillInfo.add(new TextComponent(openSymbol).append(new TranslatableComponent("gim.anemo_traveler.burst_skill"))
                 .append("\n"));
 
-        passiveTalents.forEach((lvl, txtId) -> {
+        for (Map.Entry<Integer, String> entry : passiveTalents.entrySet()) {
+            String txtId = entry.getValue();
+            Integer lvl = entry.getKey();
+
             boolean valid = lvl <= level;
             MutableComponent txt = new TextComponent(valid ? openSymbol : closedSymbol).append(new TranslatableComponent(txtId));
             if (!valid) {
-                txt.append(new TranslatableComponent("gim.will_open_on_level", lvl));
+                txt.append("\n")
+                        .append(new TranslatableComponent("gim.will_open_on_level", lvl).withStyle(ChatFormatting.GRAY));
             }
             txt.append("\n");
 
             skillInfo.add(txt);
-        });
+        }
 
         return new TalentAscendInfo(materials, info, expLevel, characterLevel, skillInfo);
     }

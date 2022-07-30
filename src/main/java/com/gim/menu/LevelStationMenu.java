@@ -56,12 +56,12 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
                         return false;
 
                     // too big
-                    if (getForCurrent().materials.size() <= slotIndex) {
+                    if (getForCurrent().getMaterials().size() <= slotIndex) {
                         return false;
                     }
 
                     // obtaining current info
-                    ItemStack itemStack = getForCurrent().materials.get(slotIndex);
+                    ItemStack itemStack = getForCurrent().getMaterials().get(slotIndex);
 
                     // empty item, can't place here
                     if (itemStack.isEmpty()) {
@@ -113,11 +113,11 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
                     // only for non creative player
                     if (!player.isCreative()) {
                         // subtract exp
-                        player.giveExperienceLevels(-getForCurrent().playerLevels);
+                        player.giveExperienceLevels(-getForCurrent().getPlayerLevels());
 
                         // removing all items
-                        for (int i = 0; i < getForCurrent().materials.size(); i++) {
-                            ItemStack stack = getForCurrent().materials.get(i);
+                        for (int i = 0; i < getForCurrent().getMaterials().size(); i++) {
+                            ItemStack stack = getForCurrent().getMaterials().get(i);
                             getSlot(i).remove(stack.getCount());
                         }
                     }
@@ -132,8 +132,10 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
 
                     refreshByIndex(true);
                     onChange(0, ItemStack.EMPTY, ItemStack.EMPTY);
+                    return true;
                 }
-                return true;
+
+                return false;
 
             default:
                 return false;
@@ -167,11 +169,11 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
     public void onChange(int slotId, ItemStack prev, ItemStack current) {
         // checking current
         if (slotId < own.getContainerSize()) {
-            boolean checked = getForCurrent() != null && getForCurrent().materials.size() > 0;
+            boolean checked = getForCurrent() != null && getForCurrent().getMaterials().size() > 0;
 
             if (checked) {
-                for (int i = 0; i < getForCurrent().materials.size(); i++) {
-                    ItemStack original = getForCurrent().materials.get(i);
+                for (int i = 0; i < getForCurrent().getMaterials().size(); i++) {
+                    ItemStack original = getForCurrent().getMaterials().get(i);
                     ItemStack ownStack = own.getItem(i);
 
                     if (!original.isEmpty()) {
@@ -185,7 +187,7 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
                 if (!playerInv.player.isCreative()) {
 
                     // checking player level
-                    if (checked && getForCurrent().playerLevels > playerInv.player.experienceLevel) {
+                    if (checked && getForCurrent().getPlayerLevels() > playerInv.player.experienceLevel) {
                         checked = false;
                     }
 
@@ -193,7 +195,7 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
                         ServerPlayer serverPlayer = (ServerPlayer) playerInv.player;
                         Stat<ResourceLocation> playTimeStat = Stats.CUSTOM.get(Stats.PLAY_TIME);
 
-                        if (getForCurrent().ticksTillLevel > serverPlayer.getStats().getValue(playTimeStat)) {
+                        if (getForCurrent().getTicksTillLevel() > serverPlayer.getStats().getValue(playTimeStat)) {
                             checked = false;
                         }
                     }
@@ -213,7 +215,7 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
             Stat<ResourceLocation> playTimeStat = Stats.CUSTOM.get(Stats.PLAY_TIME);
             int livingTicks = serverPlayer.getStats().getValue(playTimeStat);
 
-            long toWait = getForCurrent().ticksTillLevel - livingTicks;
+            long toWait = getForCurrent().getTicksTillLevel() - livingTicks;
             setData(2, (int) toWait);
 
             if (serverPlayer.getAttributeValue(Attributes.level) >= Attributes.level.getMaxValue()) {

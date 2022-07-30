@@ -1,25 +1,16 @@
 package com.gim.client.screen;
 
-import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.GenshinEntityData;
-import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.client.screen.base.GenshinScreenBase;
-import com.gim.menu.ConstellationMenu;
 import com.gim.menu.LevelStationMenu;
 import com.gim.players.base.AscendInfo;
 import com.gim.players.base.IGenshinPlayer;
-import com.gim.registry.Capabilities;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.LevelLoadingScreen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.locale.Language;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -32,12 +23,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.Period;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -106,8 +93,8 @@ public class LevelStationScreen extends GenshinScreenBase<LevelStationMenu> {
             return;
 
         // render ghost items above the item stack
-        for (int k = 0; k < forCurrent.materials.size(); k++) {
-            ItemStack itemStack = forCurrent.materials.get(k);
+        for (int k = 0; k < forCurrent.getMaterials().size(); k++) {
+            ItemStack itemStack = forCurrent.getMaterials().get(k);
             Slot firstSlot = getMenu().getSlot(0);
             int xStart = i + firstSlot.x + 18 * k;
             int yStart = j + firstSlot.y - 18;
@@ -125,15 +112,15 @@ public class LevelStationScreen extends GenshinScreenBase<LevelStationMenu> {
         }
 
         // full information about current ascending
-        ArrayList<Component> texts = Lists.newArrayList(forCurrent.info.toArray(Component[]::new));
+        ArrayList<Component> texts = Lists.newArrayList(forCurrent.getInfo().toArray(Component[]::new));
 
         // need to show exp condition
-        if (forCurrent.playerLevels > 0) {
-            ChatFormatting formatting = getMinecraft().player.experienceLevel >= forCurrent.playerLevels || getMinecraft().player.isCreative()
+        if (forCurrent.getPlayerLevels() > 0) {
+            ChatFormatting formatting = getMinecraft().player.experienceLevel >= forCurrent.getPlayerLevels() || getMinecraft().player.isCreative()
                     ? ChatFormatting.GREEN
                     : ChatFormatting.RED;
             texts.add(TextComponent.EMPTY);
-            texts.add(new TranslatableComponent("container.enchant.level.requirement", forCurrent.playerLevels).withStyle(formatting));
+            texts.add(new TranslatableComponent("container.enchant.level.requirement", forCurrent.getPlayerLevels()).withStyle(formatting));
         }
 
         // Cooldown till player ascending
