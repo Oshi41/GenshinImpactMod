@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -71,5 +72,20 @@ public class TestHelper {
         }
 
         return result;
+    }
+
+    public static void setGameTime(ServerPlayer player, int ticks) {
+        player.getStats().setValue(player, Stats.CUSTOM.get(Stats.PLAY_TIME), ticks);
+    }
+
+    /**
+     * If current bit presented
+     *
+     * @param mask      - bit mask
+     * @param bitIndex - bit number (from 1)
+     * @return
+     */
+    public static Boolean isBitPresented(int mask, int bitIndex) {
+        return (mask & 1 << bitIndex) == (1 << bitIndex);
     }
 }

@@ -202,15 +202,17 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
                                 attributeInstance.removeModifier(addingModifier);
                                 // adding new modifier
                                 attributeInstance.addPermanentModifier(addingModifier);
+
+                                // calling update
+                                refreshByIndex();
+                                onChange(0, ItemStack.EMPTY, ItemStack.EMPTY);
+                                return true;
                             }
                         }
                     }
                 }
 
-                // calling update
-                refreshByIndex();
-                onChange(0, ItemStack.EMPTY, ItemStack.EMPTY);
-                return true;
+                return false;
 
             default:
                 return false;

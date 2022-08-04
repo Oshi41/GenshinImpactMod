@@ -14,19 +14,21 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.stats.Stats;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.gametest.GameTestHolder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @GameTestHolder
 public class LevelStationTests {
 
     @CustomGameTest(setupTicks = 1)
-    public void increaseLevelSurvival(GameTestHelper helper) {
+    public void levelStation_increaseLevelSurvival(GameTestHelper helper) {
         ServerPlayer serverPlayer = TestHelper.createPlayer(helper, true);
         serverPlayer.setGameMode(GameType.SURVIVAL);
         helper.setBlock(BlockPos.ZERO, Blocks.level_station);
@@ -36,17 +38,8 @@ public class LevelStationTests {
             GenshinEntityData entityData = menu.current();
             while (entityData.getAttributes().getValue(Attributes.level) < Attributes.level.getMaxValue()) {
                 AscendInfo correctInfo = menu.getForCurrent();
-
                 // creating incorrect vartiants we use to check all conditions
-                List<AscendInfo> infos = Arrays.asList(
-                        new CustomAscendingInfo(correctInfo, -1, 0, null),
-                        new CustomAscendingInfo(correctInfo, 0, -1, null),
-                        new CustomAscendingInfo(correctInfo, 0, 0, false),
-                        // only the last one is correct
-                        new CustomAscendingInfo(correctInfo, 0, 0, null)
-                );
-
-                correctInfo = infos.get(infos.size() - 1);
+                List<AscendInfo> infos = getTestData(correctInfo);
 
                 // iterating on all infos
                 for (AscendInfo ascendInfo : infos) {
@@ -54,14 +47,12 @@ public class LevelStationTests {
                     menu.getSlot(0).container.clearContent();
 
                     // time condition
-                    serverPlayer.getStats().setValue(serverPlayer, Stats.CUSTOM.get(Stats.PLAY_TIME), (int) ascendInfo.getTicksTillLevel());
+                    TestHelper.setGameTime(serverPlayer, (int) ascendInfo.getTicksTillLevel());
                     // exp condition
                     serverPlayer.experienceLevel = ascendInfo.getPlayerLevels();
                     // material conditions
-                    for (int i = 0; i < correctInfo.getMaterials().size(); i++) {
-                        if (!menu.getSlot(i).safeInsert(correctInfo.getMaterials().get(i)).isEmpty()) {
-                            helper.fail("Error while inserting in level station container", BlockPos.ZERO);
-                        }
+                    for (int i = 0; i < ascendInfo.getMaterials().size(); i++) {
+                        menu.getSlot(i).safeInsert(ascendInfo.getMaterials().get(i));
                     }
 
                     boolean shouldWork = ascendInfo == correctInfo;
@@ -86,18 +77,47 @@ public class LevelStationTests {
         } while (menu.clickMenuButton(serverPlayer, 1));
     }
 
+    private List<AscendInfo> getTestData(AscendInfo info) {
+        List<AscendInfo> result = new ArrayList<>();
+
+        double end = 1 << 3;
+
+        for (int i = 1; i < end; i++) {
+            boolean changeMaterials = false;
+            int playerLevelsDelta = 0;
+            int ticksTillLevelDelta = 0;
+
+            if (TestHelper.isBitPresented(i, 0)) {
+                changeMaterials = true;
+            }
+
+            if (TestHelper.isBitPresented(i, 1)) {
+                playerLevelsDelta = -2;
+            }
+
+            if (TestHelper.isBitPresented(i, 2)) {
+                ticksTillLevelDelta = -2;
+            }
+
+            result.add(new CustomAscendingInfo(info, playerLevelsDelta, ticksTillLevelDelta, changeMaterials));
+        }
+
+        result.add(info);
+        return result;
+    }
+
     class CustomAscendingInfo extends AscendInfo {
         private final AscendInfo source;
         private int playerLevelDelta;
         private int ticksDelta;
-        private Boolean addOrRemoveItem;
+        private boolean changeMaterials;
 
-        public CustomAscendingInfo(AscendInfo source, int playerLevelDelta, int ticksDelta, Boolean addOrRemoveItem) {
+        public CustomAscendingInfo(AscendInfo source, int playerLevelDelta, int ticksDelta, boolean changeMaterials) {
             super(null, 100, 0, null, null);
             this.source = source;
             this.playerLevelDelta = playerLevelDelta;
             this.ticksDelta = ticksDelta;
-            this.addOrRemoveItem = addOrRemoveItem;
+            this.changeMaterials = changeMaterials;
         }
 
         @Override
@@ -117,17 +137,24 @@ public class LevelStationTests {
 
         @Override
         public NonNullList<ItemStack> getMaterials() {
-            NonNullList<ItemStack> materials = NonNullList.of(ItemStack.EMPTY, source.getMaterials().toArray(ItemStack[]::new));
 
-            if (addOrRemoveItem != null) {
-                if (addOrRemoveItem) {
-                    materials.add(0, new ItemStack(net.minecraft.world.level.block.Blocks.ANVIL));
+            List<ItemStack> stacks = source.getMaterials().stream().map(ItemStack::copy).collect(Collectors.toList());
+
+            if (changeMaterials) {
+                ItemStack stack = stacks.stream().filter(x -> x.getCount() > 1).findFirst().orElse(null);
+
+                if (stack != null) {
+                    stack.shrink(1);
                 } else {
-                    materials.remove(0);
+                    if (stacks.size() >= 4) {
+                        stacks.remove(0);
+                    } else {
+                        stacks.add(Items.REDSTONE.getDefaultInstance());
+                    }
                 }
             }
 
-            return materials;
+            return NonNullList.of(ItemStack.EMPTY, stacks.toArray(ItemStack[]::new));
         }
 
         @Override
