@@ -14,6 +14,7 @@ import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ArtifactProperties implements INBTSerializable<CompoundTag> {
     private ArtifactStat primal;
@@ -34,16 +35,9 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         // primal
         primal = type.getRandomPrimal(random);
 
-        // DEBUG
-        if (type.ordinal() > 1) {
-            primal = ArtifactStat.ATTACK_PERCENT;
-        }
-
         // adding sub stats
-        int end = rarity.getInititalSubstats(random);
-        for (int i = 0; i < end; i++) {
-            withSub(type.getRandomSub(random, primal));
-        }
+        ArtifactStat randomSub = type.getRandomSub(random, primal, subStats.stream().map(ArtifactProperties::getPrimal));
+        withSub(randomSub);
     }
 
     /**
@@ -136,6 +130,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
      * @param toAdd  - amount of exp to add
      * @param type   - possible slot type. Null to disable leveling
      * @param random - possible random. Null to disable leveling
+     * @param stack  - possible itemstack to save levelling. Can bu null. Null value doe not disable levelling
      * @return this
      */
     public ArtifactProperties addExp(int toAdd, @Nullable ArtifactSlotType type, @Nullable Random random, @Nullable ItemStack stack) {
@@ -151,7 +146,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         // if level was changed
         if (current > oldLevel && type != null && random != null) {
             // iterating through all levels
-            for (int i = oldLevel; i < current; i++) {
+            for (int i = oldLevel + 1; i <= current; i++) {
                 // if
                 if (i % 4 == 0) {
                     addSubStat(type, random);
@@ -168,8 +163,8 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
 
     private void addSubStat(ArtifactSlotType type, Random random) {
         if (subStats.size() < 4) {
-            // adding possible stat
-            withSub(type.getRandomSub(random, primal));
+            ArtifactStat randomSub = type.getRandomSub(random, primal, subStats.stream().map(ArtifactProperties::getPrimal));
+            withSub(randomSub);
         } else {
             ArtifactProperties properties = subStats.get(random.nextInt(subStats.size()));
             int currentLevel = getRarity().getLevel(properties.getExp());
@@ -212,4 +207,6 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
             properties.addModifiers(builder, modifier / ArtifactStat.SUB_STAT_MODIFIER, type);
         }
     }
+
+
 }
