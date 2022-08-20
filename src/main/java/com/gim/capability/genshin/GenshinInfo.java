@@ -6,9 +6,12 @@ import com.gim.attack.GenshinCombatTracker;
 import com.gim.networking.CapabilityUpdatePackage;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.*;
+import net.minecraft.CrashReport;
+import net.minecraft.ReportedException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.CombatTracker;
 import net.minecraft.world.damagesource.EntityDamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -55,26 +58,15 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public void onSwitchToIndex(LivingEntity holder, int newIndex) {
+        // saving current character
         IGenshinPlayer old = current();
+        // setting new index
+        this.index = Mth.clamp(newIndex, 0, Math.max(0, stackOrder.size() - 1));
 
-        this.index = newIndex;
-        this.nextSwitch = holder.tickCount + (20);
-
+        // current player
         IGenshinPlayer current = current();
-
-        old.onSwitch(holder, this, this.tracker, false);
-        current.onSwitch(holder, this, this.tracker, true);
-
-        stackOrder.remove(current);
-        stackOrder.add(0, current);
-
-        CombatTracker combatTracker = holder.getCombatTracker();
-        if (combatTracker instanceof GenshinCombatTracker) {
-            // remove all prev player attack
-            ((GenshinCombatTracker) combatTracker).removeAttacks(source -> source instanceof EntityDamageSource && "player".equals(source.getMsgId()));
-        }
-
-        getPersonInfo(current).applyToEntity(holder);
+        // switching characters
+        switchCharacters(holder, old, current);
     }
 
     @Override
@@ -218,6 +210,48 @@ public class GenshinInfo implements IGenshinInfo {
         }
 
         return energy;
+    }
+
+    @Override
+    public void setCurrentStack(LivingEntity holder, Collection<IGenshinPlayer> newStack) {
+        IGenshinPlayer old = current();
+        // replacing by new values
+        stackOrder.clear();
+        stackOrder.addAll(newStack);
+        index = 0;
+
+        switchCharacters(holder, old, current());
+    }
+
+    private void switchCharacters(LivingEntity holder, IGenshinPlayer old, IGenshinPlayer current) {
+        // callback for switching off
+        if (old != null) {
+            old.onSwitch(holder, this, this.tracker, false);
+        }
+
+        // switch cooldown
+        this.nextSwitch = holder.tickCount + 20;
+
+        // removing old info about prev character attack strikes
+        CombatTracker combatTracker = holder.getCombatTracker();
+        if (combatTracker instanceof GenshinCombatTracker) {
+            // remove all prev player attack
+            ((GenshinCombatTracker) combatTracker).removeAttacks(source -> source instanceof EntityDamageSource && "player".equals(source.getMsgId()));
+        }
+
+        if (current != null) {
+            // calling switchin on
+            current.onSwitch(holder, this, this.tracker, true);
+
+            // applying to entity
+            GenshinEntityData entityData = getPersonInfo(current);
+            if (entityData != null) {
+                entityData.applyToEntity(holder);
+            } else {
+                Exception ex = new Exception(String.format("Cannot apply [%s] to player [%s] as there no person info", current.getName().getString(), holder.getName().getString()));
+                throw new ReportedException(CrashReport.forThrowable(ex, ex.getMessage()));
+            }
+        }
     }
 
     /**

@@ -69,11 +69,11 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
 
         // remove old modifiers
         Multimap<Attribute, AttributeModifier> modifiers = oldCopy.getItem().getAttributeModifiers(null, oldCopy);
-        holder.getAttributes().removeAttributeModifiers(modifiers);
+        getAttributes().removeAttributeModifiers(modifiers);
 
         // adding new modifiers
         modifiers = current.getItem().getAttributeModifiers(null, current);
-        holder.getAttributes().addTransientAttributeModifiers(modifiers);
+        getAttributes().addTransientAttributeModifiers(modifiers);
 
         // obtaining artifact set
         IGenshinInfo genshinInfo = holder.getCapability(Capabilities.GENSHIN_INFO).orElse(null);

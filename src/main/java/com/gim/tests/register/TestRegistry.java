@@ -100,7 +100,7 @@ public class TestRegistry {
                 noTemplateGameTest.attempts(),
                 helper -> {
                     turnMethodIntoConsumer(method).accept(helper);
-                    helper.succeed();
+                    helper.runAfterDelay(noTemplateGameTest.timeoutTicks() - 1, helper::succeed);
                 }
         );
     }

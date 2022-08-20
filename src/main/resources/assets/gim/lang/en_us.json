@@ -114,5 +114,10 @@
   "gim.anemo_traveler.burst_skill": "Gust Surge: Guiding the path of the wind currents, you summon a forward-moving tornado that pulls objects and opponents towards itself, dealing continuous Anemo DMG.\nElemental Absorption\nIf the tornado comes into contact with §9Hydro§r/§cPyro§r/§bCryo§r/§dElectro§r, it will deal additional Elemental DMG of that type.\nElemental Absorption may only occur once per use.",
   "gim.anemo_traveler.passive_skill_1": "Slitting Wind: The last hit of a Normal Attack combo unleashes a wind blade, dealing 60% of ATK as Anemo DMG to all opponents in its path.",
   "gim.anemo_traveler.passive_skill_2": "Second Wind: Palm Vortex kills regenerate 2% HP for 5s. This effect can only occur once every 5s.",
-  "gim.will_open_on_level": "Will open on %s level"
+  "gim.will_open_on_level": "Will open on %s level",
+  "gim.configgui.indicateDamage": "Should Genshin Impact Mod render damage amount indication? Disable is you have any other damage indicator mods",
+  "gim.configgui.indicateReactions": "Should Genshin Impact Mod render name of elemental reactions occured? Usually it's very informative!",
+  "gim.configgui.levelUpTime": "Time (int minutes) which causes world level increase. After server world exist this amount of time, it's level increases by one.",
+  "gim.configgui.levelScaling": "Multiplier for entity on max level for scaling attributes: attack/defence/HP. For example, entity on max level is 5x bigger than on 1 level",
+  "gim.configgui.maxLevelAttackMultiplier": "Multiplier for entity on max level for scaling attack damage. For example, entity attack on max level is 5x bigger than on 1 level"
 }

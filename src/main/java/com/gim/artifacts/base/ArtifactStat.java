@@ -40,59 +40,59 @@ public enum ArtifactStat {
         put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
     }}),
 
-    PHYSICAL(UUID.fromString("8f4eff97-ac32-440d-8a3e-38753b6cebdd"), "pyro%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.physical_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
+    PHYSICAL(UUID.fromString("8f4eff97-ac32-440d-8a3e-38753b6cebdd"), "physical%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.physical_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
     }}),
-    PYRO(UUID.fromString("d60c660c-7b27-46eb-93ca-c0aed458cd73"), "pyro%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.pyro_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
-    }}),
-
-    CRYO(UUID.fromString("3ae64d73-3b0a-46a6-aa90-4937e089e6c0"), "cryo%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.cryo_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
+    PYRO(UUID.fromString("d60c660c-7b27-46eb-93ca-c0aed458cd73"), "pyro%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.pyro_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
     }}),
 
-    HYDRO(UUID.fromString("4a2162df-f626-48d0-b70b-fe0db6c586a8"), "hydro%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.hydro_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
+    CRYO(UUID.fromString("3ae64d73-3b0a-46a6-aa90-4937e089e6c0"), "cryo%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.cryo_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
     }}),
 
-    ANEMO(UUID.fromString("e4971e5c-4263-4f7e-a68c-096ff37abacc"), "anemo%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.anemo_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
+    HYDRO(UUID.fromString("4a2162df-f626-48d0-b70b-fe0db6c586a8"), "hydro%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.hydro_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
     }}),
 
-    GEO(UUID.fromString("5fcca476-2a53-4f93-8a16-46853de7460a"), "geo%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.geo_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
+    ANEMO(UUID.fromString("e4971e5c-4263-4f7e-a68c-096ff37abacc"), "anemo%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.anemo_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
     }}),
 
-    ELECTRO(UUID.fromString("9542581c-e305-472c-ab40-c11775937525"), "electro%_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.electro_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(3.1, 7.9));
-        put(ArtifactRarity.TWO, new Pair<>(4.2, 9.));
-        put(ArtifactRarity.THREE, new Pair<>(5.2, 23.1));
-        put(ArtifactRarity.FOUR, new Pair<>(6.3, 34.8));
-        put(ArtifactRarity.FIVE, new Pair<>(7., 46.6));
+    GEO(UUID.fromString("5fcca476-2a53-4f93-8a16-46853de7460a"), "geo%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.geo_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
+    }}),
+
+    ELECTRO(UUID.fromString("9542581c-e305-472c-ab40-c11775937525"), "electro%_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.electro_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.031, .079));
+        put(ArtifactRarity.TWO, new Pair<>(.042, .09));
+        put(ArtifactRarity.THREE, new Pair<>(.052, .231));
+        put(ArtifactRarity.FOUR, new Pair<>(.063, 0.348));
+        put(ArtifactRarity.FIVE, new Pair<>(.07, .466));
     }}), //        DENDRO(UUID.fromString("ea473fef-b9ee-42c7-a9ea-93640de43ea4"), "dendro%_stat", AttributeModifier.Operation.MULTIPLY_BASE,
     //                () -> com.gim.registry.Attributes.dendro_bonus,
 //                new HashMap<>() {{
@@ -134,12 +134,12 @@ public enum ArtifactStat {
         put(ArtifactRarity.FIVE, new Pair<>(9.3, 62.2));
     }}),
 
-    HEAL(UUID.fromString("d500297f-2723-485b-8f51-a6b9342ac94c"), "heal_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.heal_bonus, new HashMap<>() {{
-        put(ArtifactRarity.ONE, new Pair<>(2.4, 6.1));
-        put(ArtifactRarity.TWO, new Pair<>(3.2, 9.5));
-        put(ArtifactRarity.THREE, new Pair<>(4., 17.8));
-        put(ArtifactRarity.FOUR, new Pair<>(4.8, 26.8));
-        put(ArtifactRarity.FIVE, new Pair<>(5.4, 35.9));
+    HEAL(UUID.fromString("d500297f-2723-485b-8f51-a6b9342ac94c"), "heal_stat", AttributeModifier.Operation.ADDITION, () -> com.gim.registry.Attributes.heal_bonus, new HashMap<>() {{
+        put(ArtifactRarity.ONE, new Pair<>(.024, .061));
+        put(ArtifactRarity.TWO, new Pair<>(.032, .095));
+        put(ArtifactRarity.THREE, new Pair<>(0.04, .178));
+        put(ArtifactRarity.FOUR, new Pair<>(.048, .268));
+        put(ArtifactRarity.FIVE, new Pair<>(.054, .359));
     }}),
 
     DEFENCE_PERCENT(UUID.fromString("de5de49d-ffe7-4c01-a52d-4939b44965ae"), "defence_stat", AttributeModifier.Operation.MULTIPLY_BASE, () -> com.gim.registry.Attributes.defence, new HashMap<>() {{

@@ -5,24 +5,27 @@ import com.gim.artifacts.base.ArtifactProperties;
 import com.gim.artifacts.base.ArtifactRarity;
 import com.gim.artifacts.base.ArtifactSlotType;
 import com.gim.artifacts.base.ArtifactStat;
+import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.items.ArtefactItem;
+import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
 import com.gim.tests.register.CustomGameTest;
 import com.gim.tests.register.TestHelper;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @GameTestHolder
 public class ArtifactsTests {
@@ -31,7 +34,7 @@ public class ArtifactsTests {
 
     @CustomGameTest(attempts = 3)
     public void artifacts_probability(GameTestHelper helper) {
-        ServerPlayer serverPlayer = TestHelper.createPlayer(helper, false);
+        ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, false);
         final double end = 4000;
 
         // inacuracy based on total retry count.
@@ -161,25 +164,123 @@ public class ArtifactsTests {
         }
     }
 
-    @CustomGameTest
-    public void artifacts_statsIncrease_probability(GameTestHelper helper) {
-        ServerPlayer serverPlayer = TestHelper.createPlayer(helper, true);
-        IGenshinInfo genshinInfo = TestHelper.getCap(helper, serverPlayer, Capabilities.GENSHIN_INFO);
+    @CustomGameTest(setupTicks = 3)
+    public void artifacts_apply_changeAttributes(GameTestHelper helper) {
+        // finds first possible artifact by current type
+        // we don't care the type of set for finded artifacts
+        HashMap<ArtifactSlotType, ArtefactItem> map = new HashMap<>();
 
-        HashMap<ArtifactSlotType, ItemStack> map = new HashMap<>();
+        // finding first existing artifact bu currect slot type
         for (ArtifactSlotType slotType : ArtifactSlotType.values()) {
             Item artifact = ForgeRegistries.ITEMS.getValues().stream().filter(x -> x instanceof ArtefactItem && ((ArtefactItem) x).getType() == slotType)
                     .findFirst().orElse(null);
 
             if (artifact == null) {
-                helper.fail(String.format("Cannpt find any registered artifact item for slot %s", slotType));
+                helper.fail(String.format("Cannot find any registered artifact item for slot %s", slotType));
+            }
+
+            map.put(slotType, (ArtefactItem) artifact);
+        }
+
+        ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, true);
+        IGenshinInfo genshinInfo = TestHelper.getCap(helper, serverPlayer, Capabilities.GENSHIN_INFO);
+
+        for (Map.Entry<ArtifactSlotType, ArtefactItem> e : map.entrySet()) {
+            for (ArtifactRarity rarity : ArtifactRarity.values()) {
+                for (ArtifactStat primalStat : e.getKey().getPrimal().keySet()) {
+                    // creating test data for currect artifact item
+                    // should contains all possible stats inside
+                    for (final Map.Entry<ItemStack, Collection<Attribute>> entry : getAllPossibleArtifacts(rarity, primalStat, e.getKey(), e.getValue()).asMap().entrySet()) {
+                        // trying to add same item to all characters of player
+                        for (IGenshinPlayer character : genshinInfo.getAllPersonages()) {
+                            // changing current stack
+                            genshinInfo.setCurrentStack(serverPlayer, Lists.newArrayList(character));
+
+                            GenshinEntityData entityData = genshinInfo.getPersonInfo(character);
+
+                            // clear it's on content
+                            entityData.getArtifactsContainer().clearContent();
+                            // saving old attribute values
+                            final Map<Attribute, Double> saved = from(entityData.getAttributes(), entry.getValue());
+
+                            // put artifact inside
+                            entityData.getArtifactsContainer().setItem(e.getKey().ordinal(), entry.getKey().copy());
+
+                            // new attribute values
+                            Map<Attribute, Double> current = from(entityData.getAttributes(), entry.getValue());
+                            // calculate difference
+                            MapDifference<Attribute, Double> mapDifference = Maps.difference(saved, current);
+
+                            if (!mapDifference.entriesInCommon().isEmpty()) {
+                                final StringBuilder builder = new StringBuilder();
+                                mapDifference.entriesInCommon().forEach((attribute, doubleValueDifference) -> {
+                                    builder.append(String.format("%s* [%s], [%s] didn't change",
+                                            e.getKey(),
+                                            rarity.ordinal() + 1,
+                                            new TranslatableComponent(attribute.getDescriptionId()).getString()
+                                    ));
+                                });
+
+                                helper.fail(builder.toString());
+                            }
+
+                            // attributes applied on player entity. Should be same as from current character
+                            Map<Attribute, Double> fromCurrentPlayer = from(serverPlayer.getAttributes(), entry.getValue());
+                            mapDifference = Maps.difference(fromCurrentPlayer, current);
+                            if (!mapDifference.entriesDiffering().isEmpty()) {
+                                final StringBuilder builder = new StringBuilder();
+
+                                mapDifference.entriesDiffering().forEach((attribute, doubleValueDifference) -> {
+                                    builder.append(String.format("%s* [%s], [%s] didn't apply on player",
+                                            e.getKey(),
+                                            rarity.ordinal() + 1,
+                                            new TranslatableComponent(attribute.getDescriptionId()).getString()
+                                    ));
+                                });
+
+                                helper.fail(builder.toString());
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
 
-        for (Map.Entry<ArtifactSlotType, ItemStack> e : map.entrySet()) {
-            ItemStack artifact = e.getValue();
+    private Multimap<ItemStack, Attribute> getAllPossibleArtifacts(ArtifactRarity rarity, ArtifactStat primal, ArtifactSlotType slotType, ArtefactItem item) {
+        HashMultimap<ItemStack, Attribute> result = HashMultimap.create();
+        List<ArtifactStat> statList = slotType.getSub().keySet().stream().filter(x -> x != primal).collect(Collectors.toList());
 
-            // todo
+        // special null value
+        statList.add(null);
+
+        for (ArtifactStat stat : statList) {
+            List<Attribute> list = new ArrayList<>();
+
+            ArtifactProperties artifactProperties = new ArtifactProperties()
+                    .withRarity(rarity)
+                    .withPrimal(primal);
+
+            list.add(primal.getAttribute());
+
+            if (stat != null) {
+                artifactProperties.withSub(stat);
+                list.add(stat.getAttribute());
+            }
+
+            ItemStack copy = item.getDefaultInstance();
+            item.save(copy, artifactProperties);
+            result.putAll(copy, list);
         }
+
+        return result;
+    }
+
+    private Map<Attribute, Double> from(AttributeMap map, Collection<Attribute> attrs) {
+        HashMap<Attribute, Double> hashMap = new HashMap<>();
+        for (Attribute attribute : attrs) {
+            hashMap.put(attribute, map.getValue(attribute));
+        }
+        return hashMap;
     }
 }

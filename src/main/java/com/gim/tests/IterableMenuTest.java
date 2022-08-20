@@ -27,8 +27,8 @@ public class IterableMenuTest {
     private final List<Block> blocksWithIterableMenu = List.of(Blocks.artifacts_station, Blocks.star_worktable, Blocks.level_station, Blocks.skill_station);
 
     @CustomGameTest(setupTicks = 5)
-    public void testWithBlocks(GameTestHelper helper) {
-        ServerPlayer serverPlayer = TestHelper.createPlayer(helper, true);
+    public void iterableMenu_testWithBlocks_IterateThroughAllCharacters(GameTestHelper helper) {
+        ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, true);
         Collection<IGenshinPlayer> playerCollection = TestHelper.getCap(helper, serverPlayer, Capabilities.GENSHIN_INFO).getAllPersonages();
 
         for (Block block : blocksWithIterableMenu) {
@@ -62,8 +62,8 @@ public class IterableMenuTest {
         }
     }
 
-    @CustomGameTest(setupTicks = 5)
-    public void testWithBlockRemoval(GameTestHelper helper) {
+     @CustomGameTest(setupTicks = 5)
+    public void iterableMenu_testWithBlockRemoval_guiShouldClose(GameTestHelper helper) {
         List<Block> blocksWithMenus = ForgeRegistries.BLOCKS.getValues().stream().filter(x -> x.getRegistryName().getNamespace().equals(GenshinImpactMod.ModID))
                 .filter(x -> x instanceof GenshinAnvilBlock || x instanceof GenshinCraftingTableBlock)
                 .toList();
@@ -73,7 +73,7 @@ public class IterableMenuTest {
             BlockPos pos = new BlockPos(i, 0, i);
             helper.setBlock(pos, block);
 
-            final ServerPlayer serverPlayer = TestHelper.createPlayer(helper, false);
+            final ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, false);
             final AbstractContainerMenu menu = TestHelper.rightClick(helper, serverPlayer, pos);
             if (menu == null) {
                 helper.fail(String.format("%s block is not created any menus for player", block.getRegistryName()), pos);

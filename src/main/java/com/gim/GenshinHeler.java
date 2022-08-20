@@ -10,14 +10,11 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -79,8 +76,6 @@ public class GenshinHeler {
      * @return
      */
     public static float getActualDamage(LivingEntity entity, final DamageSource source, float damage) {
-        // elemental majesty
-        float majesty = 0;
         // bonus for current elemental attack. Can be zero if non elemental attack happens
         float elementalBonus = 0;
         // elemental resistance. Can be 0 if non elemental attack happens
@@ -89,9 +84,6 @@ public class GenshinHeler {
         // some null checking
         if (source.getEntity() instanceof LivingEntity) {
             LivingEntity attacker = (LivingEntity) source.getEntity();
-
-            // calclulated majesty for attacker
-            majesty = majestyBonus(attacker);
 
             // find elemental from attack
             Elementals elemental = Arrays.stream(Elementals.values()).filter(x -> x.is(source)).findFirst().orElse(null);
@@ -103,7 +95,7 @@ public class GenshinHeler {
                 }
 
                 // checking possible resistance for current elemental
-                if (elemental.getResistance() != null) {
+                if (elemental.getResistance() != null && (!(source instanceof GenshinDamageSource) || !((GenshinDamageSource) source).shouldIgnoreElementalResistance())) {
                     elementalResistance = (float) Math.max(0, safeGetAttribute(attacker, elemental.getResistance()));
                 }
             }
@@ -115,9 +107,9 @@ public class GenshinHeler {
         }
 
         // calcuating raw damage (by  majesty and elemental bonuses)
-        float rawDamage = damage * (1 + majesty + elementalBonus);
+        float rawDamage = damage * (1 + elementalBonus);
         // calculating resistance for raw damage
-        float resist = rawDamage * (elementalResistance + majesty);
+        float resist = rawDamage * elementalResistance;
 
         // final result is damage without resist with defence
         AtomicDouble result = new AtomicDouble(rawDamage - resist);

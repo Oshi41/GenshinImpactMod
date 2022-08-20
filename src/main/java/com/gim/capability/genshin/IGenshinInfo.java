@@ -205,4 +205,12 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
      * @return
      */
     double consumeEnergy(LivingEntity holder, double energy, Elementals elemental);
+
+    /**
+     * Changing player stack
+     *
+     * @param holder   - entity holder
+     * @param newStack - bnew characters stack
+     */
+    void setCurrentStack(LivingEntity holder, Collection<IGenshinPlayer> newStack);
 }

@@ -417,9 +417,17 @@ public enum ElementalReactions {
      * @param multiplier - damage multiplier
      */
     private static void setAdditiveDamage(LivingDamageEvent e, float multiplier) {
-        e.setAmount(GenshinHeler.getActualDamage(e.getEntityLiving(), e.getSource(), (float) ((e.getAmount() +
-                Math.max(0, GenshinHeler.safeGetAttribute(e.getSource().getEntity(), Attributes.level)))
-                * multiplier)));
+        Entity attacker = e.getSource().getEntity();
+        // current entity level
+        double entityLevel = Math.max(0, GenshinHeler.safeGetAttribute(attacker, Attributes.level));
+        // level bonus (config stores max multiplier)
+        double levelBonus = Math.pow(GenshinImpactMod.CONFIG.getKey().levelScaling.get(), entityLevel / Attributes.level.getMaxValue());
+        // current majesty
+        double majesty = GenshinHeler.majestyBonus(attacker);
+        // result of elemental reaction
+        float result = (float) (e.getAmount() * multiplier * levelBonus * (1 + majesty));
+        // setting current amount
+        e.setAmount(result);
     }
 
     // endregion

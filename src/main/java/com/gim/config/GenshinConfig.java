@@ -8,6 +8,7 @@ public class GenshinConfig {
     public final ForgeConfigSpec.BooleanValue indicateReactions;
     public final ForgeConfigSpec.IntValue levelUpTime;
     public final ForgeConfigSpec.DoubleValue levelScaling;
+    public final ForgeConfigSpec.DoubleValue maxLevelAttackMultiplier;
 
     public GenshinConfig(ForgeConfigSpec.Builder builder) {
 
@@ -30,9 +31,14 @@ public class GenshinConfig {
                 .defineInRange("levelUpTime", 60 * 24 * 2, 10, Integer.MAX_VALUE);
 
         levelScaling = builder
-                .comment("Value for level attributes scaling. Currently scales 4 attributes: health, attack and armor and special attribute for player")
+                .comment("Multiplier for common attributes: attack/defence/hp/special attribute for character. Means how much more entity on max level if bigger than entity on 1 level")
                 .translation(String.format("%s.configgui.levelScaling", GenshinImpactMod.ModID))
-                .defineInRange("levelScaling", 1.13, 1 + Double.MIN_NORMAL, Integer.MAX_VALUE);
+                .defineInRange("levelScaling", 5., 1, Integer.MAX_VALUE);
+
+        maxLevelAttackMultiplier = builder
+                .comment("How much damage entity can make on max level. By default it's 3x")
+                .translation(String.format("%s.configgui.maxLevelAttackMultiplier", GenshinImpactMod.ModID))
+                .defineInRange("maxLevelAttackMultiplier",  3,1., Integer.MAX_VALUE);
 
     }
 }

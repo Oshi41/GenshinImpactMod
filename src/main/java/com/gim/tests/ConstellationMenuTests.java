@@ -9,31 +9,18 @@ import com.gim.registry.Blocks;
 import com.gim.registry.Capabilities;
 import com.gim.tests.register.CustomGameTest;
 import com.gim.tests.register.TestHelper;
-import com.gim.tests.register.TestRegistry;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.gametest.GameTestHolder;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 @GameTestHolder
 public class ConstellationMenuTests {
@@ -56,8 +43,8 @@ public class ConstellationMenuTests {
      * Do not have constellation item
      */
     @CustomGameTest(setupTicks = 5)
-    public void noItemClickAll(GameTestHelper helper) {
-        ServerPlayer mockPlayer = TestHelper.createPlayer(helper, true);
+    public void constellationMenu_noConstellationItem_clickAll_shouldNotChange(GameTestHelper helper) {
+        ServerPlayer mockPlayer = TestHelper.createFakePlayer(helper, true);
         helper.setBlock(pos, Blocks.star_worktable);
 
         GenshinIterableMenuBase menu = TestHelper.rightClick(helper, mockPlayer, pos);
@@ -88,10 +75,10 @@ public class ConstellationMenuTests {
      * Clicking all constellations in both survival/creative game modes
      */
     @CustomGameTest(setupTicks = 5)
-    public void clickAllConstellations(GameTestHelper helper) {
+    public void constellationMenu_survivalAndCreative_clickAllConstellations_shouldUpgrade(GameTestHelper helper) {
         for (GameType gameType : List.of(GameType.CREATIVE, GameType.SURVIVAL)) {
             // need to create new player every time
-            ServerPlayer mockPlayer = TestHelper.createPlayer(helper, true);
+            ServerPlayer mockPlayer = TestHelper.createFakePlayer(helper, true);
             mockPlayer.setGameMode(gameType);
 
             helper.setBlock(pos, Blocks.star_worktable);
@@ -142,8 +129,8 @@ public class ConstellationMenuTests {
      * Should not change constellation for character
      */
     @CustomGameTest(setupTicks = 5)
-    public void missClickedStars(GameTestHelper helper) {
-        ServerPlayer serverPlayer = TestHelper.createPlayer(helper, true);
+    public void constellationMenu_missClickedStars_shouldNotUpgrade(GameTestHelper helper) {
+        ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, true);
         serverPlayer.setGameMode(GameType.SURVIVAL);
         helper.setBlock(pos, Blocks.star_worktable);
 

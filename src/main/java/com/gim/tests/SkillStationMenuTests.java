@@ -1,11 +1,9 @@
 package com.gim.tests;
 
-import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.menu.SkillStationMenu;
 import com.gim.players.base.TalentAscendInfo;
 import com.gim.registry.Attributes;
 import com.gim.registry.Blocks;
-import com.gim.registry.Capabilities;
 import com.gim.tests.register.CustomGameTest;
 import com.gim.tests.register.TestHelper;
 import net.minecraft.core.BlockPos;
@@ -26,7 +24,7 @@ public class SkillStationMenuTests {
 
     @CustomGameTest(setupTicks = 5)
     public void skillStation_testForSurvival(GameTestHelper helper) {
-        ServerPlayer serverPlayer = TestHelper.createPlayer(helper, true);
+        ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, true);
         serverPlayer.setGameMode(GameType.SURVIVAL);
         helper.setBlock(BlockPos.ZERO, Blocks.skill_station);
         SkillStationMenu menu = TestHelper.rightClick(helper, serverPlayer, BlockPos.ZERO);

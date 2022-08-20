@@ -3,7 +3,6 @@ package com.gim.tests.register;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
-import com.gim.registry.GenshinCharacters;
 import com.gim.registry.Registries;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
@@ -28,8 +27,18 @@ public class TestHelper {
      *
      * @param helper - game testing helper
      */
-    public static ServerPlayer createPlayer(GameTestHelper helper, boolean fillCharacters) {
-        FakePlayer player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "mock-test"));
+    public static ServerPlayer createFakePlayer(GameTestHelper helper, boolean fillCharacters) {
+        FakePlayer player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "mock-test")) {
+            @Override
+            public void tick() {
+                super.tick();
+
+                if (!this.level.isClientSide && !this.containerMenu.stillValid(this)) {
+                    this.closeContainer();
+                    this.containerMenu = this.inventoryMenu;
+                }
+            }
+        };
 
         if (fillCharacters) {
             IGenshinInfo info = getCap(helper, player, Capabilities.GENSHIN_INFO);
@@ -37,6 +46,8 @@ public class TestHelper {
                 info.addNewCharacter(genshinPlayer, player);
             }
         }
+
+        helper.getLevel().addNewPlayer(player);
 
         return player;
     }
@@ -81,7 +92,7 @@ public class TestHelper {
     /**
      * If current bit presented
      *
-     * @param mask      - bit mask
+     * @param mask     - bit mask
      * @param bitIndex - bit number (from 1)
      * @return
      */

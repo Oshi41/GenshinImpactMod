@@ -15,6 +15,7 @@ import java.util.Objects;
 public class GenshinDamageSource extends EntityDamageSource {
     private final DamageSource source;
     private boolean ignoreResistance;
+    private boolean ignoreElementalResistance;
     private boolean ignoreBonus;
     private IGenshinPlayer skill;
     private IGenshinPlayer burst;
@@ -156,5 +157,20 @@ public class GenshinDamageSource extends EntityDamageSource {
         return getInnerSource() != null
                 ? getInnerSource().getLocalizedDeathMessage(p_19397_)
                 : super.getLocalizedDeathMessage(p_19397_);
+    }
+
+    /**
+     * Should current damage bypassing victim elemental resistance
+     */
+    public boolean shouldIgnoreElementalResistance() {
+        return ignoreElementalResistance;
+    }
+
+    /**
+     * Damage source should ignore victim elemental resistance
+     */
+    public GenshinDamageSource ignoreElementalResistance() {
+        this.ignoreElementalResistance = true;
+        return this;
     }
 }

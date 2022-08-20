@@ -20,7 +20,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraftforge.gametest.GameTestHolder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +28,7 @@ public class LevelStationTests {
 
     @CustomGameTest(setupTicks = 1)
     public void levelStation_increaseLevelSurvival(GameTestHelper helper) {
-        ServerPlayer serverPlayer = TestHelper.createPlayer(helper, true);
+        ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, true);
         serverPlayer.setGameMode(GameType.SURVIVAL);
         helper.setBlock(BlockPos.ZERO, Blocks.level_station);
         LevelStationMenu menu = TestHelper.rightClick(helper, serverPlayer, BlockPos.ZERO);

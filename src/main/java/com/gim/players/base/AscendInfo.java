@@ -2,6 +2,7 @@ package com.gim.players.base;
 
 import com.gim.GenshinImpactMod;
 import com.gim.events.LevelScaling;
+import com.gim.registry.Attributes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -49,6 +50,8 @@ public class AscendInfo {
         // using same modifier for all attributes, need to show them
         for (Attribute attribute : stats) {
             Double scale = GenshinImpactMod.CONFIG.getKey().levelScaling.get();
+            // attributes scaling by this amount
+            scale = Math.pow(scale, 1 / Attributes.level.getMaxValue());
 
             Component component = new TextComponent("+").withStyle(ChatFormatting.YELLOW)
                     .append(new TranslatableComponent("attribute.modifier.equals." + AttributeModifier.Operation.MULTIPLY_BASE.toValue(),

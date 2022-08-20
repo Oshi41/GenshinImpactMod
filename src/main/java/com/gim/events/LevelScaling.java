@@ -122,7 +122,8 @@ public class LevelScaling {
     private static boolean addModifier(AttributeInstance instance, UUID id, String name, float level) {
         if (instance != null) {
             instance.removeModifier(id);
-            instance.addPermanentModifier(new AttributeModifier(id, name, Math.pow(GenshinImpactMod.CONFIG.getKey().levelScaling.get(), level), AttributeModifier.Operation.MULTIPLY_BASE));
+            double value = Math.pow(GenshinImpactMod.CONFIG.getKey().levelScaling.get(), level / Attributes.level.getMaxValue());
+            instance.addPermanentModifier(new AttributeModifier(id, name, value, AttributeModifier.Operation.MULTIPLY_BASE));
             return true;
         }
 
