@@ -41,8 +41,11 @@ public enum ArtifactRarity {
      */
     public int getLevel(double exp) {
         for (int i = 0; i < fullXpLevels.size(); i++) {
-            if (exp <= fullXpLevels.get(i)) {
+            Double amount = fullXpLevels.get(i);
+            if (exp == amount) {
                 return i;
+            } else if (exp < amount) {
+                return i - 1;
             }
         }
 
@@ -83,7 +86,7 @@ public enum ArtifactRarity {
     }
 
     public double getMaxExp() {
-        return fullXpLevels.get(expLevels.size() - 1);
+        return fullXpLevels.get(fullXpLevels.size() - 1);
     }
 
     public int getMaxLevel() {
@@ -94,13 +97,23 @@ public enum ArtifactRarity {
      * Returns amount of xp for current level
      *
      * @param exp - total xp count
-     * @return
      */
     public int getXpAmountForLevel(int exp) {
         for (int i = 0; i < fullXpLevels.size(); i++) {
-            Double perLevel = fullXpLevels.get(i);
-            if (perLevel >= exp) {
-                return (int) (perLevel - exp);
+            double perLevel = fullXpLevels.get(i);
+
+            // found same level, return 0
+            if (perLevel == exp) {
+                return 0;
+            } else if (perLevel > exp) {
+                // find prev level
+                int prevLevel = i - 1;
+
+                // some error, looks like we on 0 level
+                if (prevLevel < 0)
+                    return 0;
+
+                return (int) (exp - fullXpLevels.get(prevLevel));
             }
         }
 

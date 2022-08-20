@@ -29,10 +29,9 @@ import java.util.stream.Collectors;
 
 @GameTestHolder
 public class ArtifactsTests {
-
     private static final DecimalFormat format = new DecimalFormat("###.##");
 
-    @CustomGameTest(attempts = 3)
+    @CustomGameTest
     public void artifacts_probability(GameTestHelper helper) {
         ServerPlayer serverPlayer = TestHelper.createFakePlayer(helper, false);
         final double end = 4000;
@@ -67,7 +66,7 @@ public class ArtifactsTests {
                     int initCount = props.getSubModifiers().size();
 
                     // perform levelling
-                    props = props.addExp((int) props.getRarity().getMaxExp(), slot, serverPlayer.getRandom(), null);
+                    props.addExp((int) props.getRarity().getMaxExp(), slot, serverPlayer.getRandom(), null);
                     if (props.getSubModifiers().stream().map(ArtifactProperties::getPrimal).distinct().count() != props.getSubModifiers().size()) {
                         List<String> stats = props.getSubModifiers().stream().map(x -> x.getPrimal().toString()).toList();
                         helper.fail(String.format("Artifact contains repeating substats after levelling: %s", String.join(", ", stats)));

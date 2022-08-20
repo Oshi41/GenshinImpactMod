@@ -14,7 +14,6 @@ import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public class ArtifactProperties implements INBTSerializable<CompoundTag> {
     private ArtifactStat primal;
@@ -110,7 +109,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         ArtifactProperties properties = new ArtifactProperties()
                 .withRarity(getRarity())
                 // adding init level
-                .addExp((int) getRarity().getMinExp(), null, null, null)
+                .addExp((int) getRarity().getMinExp())
                 .withPrimal(stat);
 
         subStats.add(properties);
@@ -124,6 +123,11 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         return primal;
     }
 
+    public ArtifactProperties addExp(int toAdd) {
+        addExp(toAdd, null, null, null);
+        return this;
+    }
+
     /**
      * Adding experience and perform leveling
      *
@@ -133,12 +137,14 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
      * @param stack  - possible itemstack to save levelling. Can bu null. Null value doe not disable levelling
      * @return this
      */
-    public ArtifactProperties addExp(int toAdd, @Nullable ArtifactSlotType type, @Nullable Random random, @Nullable ItemStack stack) {
+    public Map<ArtifactStat, Integer> addExp(int toAdd, @Nullable ArtifactSlotType type, @Nullable Random random, @Nullable ItemStack stack) {
         // saving old level
         int oldLevel = getRarity().getLevel(getExp());
 
+        HashMap<ArtifactStat, Integer> result = new HashMap<>();
+
         // adding exp to artifact
-        this.exp = (int) Math.min(getRarity().getMaxExp(), this.exp + toAdd);
+        this.exp = (int) Math.min(getRarity().getMaxExp() + 1, this.exp + toAdd);
 
         // retrieving new level
         int current = getRarity().getLevel(getExp());
@@ -149,7 +155,8 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
             for (int i = oldLevel + 1; i <= current; i++) {
                 // if
                 if (i % 4 == 0) {
-                    addSubStat(type, random);
+                    ArtifactStat subStat = addSubStat(type, random);
+                    result.compute(subStat, (artifactStat, integer) -> integer == null ? 1 : integer + 1);
                 }
             }
         }
@@ -158,18 +165,20 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
             ((ArtefactItem) stack.getItem()).save(stack, this);
         }
 
-        return this;
+        return result;
     }
 
-    private void addSubStat(ArtifactSlotType type, Random random) {
+    private ArtifactStat addSubStat(ArtifactSlotType type, Random random) {
         if (subStats.size() < 4) {
             ArtifactStat randomSub = type.getRandomSub(random, primal, subStats.stream().map(ArtifactProperties::getPrimal));
             withSub(randomSub);
+            return randomSub;
         } else {
             ArtifactProperties properties = subStats.get(random.nextInt(subStats.size()));
             int currentLevel = getRarity().getLevel(properties.getExp());
             int toAdd = getRarity().getAmount(currentLevel, currentLevel + 1);
             properties.addExp(toAdd, null, null, null);
+            return properties.getPrimal();
         }
     }
 

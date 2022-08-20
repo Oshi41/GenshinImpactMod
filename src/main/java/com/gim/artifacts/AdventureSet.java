@@ -4,7 +4,6 @@ import com.gim.GenshinImpactMod;
 import com.gim.artifacts.base.ArtifactSetBase;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.registry.Capabilities;
 import com.gim.registry.Items;
 import com.google.common.collect.ImmutableMultimap;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -17,7 +16,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.eventbus.api.Event;
 
 import java.util.List;
 import java.util.Set;

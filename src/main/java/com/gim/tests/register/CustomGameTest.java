@@ -1,7 +1,5 @@
 package com.gim.tests.register;
 
-import net.minecraft.gametest.framework.GameTest;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -20,7 +18,8 @@ public @interface CustomGameTest {
 
     long setupTicks() default 0L;
 
-    int attempts() default 1;
+    // TODO fix maybe
+//    int attempts() default 1;
 
     int requiredSuccesses() default 1;
 }

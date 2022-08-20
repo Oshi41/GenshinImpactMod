@@ -1,19 +1,5 @@
 package com.gim.capability.genshin;
 
-import com.gim.GenshinImpactMod;
-import com.gim.attack.GenshinDamageSource;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.damagesource.CombatEntry;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.EntityDamageSource;
-import net.minecraft.world.damagesource.IndirectEntityDamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.Lazy;
-
-import java.lang.reflect.Modifier;
-import java.util.*;
-
 @Deprecated
 public class CombatEntrySerializable {
 //    private static final Lazy<List<DamageSource>> loadDefaults = Lazy.of(() -> Arrays.stream(DamageSource.class.getDeclaredFields()).filter(x -> Modifier.isStatic(x.getModifiers()) && Modifier.isFinal(x.getModifiers()))

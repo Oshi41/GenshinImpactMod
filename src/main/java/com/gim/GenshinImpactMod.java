@@ -24,7 +24,6 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import com.gim.tests.ConstellationMenuTests;
 import com.gim.tests.register.TestRegistry;
 
 import java.util.stream.Collectors;

@@ -1,7 +1,6 @@
 package com.gim.players;
 
 import com.gim.GenshinHeler;
-import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinAreaSpreading;
 import com.gim.attack.GenshinCombatTracker;
 import com.gim.attack.GenshinDamageSource;

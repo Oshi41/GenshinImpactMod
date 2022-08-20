@@ -1,11 +1,9 @@
 package com.gim.items;
 
 import com.gim.GenshinHeler;
-import com.gim.GenshinImpactMod;
 import com.gim.artifacts.base.*;
 import com.gim.registry.CreativeTabs;
 import com.gim.registry.Registries;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.ChatFormatting;
@@ -15,20 +13,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.Lazy;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ArtefactItem extends Item {
     private static final String tagName = "ArtifactData";
@@ -87,7 +82,8 @@ public class ArtefactItem extends Item {
             while (!subStats.isEmpty()) {
                 ArtifactProperties props = new ArtifactProperties()
                         .withPrimal(primal)
-                        .withRarity(ArtifactRarity.FIVE);
+                        .withRarity(ArtifactRarity.FIVE)
+                        .addExp((int) ArtifactRarity.FIVE.getMinExp());
 
                 List<ArtifactStat> currentSubstats = subStats.stream().limit(4).toList();
                 currentSubstats.forEach(props::withSub);

@@ -2,6 +2,7 @@ package com.gim.menu;
 
 import com.gim.artifacts.base.ArtifactProperties;
 import com.gim.artifacts.base.ArtifactSlotType;
+import com.gim.artifacts.base.ArtifactStat;
 import com.gim.items.ArtefactItem;
 import com.gim.menu.base.GenshinContainer;
 import com.gim.menu.base.GenshinMenuBase;
@@ -15,11 +16,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+import java.util.Map;
 
 public class ArtifactsForgeMenu extends GenshinMenuBase {
     private final GenshinContainer own = new GenshinContainer(7);
-    private final ContainerData data = new SimpleContainerData(9);
+    private final ContainerData data = new SimpleContainerData(10);
 
     public ArtifactsForgeMenu(int containerID, Inventory playerInv, FriendlyByteBuf buf) {
         this(containerID, playerInv, ContainerLevelAccess.NULL);
@@ -137,23 +138,34 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
                 setNeededPlayerExpLevels((int) Math.ceil(getApplyingExp() / 500.));
 
                 // if upgrading to next levels
-                if (getApplyingExp() > getArtifactExpToNextLevel()) {
+                if (getApplyingExp() + getArtifactExp() >= getArtifactExpToNextLevel()) {
                     // some null checks
                     if (!own.getItem(0).isEmpty()) {
                         ArtifactProperties properties = ((ArtefactItem) own.getItem(0).getItem()).from(own.getItem(0));
 
-                        // iterating on next levels
-                        // detecting how much levels will upgraded at once
-                        for (int i = getArtifactLevel() + 1; i < properties.getRarity().getMaxLevel(); i++) {
-                            // finding very first level where final exp reaches
-                            if (properties.getRarity().getAmount(getArtifactLevel(), i) >= getApplyingExp()) {
-                                setApplyingLevels(i - 1 - getArtifactLevel());
-                                break;
-                            } else if (i == properties.getRarity().getMaxLevel() - 1) {
-                                setApplyingLevels(properties.getRarity().getMaxLevel() - getArtifactLevel());
-                                break;
+                        // current applying exp
+                        int totalApplying = getApplyingExp() - getArtifactExpToNextLevel() + getArtifactExp();
+                        int totalLevels = 1;
+                        int maxLevelScale = properties.getRarity().getMaxLevel() - getArtifactLevel();
+
+
+                        while (totalApplying > 0 && totalLevels <= maxLevelScale) {
+                            // xp for next level
+                            int xpForLevel = properties.getRarity().getXpForLevel(getArtifactLevel() + totalLevels + 1);
+                            // if we're applying more/equal than level capacity
+                            if (xpForLevel <= totalApplying) {
+                                // adding current level as possible yo upgrade
+                                totalLevels++;
                             }
+
+                            // subtracting  exp amount for level
+                            totalApplying -= xpForLevel;
                         }
+
+                        // can't go futher than max level, so need to be limited
+                        totalLevels = Math.min(totalLevels, maxLevelScale);
+
+                        setApplyingLevels(totalLevels);
                     }
                 }
             }
@@ -179,15 +191,19 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
             int toApply = getApplyingExp();
             if (random < 0.01) {
                 toApply *= 5;
+                setMultiplier(5);
             } else if (random < 0.09) {
                 toApply *= 2;
+                setMultiplier(2);
+            } else {
+                setMultiplier(0);
             }
 
             ItemStack artifact = own.getItem(0);
             ArtefactItem artifactItem = (ArtefactItem) artifact.getItem();
             ArtifactProperties properties = artifactItem.from(artifact);
             if (properties != null) {
-                properties.addExp(toApply, artifactItem.getType(), player.getRandom(), artifact);
+                Map<ArtifactStat, Integer> result = properties.addExp(toApply, artifactItem.getType(), player.getRandom(), artifact);
 
                 // extracting xp levels
                 if (!player.isCreative())
@@ -197,6 +213,8 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
                 for (int i = 1; i < own.getContainerSize(); i++) {
                     own.setItem(i, ItemStack.EMPTY);
                 }
+
+                slotChanged(this, 0, getSlot(0).getItem());
 
                 return true;
             }
@@ -301,5 +319,16 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
 
     public void setApplyingLevels(int levels) {
         data.set(8, levels);
+    }
+
+    /**
+     * Returns exp applying multiplier
+     */
+    public int getMultiplier() {
+        return data.get(9);
+    }
+
+    public void setMultiplier(int val) {
+        setData(9, val);
     }
 }

@@ -23,10 +23,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.system.CallbackI;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
 public class SkillStationMenu extends GenshinIterableMenuBase implements SlotListener {
     private static final UUID ID = UUID.fromString("7391322a-ee84-4287-a03b-8d92150eaea4");

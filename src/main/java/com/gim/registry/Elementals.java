@@ -1,6 +1,5 @@
 package com.gim.registry;
 
-import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinDamageSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.CrashReport;

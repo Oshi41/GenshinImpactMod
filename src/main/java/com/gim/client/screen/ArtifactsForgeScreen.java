@@ -6,33 +6,26 @@ import com.gim.artifacts.base.ArtifactSlotType;
 import com.gim.client.screen.base.GenshinScreenBase;
 import com.gim.items.ArtefactItem;
 import com.gim.menu.ArtifactsForgeMenu;
-import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> {
     private static final ResourceLocation GUI = new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/artifacts_forge/artifacts_forge.png");
     private Button applyBtn;
+    private int ticks;
 
     public ArtifactsForgeScreen(ArtifactsForgeMenu forgeMenu, Inventory inventory, Component text) {
         super(forgeMenu, inventory, text, new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/artifacts_forge/artifacts_forge.png"));
@@ -140,7 +133,8 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, GUI);
 
-        int barLength = 102;
+        final int barLengthConst = 102;
+        int barLength = barLengthConst;
 
         int xStart = this.leftPos + this.imageWidth - barLength - 4;
         int yStart = y + 30;
@@ -151,6 +145,34 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
         // EXP helping text
         Component component = new TextComponent("EXP");
         minecraft.font.draw(poseStack, component, xStart - minecraft.font.width(component) - 2, yStart, 4210752);
+
+        // already showing multiplier info
+        if (ticks > 0) {
+            ticks--;
+
+            if (ticks == 0) {
+                // clear
+                getMenu().setMultiplier(0);
+            }
+
+            int multiplier = getMenu().getMultiplier();
+
+            // multiplier was changed
+            // for example after 2x click we click again
+            // within 2 seconds. So we need to clear status
+            if (multiplier < 1) {
+                ticks = 0;
+            } else {
+                component = new TextComponent("X" + multiplier).withStyle(ChatFormatting.YELLOW);
+                minecraft.font.draw(poseStack, component,
+                        xStart + minecraft.font.width(component) - 2,
+                        yStart - minecraft.font.lineHeight,
+                        4210752);
+            }
+            // show multiplier status for 2 seconds
+        } else if (getMenu().getMultiplier() > 0) {
+            ticks = 20 * 5;
+        }
 
         // draw applying exp amount above bar
         if (getMenu().getApplyingExp() > 0) {
@@ -195,11 +217,12 @@ public class ArtifactsForgeScreen extends GenshinScreenBase<ArtifactsForgeMenu> 
 
         // applying artifact exp (green one)
         if (getMenu().getApplyingExp() > 0) {
-            int length = (int) Math.min(barLength - 2, barLength * (getMenu().getArtifactExp() + getMenu().getApplyingExp()) / (double) getMenu().getArtifactExpToNextLevel());
+            double length = (barLengthConst - 2) * getMenu().getApplyingExp() / (double) getMenu().getArtifactExpToNextLevel();
+            length = Math.min(barLength - 2, length);
 
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderTexture(0, GUI);
-            blit(poseStack, xStart + 1, yStart + 1, this.getBlitOffset(), 2, 226, length, 3, 256, 256);
+            blit(poseStack, xStart + 1, yStart + 1, this.getBlitOffset(), 2, 226, (int) length, 3, 256, 256);
         }
 
         // drawing exp for current level

@@ -3,14 +3,12 @@ package com.gim.tests.register;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.gametest.framework.GameTestInfo;
-import net.minecraft.gametest.framework.GameTestTicker;
+import net.minecraft.gametest.framework.GameTestListener;
 import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Field;
 
 public class CustomGameTestInfo extends GameTestInfo {
     private final boolean haveStructure;

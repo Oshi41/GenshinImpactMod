@@ -6,7 +6,6 @@ import com.gim.registry.Elementals;
 import com.gim.registry.ParticleTypes;
 import com.google.common.collect.Iterators;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.server.level.ServerLevel;

@@ -1,10 +1,7 @@
 package com.gim.registry;
 
 import com.gim.client.screen.*;
-import com.gim.menu.ArtifactsForgeMenu;
-import com.gim.menu.SkillStationMenu;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.gui.screens.SkinCustomizationScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 

@@ -2,11 +2,9 @@ package com.gim.artifacts.base;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
 import java.util.stream.Collectors;

@@ -4,7 +4,6 @@ import com.gim.GenshinHeler;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.client.layers.ShieldLayerRender;
 import com.gim.players.base.IGenshinPlayer;
-import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.KeyMappings;
 import com.google.common.collect.Iterators;

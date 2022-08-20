@@ -7,10 +7,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.gametest.framework.GameTestRegistry;
 import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.world.level.block.Rotation;
-import net.minecraftforge.event.RegisterGameTestsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.forgespi.language.ModFileScanData;
 import net.minecraftforge.gametest.ForgeGameTestHooks;
@@ -97,7 +94,7 @@ public class TestRegistry {
                 noTemplateGameTest.setupTicks(),
                 noTemplateGameTest.required(),
                 noTemplateGameTest.requiredSuccesses(),
-                noTemplateGameTest.attempts(),
+                1,
                 helper -> {
                     turnMethodIntoConsumer(method).accept(helper);
                     helper.runAfterDelay(noTemplateGameTest.timeoutTicks() - 1, helper::succeed);

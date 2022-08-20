@@ -4,7 +4,6 @@ import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Capabilities;
-import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;

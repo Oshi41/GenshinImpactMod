@@ -23,7 +23,6 @@ import java.util.List;
 
 @GameTestHolder
 public class AdventureTests {
-
     private static final DecimalFormat format = new DecimalFormat("###.##");
     private static final BlockPos orePos = new BlockPos(1, 1, 1);
     private static final List<Block> blocks = Lists.newArrayList(Blocks.DIAMOND_ORE, Blocks.EMERALD_ORE, Blocks.DEEPSLATE_DIAMOND_ORE, Blocks.ANCIENT_DEBRIS);

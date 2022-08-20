@@ -1,8 +1,6 @@
 package com.gim.client.entity.players.anemo_traveler;
 
 import com.gim.capability.genshin.GenshinEntityData;
-import com.gim.client.layers.IceRender;
-import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.overlay.GenshinRender;
 import com.gim.players.AnemoTraveler;
 import com.gim.registry.GenshinCharacters;

@@ -1,10 +1,7 @@
 package com.gim.blocks;
 
 import com.gim.capability.genshin.IGenshinInfo;
-import com.gim.menu.ArtifactsStationMenu;
-import com.gim.menu.ConstellationMenu;
 import com.gim.registry.Capabilities;
-import com.gim.registry.Menus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.InteractionHand;
@@ -14,16 +11,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.util.Lazy;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 public class GenshinCraftingTableBlock extends Block {
 

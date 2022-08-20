@@ -5,9 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Spliterator;
 import java.util.function.*;
-import java.util.stream.Stream;
 
 public class ObservableSet<K> implements Set<K> {
 

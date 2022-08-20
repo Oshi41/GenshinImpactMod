@@ -9,20 +9,17 @@ import com.gim.registry.Blocks;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Menus;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.BitStorage;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.BitSet;
 import java.util.Objects;
 import java.util.UUID;
 

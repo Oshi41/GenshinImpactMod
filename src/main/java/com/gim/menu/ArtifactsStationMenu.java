@@ -1,7 +1,6 @@
 package com.gim.menu;
 
 import com.gim.artifacts.base.ArtifactSlotType;
-import com.gim.blocks.GenshinCraftingTableBlock;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.items.ArtefactItem;
 import com.gim.menu.base.GenshinIterableMenuBase;
@@ -14,7 +13,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Objects;

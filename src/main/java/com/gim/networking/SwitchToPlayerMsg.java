@@ -1,18 +1,15 @@
 package com.gim.networking;
 
 import com.gim.GenshinImpactMod;
-import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
 import com.google.common.collect.Iterators;
-import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.Objects;
