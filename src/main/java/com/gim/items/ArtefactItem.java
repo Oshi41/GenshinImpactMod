@@ -2,10 +2,7 @@ package com.gim.items;
 
 import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
-import com.gim.artifacts.base.ArtifactProperties;
-import com.gim.artifacts.base.ArtifactRarity;
-import com.gim.artifacts.base.ArtifactSlotType;
-import com.gim.artifacts.base.IArtifactSet;
+import com.gim.artifacts.base.*;
 import com.gim.registry.CreativeTabs;
 import com.gim.registry.Registries;
 import com.google.common.collect.ImmutableMultimap;
@@ -31,11 +28,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ArtefactItem extends Item {
     private static final String tagName = "ArtifactData";
     private final ArtifactSlotType type;
-    private final Lazy<CompoundTag> defaultProps;
     private final Lazy<List<IArtifactSet>> sets;
 
     public ArtefactItem(ArtifactSlotType type) {
@@ -46,7 +43,6 @@ public class ArtefactItem extends Item {
                 .stacksTo(1));
 
         this.type = type;
-        defaultProps = Lazy.of(() -> new ArtifactProperties(ArtifactRarity.FIVE, this.type, new Random()).serializeNBT());
         sets = Lazy.of(() -> Registries.artifacts().getValues().stream().filter(x -> x.partOf(this)).toList());
     }
 
@@ -81,22 +77,26 @@ public class ArtefactItem extends Item {
         }
     }
 
-    @Override
-    public ItemStack getDefaultInstance() {
-        ItemStack stack = super.getDefaultInstance();
+    public void fillItemCategory(CreativeModeTab tab, NonNullList<ItemStack> stacks) {
+        if (!allowdedIn(tab))
+            return;
 
-        Random random = new Random();
-        ArtifactRarity[] rarities = ArtifactRarity.values();
-        ArtifactRarity rarity = rarities[random.nextInt(rarities.length)];
-        CompoundTag tag = new ArtifactProperties(ArtifactRarity.FIVE, getType(), random).serializeNBT();
+        for (ArtifactStat primal : type.getPrimal().keySet()) {
+            List<ArtifactStat> subStats = type.getSub().keySet().stream().filter(x -> x != primal).collect(Collectors.toList());
 
-        stack.getOrCreateTag().put(tagName, tag);
-        return stack;
-    }
+            while (!subStats.isEmpty()) {
+                ArtifactProperties props = new ArtifactProperties()
+                        .withPrimal(primal)
+                        .withRarity(ArtifactRarity.FIVE);
 
-    public void fillItemCategory(CreativeModeTab p_41391_, NonNullList<ItemStack> p_41392_) {
-        if (this.allowdedIn(p_41391_)) {
-            p_41392_.add(getDefaultInstance());
+                List<ArtifactStat> currentSubstats = subStats.stream().limit(4).toList();
+                currentSubstats.forEach(props::withSub);
+                subStats.removeAll(currentSubstats);
+
+                ItemStack stack = getDefaultInstance();
+                this.save(stack, props);
+                stacks.add(stack);
+            }
         }
     }
 
