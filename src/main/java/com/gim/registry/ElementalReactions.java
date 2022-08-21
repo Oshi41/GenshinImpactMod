@@ -15,6 +15,7 @@ import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -333,8 +334,13 @@ public enum ElementalReactions {
                 if (!e.getEntityLiving().getLevel().isClientSide()) {
                     // geo shield gives more defence
                     double effectivity = shieldElemental.equals(Elementals.GEO) ? 1d : 0.4;
+
+                    // attacker entity or victim
+                    // not null!
+                    Entity entity = Objects.requireNonNullElse(e.getSource().getEntity(), e.getEntity());
+
                     // spawn siheld entity
-                    e.getEntityLiving().getLevel().addFreshEntity(new Shield(e.getSource().getEntity(), shieldElemental, health, effectivity, 17 * 20));
+                    e.getEntityLiving().getLevel().addFreshEntity(new Shield(entity, shieldElemental, health, effectivity, 17 * 20));
                 }
 
                 // logging

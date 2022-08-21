@@ -156,7 +156,7 @@ public interface IGenshinInfo extends INBTSerializable<CompoundTag> {
                 }
 
                 // cooldown finished and enough energy
-                return ticksTillBurst(holder, id) <= 0 && data.burstInfo().getEnergyStored() >= data.burstInfo().getMaxEnergyStored();
+                return ticksTillBurst(holder, id) <= 0 && data.energy().getEnergyStored() >= data.energy().getMaxEnergyStored();
             }
         }
 

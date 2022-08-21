@@ -1,5 +1,6 @@
 package com.gim.tests.artifact_sets;
 
+import com.gim.GenshinImpactMod;
 import com.gim.artifacts.base.ArtifactSlotType;
 import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.registry.Capabilities;
@@ -21,7 +22,7 @@ import net.minecraftforge.gametest.GameTestHolder;
 import java.text.DecimalFormat;
 import java.util.List;
 
-@GameTestHolder
+@GameTestHolder(GenshinImpactMod.ModID)
 public class AdventureTests {
     private static final DecimalFormat format = new DecimalFormat("###.##");
     private static final BlockPos orePos = new BlockPos(1, 1, 1);

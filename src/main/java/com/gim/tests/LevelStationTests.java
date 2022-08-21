@@ -1,5 +1,6 @@
 package com.gim.tests;
 
+import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.menu.LevelStationMenu;
 import com.gim.players.base.AscendInfo;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@GameTestHolder
+@GameTestHolder(GenshinImpactMod.ModID)
 public class LevelStationTests {
 
     @CustomGameTest(setupTicks = 1)

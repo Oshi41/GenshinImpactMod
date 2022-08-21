@@ -21,7 +21,7 @@ public enum ArtifactStat {
         put(ArtifactRarity.FIVE, new Pair<>(4.0, 12.0));
     }}), ATTACK(UUID.fromString("93453a4d-ea45-4135-8b3a-0b105cdf8663"), "attack_stat", AttributeModifier.Operation.ADDITION, () -> Attributes.ATTACK_DAMAGE, new HashMap<>() {{
         put(ArtifactRarity.ONE, new Pair<>(1., 2.1));
-        put(ArtifactRarity.TWO, new Pair<>(17., 3.6));
+        put(ArtifactRarity.TWO, new Pair<>(1.7, 3.6));
         put(ArtifactRarity.THREE, new Pair<>(2.8, 12.3));
         put(ArtifactRarity.FOUR, new Pair<>(4.2, 23.2));
         put(ArtifactRarity.FIVE, new Pair<>(4.7, 31.1));

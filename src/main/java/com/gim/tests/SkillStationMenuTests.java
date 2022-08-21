@@ -1,5 +1,6 @@
 package com.gim.tests;
 
+import com.gim.GenshinImpactMod;
 import com.gim.menu.SkillStationMenu;
 import com.gim.players.base.TalentAscendInfo;
 import com.gim.registry.Attributes;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@GameTestHolder
+@GameTestHolder(GenshinImpactMod.ModID)
 public class SkillStationMenuTests {
 
     @CustomGameTest(setupTicks = 5)

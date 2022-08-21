@@ -203,7 +203,7 @@ public class GenshinInfo implements IGenshinInfo {
 
                 // recharge bonus
                 double bonus = Math.max(0, GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.recharge_bonus));
-                data.burstInfo().receiveEnergy((int) (Math.ceil(energy * multiplier * bonus)), false);
+                data.energy().receiveEnergy((int) (Math.ceil(energy * multiplier * bonus)), false);
             }
 
             sendUpdate(holder);

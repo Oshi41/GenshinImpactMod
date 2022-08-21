@@ -153,7 +153,7 @@ public class GenshinRender implements IIngameOverlay {
 
             // render energy bar
             Color color = ShieldLayerRender.getColor(info.current().getElemental());
-            IEnergyStorage energyStorage = info.getPersonInfo(info.current()).burstInfo();
+            IEnergyStorage energyStorage = info.getPersonInfo(info.current()).energy();
             int energyHeight = (int) ((double)energyStorage.getEnergyStored() / energyStorage.getMaxEnergyStored() * burstHeightAndWidth);
 
             int blackColor = ShieldLayerRender.getColor(info.current().getElemental()).getRGB();

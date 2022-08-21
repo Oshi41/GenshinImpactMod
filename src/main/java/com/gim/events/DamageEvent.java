@@ -15,6 +15,7 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.Arrays;
 import java.util.Set;
 
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -67,9 +68,8 @@ public class DamageEvent {
         }
 
         // applying wet effect on entity
-        if (!e.getEntityLiving().getLevel().isClientSide() && !e.getEntityLiving().hasEffect(Elementals.HYDRO.getEffect()) && e.getEntityLiving().isInWaterOrRain()) {
+        if (!e.getEntityLiving().getLevel().isClientSide() && !Elementals.HYDRO.is(e.getEntityLiving()) && e.getEntityLiving().isInWaterOrRain()) {
             GenshinHeler.addEffect(e.getEntityLiving(), new MobEffectInstance(Elementals.HYDRO.getEffect(), 10 * 20));
-            applyElementalReactions(new LivingDamageEvent(e.getEntityLiving(), Elementals.HYDRO.create(null), Float.MIN_NORMAL));
         }
     }
 

@@ -47,16 +47,20 @@ public class TestRegistry {
     }
 
     private static Collection<TestFunction> getAllTests() {
-        Set<String> enabledNamespaces = getEnabledNamespaces();
-        if (!enabledNamespaces.isEmpty() && !enabledNamespaces.contains(GenshinImpactMod.ModID)) {
-            return new HashSet<>();
-        }
+        final Set<String> enabledNamespaces = getEnabledNamespaces();
 
         List<TestFunction> functionList = ModList.get().getAllScanData().stream()
                 .map(ModFileScanData::getAnnotations)
                 .flatMap(Collection::stream)
                 .filter(a -> GAME_TEST_HOLDER.equals(a.annotationType()))
                 .flatMap(TestRegistry::getMethods)
+                .filter(m -> {
+                    if (enabledNamespaces.isEmpty())
+                        return true;
+
+                    String templateNamespace = ForgeGameTestHooks.getTemplateNamespace(m);
+                    return enabledNamespaces.contains(templateNamespace);
+                })
                 .map(TestRegistry::convert)
                 .filter(Objects::nonNull)
                 .toList();

@@ -43,7 +43,7 @@ public class Debug {
             }
 
             if (item == Items.NETHERITE_SWORD) {
-                source = Elementals.HYDRO;
+                source = Elementals.DENDRO;
             }
 
             if (source != null) {

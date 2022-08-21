@@ -27,7 +27,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@GameTestHolder
+@GameTestHolder(GenshinImpactMod.ModID + ".long")
 public class ArtifactsTests {
     private static final DecimalFormat format = new DecimalFormat("###.##");
 
@@ -67,16 +67,26 @@ public class ArtifactsTests {
 
                     // perform levelling
                     props.addExp((int) props.getRarity().getMaxExp(), slot, serverPlayer.getRandom(), null);
+
                     if (props.getSubModifiers().stream().map(ArtifactProperties::getPrimal).distinct().count() != props.getSubModifiers().size()) {
                         List<String> stats = props.getSubModifiers().stream().map(x -> x.getPrimal().toString()).toList();
                         helper.fail(String.format("Artifact contains repeating substats after levelling: %s", String.join(", ", stats)));
                     }
 
                     int stepsCount = props.getRarity().getMaxLevel() / 4;
-                    final ArtifactProperties link = props;
 
-                    int totalSteps = props.getSubModifiers().stream().map(x -> link.getRarity().getLevel(x.getExp())).filter(x -> x > 0).mapToInt(x -> x).sum()
-                            + (props.getSubModifiers().size() - initCount);
+                    int addedLevels = props.getSubModifiers().stream().map(x -> x.getRarity().getLevel(x.getExp()))
+                            .filter(x -> x > 0)
+                            .mapToInt(x -> x)
+                            .sum();
+
+                    int addedSubStats = props.getSubModifiers().size() - initCount;
+
+                    int totalSteps = addedSubStats + addedLevels;
+
+                    if (rarity.getTotalSubstatCount() < 1) {
+                        stepsCount = 0;
+                    }
 
                     if (stepsCount != totalSteps) {
                         helper.fail(String.format("[%s] increased stats [%s] times instead of [%s]", slot, totalSteps, stepsCount));

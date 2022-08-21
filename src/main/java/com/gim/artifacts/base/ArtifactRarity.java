@@ -2,23 +2,24 @@ package com.gim.artifacts.base;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public enum ArtifactRarity {
-    ONE(4, 600, 3200, -1),
-    TWO(6, 1200, 8800, 0),
-    THREE(12, 1800, 52275, 1),
-    FOUR(16, 2400, 122675, 2),
-    FIVE(20, 3000, 270475, 3),
+    ONE(4, 600, 3200, 0, 0),
+    TWO(6, 1200, 8800, 0, 1),
+    THREE(12, 1800, 52275, 1, 2),
+    FOUR(16, 2400, 122675, 2, 3),
+    FIVE(20, 3000, 270475, 3, 4),
     ;
 
     private final int baseSubstatCount;
+    private final int totalSubstatCount;
 
     private final List<Double> expLevels = new ArrayList<>();
     private final List<Double> fullXpLevels = new ArrayList<>();
 
-    ArtifactRarity(int maxLevel, double minExp, double maxExp, int baseSubstatCount) {
+    ArtifactRarity(int maxLevel, double minExp, double maxExp, int baseSubstatCount, int totalSubstatCount) {
         this.baseSubstatCount = baseSubstatCount;
+        this.totalSubstatCount = totalSubstatCount;
 
         expLevels.add(minExp);
         fullXpLevels.add(minExp);
@@ -66,19 +67,7 @@ public enum ArtifactRarity {
             return 0;
         }
 
-        return (int) (fullXpLevels.get(toLvl) - fullXpLevels.get(fromLvl));
-    }
-
-    /**
-     * Returns initital count of sub sets
-     */
-    public int getInititalSubstats(Random random) {
-        int result = baseSubstatCount;
-        if (random.nextBoolean()) {
-            result += 1;
-        }
-
-        return Math.max(0, result);
+        return (int) (fullXpLevels.get(toLvl) - fullXpLevels.get(fromLvl)) + 1;
     }
 
     public double getMinExp() {
@@ -86,7 +75,7 @@ public enum ArtifactRarity {
     }
 
     public double getMaxExp() {
-        return fullXpLevels.get(fullXpLevels.size() - 1);
+        return fullXpLevels.get(fullXpLevels.size() - 1) + 1;
     }
 
     public int getMaxLevel() {
@@ -133,5 +122,21 @@ public enum ArtifactRarity {
 
         double result = expLevels.get(level);
         return (int) result;
+    }
+
+    /**
+     * Initial count of randomly generated substat of artifact
+     * If zero no substat generating
+     * Else generates from getInitSubstatCount() - 1 to getInitSubstatCount() substats
+     */
+    public int getInitSubstatCount() {
+        return baseSubstatCount;
+    }
+
+    /**
+     * Total substat count
+     */
+    public int getTotalSubstatCount() {
+        return totalSubstatCount;
     }
 }

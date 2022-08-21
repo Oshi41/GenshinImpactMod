@@ -150,7 +150,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
     /**
      * Returns current energy count
      */
-    public IEnergyStorage burstInfo() {
+    public IEnergyStorage energy() {
         return energy;
     }
 

@@ -34,9 +34,21 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         // primal
         primal = type.getRandomPrimal(random);
 
-        // adding sub stats
-        ArtifactStat randomSub = type.getRandomSub(random, primal, subStats.stream().map(ArtifactProperties::getPrimal));
-        withSub(randomSub);
+        int initCount = rarity.getInitSubstatCount();
+        if (initCount > 0) {
+
+            // randomly descreasing value
+            // 30% chance
+            if (random.nextInt(3) == 0) {
+                initCount--;
+            }
+        }
+
+        for (int i = 0; i < initCount; i++) {
+            // adding sub stats
+            ArtifactStat randomSub = type.getRandomSub(random, primal, subStats.stream().map(ArtifactProperties::getPrimal));
+            withSub(randomSub);
+        }
     }
 
     /**
@@ -156,7 +168,9 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
                 // if
                 if (i % 4 == 0) {
                     ArtifactStat subStat = addSubStat(type, random);
-                    result.compute(subStat, (artifactStat, integer) -> integer == null ? 1 : integer + 1);
+
+                    if (subStat != null)
+                        result.compute(subStat, (artifactStat, integer) -> integer == null ? 1 : integer + 1);
                 }
             }
         }
@@ -169,17 +183,19 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
     }
 
     private ArtifactStat addSubStat(ArtifactSlotType type, Random random) {
-        if (subStats.size() < 4) {
+        if (subStats.size() < getRarity().getTotalSubstatCount()) {
             ArtifactStat randomSub = type.getRandomSub(random, primal, subStats.stream().map(ArtifactProperties::getPrimal));
             withSub(randomSub);
             return randomSub;
-        } else {
+        } else if (!subStats.isEmpty()) {
             ArtifactProperties properties = subStats.get(random.nextInt(subStats.size()));
             int currentLevel = getRarity().getLevel(properties.getExp());
             int toAdd = getRarity().getAmount(currentLevel, currentLevel + 1);
-            properties.addExp(toAdd, null, null, null);
+            properties.addExp(toAdd);
             return properties.getPrimal();
         }
+
+        return null;
     }
 
     public ArtifactRarity getRarity() {

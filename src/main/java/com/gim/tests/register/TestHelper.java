@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.FakePlayer;
 
@@ -37,6 +38,8 @@ public class TestHelper {
                     this.closeContainer();
                     this.containerMenu = this.inventoryMenu;
                 }
+
+                ForgeHooks.onLivingUpdate(this);
             }
         };
 

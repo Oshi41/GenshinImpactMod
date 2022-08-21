@@ -67,7 +67,7 @@ public class GenshinAbilityMsg {
                 return true;
 
             case BURST:
-                IEnergyStorage energyStorage = genshinInfo.getPersonInfo(genshinInfo.current()).burstInfo();
+                IEnergyStorage energyStorage = genshinInfo.getPersonInfo(genshinInfo.current()).energy();
                 energyStorage.extractEnergy(energyStorage.getEnergyStored(), false);
                 genshinInfo.onBurst(entity);
                 return true;

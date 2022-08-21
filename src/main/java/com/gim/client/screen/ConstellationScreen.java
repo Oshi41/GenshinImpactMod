@@ -210,7 +210,7 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
     void onStarClick(Button btn, StarInfo starInfo) {
         if (!starInfo.isOpen) {
             // need to skip first bit
-            int bitMask = (starInfo.index + 1) >> 1;
+            int bitMask = (starInfo.index + 1) << 1;
             this.minecraft.gameMode.handleInventoryButtonClick(getMenu().containerId, bitMask);
         }
     }

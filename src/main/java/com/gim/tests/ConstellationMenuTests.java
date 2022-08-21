@@ -1,5 +1,6 @@
 package com.gim.tests;
 
+import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.items.ConstellationItem;
 import com.gim.menu.base.GenshinIterableMenuBase;
@@ -22,7 +23,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.List;
 import java.util.Objects;
 
-@GameTestHolder
+@GameTestHolder(GenshinImpactMod.ModID)
 public class ConstellationMenuTests {
     private final BlockPos pos = new BlockPos(0, 0, 0);
 

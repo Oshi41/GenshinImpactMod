@@ -234,7 +234,13 @@ public class AnemoTraveler extends GenshinPlayerBase {
 
         // valid values
         final int level = (int) Mth.clamp(levelRaw, 0, Attributes.skill_level.getMaxValue());
-        boolean maxLevel = level >= Attributes.skill_level.getMaxValue();
+
+        // last star opened next 9 levels
+        final double maxAvailableLevel = GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.constellations) >= 5
+                ? Attributes.skill_level.getMaxValue()
+                : Attributes.skill_level.getMaxValue() - 15;
+
+        boolean maxLevel = level >= maxAvailableLevel;
 
         if (!maxLevel) {
             // 3 ascending at least

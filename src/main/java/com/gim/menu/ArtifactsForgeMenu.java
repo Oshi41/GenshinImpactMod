@@ -192,7 +192,7 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
             if (random < 0.01) {
                 toApply *= 5;
                 setMultiplier(5);
-            } else if (random < 0.09) {
+            } else if (random < 0.1) {
                 toApply *= 2;
                 setMultiplier(2);
             } else {
