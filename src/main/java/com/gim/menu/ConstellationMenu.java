@@ -97,4 +97,12 @@ public class ConstellationMenu extends GenshinIterableMenuBase {
     public void refreshByIndex() {
         // ignored
     }
+
+    @Override
+    public void removed(Player p_38940_) {
+        super.removed(p_38940_);
+
+        // removing all items
+        this.access.execute((p_39371_, p_39372_) -> this.clearContainer(playerInv.player, own));
+    }
 }

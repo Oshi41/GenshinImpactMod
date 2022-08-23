@@ -3,6 +3,7 @@ package com.gim.client.entity.players.anemo_traveler;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.client.overlay.GenshinRender;
 import com.gim.players.AnemoTraveler;
+import com.gim.players.base.GenshinPlayerBase;
 import com.gim.registry.GenshinCharacters;
 import com.gim.registry.Renders;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -166,9 +167,32 @@ public class AnemoTravelerRender extends PlayerRenderer {
     @Override
     protected void setupRotations(AbstractClientPlayer player, PoseStack poseStack, float bobTicks, float yRot, float partialTicks) {
         GenshinEntityData data = AnemoTravelerModel.getData(player);
-        if (data != null && data.getBurstTicksAnim() > 0) {
-            double rotation = 360 * 3f / AnemoTraveler.BURST_ANIM_TIME * (AnemoTraveler.BURST_ANIM_TIME - data.getBurstTicksAnim());
-            yRot += rotation;
+        if (data != null) {
+            if (data.getBurstTicksAnim() > 0) {
+                double rotation = 360 * 3f / AnemoTraveler.BURST_ANIM_TIME * (AnemoTraveler.BURST_ANIM_TIME - data.getBurstTicksAnim());
+                yRot += rotation;
+            }
+
+            // need to apply special rotation render
+            if (player.swinging && data.getAdditional().contains(GenshinPlayerBase.ANIMATE_STAGE_ID)) {
+                // current attack stage
+                int attackStage = data.getAdditional().getInt(GenshinPlayerBase.ANIMATE_STAGE_ID);
+                int rotationTickTime = 5;
+                if (player.swingTime <= rotationTickTime) {
+                    double rotation = 360f / (rotationTickTime + 1) * (player.swingTime + 1);
+
+                    switch (attackStage) {
+                        case 2 -> {
+                            // third attack, clockwise rotation
+                            yRot += rotation;
+                        }
+                        // fourth attack, counterclockwise rotation
+                        case 3 -> {
+                            yRot -= rotation;
+                        }
+                    }
+                }
+            }
         }
 
         super.setupRotations(player, poseStack, bobTicks, yRot, partialTicks);

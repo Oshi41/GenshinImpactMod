@@ -18,6 +18,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffectUtil;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.*;
@@ -449,5 +451,18 @@ public class GenshinHeler {
         }
 
         return from(multimap);
+    }
+
+    /**
+     * Returns swing amount
+     *
+     * @param entity - for this entity
+     */
+    public static int getCurrentSwingDuration(LivingEntity entity) {
+        if (MobEffectUtil.hasDigSpeed(entity)) {
+            return 6 - (1 + MobEffectUtil.getDigSpeedAmplification(entity));
+        } else {
+            return entity.hasEffect(MobEffects.DIG_SLOWDOWN) ? 6 + (1 + entity.getEffect(MobEffects.DIG_SLOWDOWN).getAmplifier()) * 2 : 6;
+        }
     }
 }

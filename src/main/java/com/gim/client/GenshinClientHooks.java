@@ -70,8 +70,4 @@ public class GenshinClientHooks {
     public static EntityRenderer getRenderer(IGenshinPlayer player) {
         return characterRenders.get(player).get();
     }
-
-    public static void kek(Collection<GameTestBatch> p_127563_, BlockPos p_127564_, Rotation p_127565_, ServerLevel p_127566_, GameTestTicker p_127567_, int p_127568_) {
-
-    }
 }

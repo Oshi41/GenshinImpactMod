@@ -128,9 +128,9 @@ public interface IGenshinPlayer extends IForgeRegistryEntry<IGenshinPlayer> {
     /**
      * Returns talent ascending info
      *
-     * @param level - for level
-     * @param data  - character data
+     * @param currentSkillLevel - current entity skill level. Expecting to scale it by 1.
+     * @param data              - character data
      * @return
      */
-    TalentAscendInfo talentInfo(int level, GenshinEntityData data);
+    TalentAscendInfo talentInfo(int currentSkillLevel, GenshinEntityData data);
 }

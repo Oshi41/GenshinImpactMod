@@ -79,7 +79,6 @@ public abstract class GenshinIterableMenuBase extends GenshinMenuBase {
         return null;
     }
 
-
     /**
      * Returns current index of player
      */

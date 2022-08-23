@@ -6,6 +6,7 @@ import com.gim.attack.GenshinCombatTracker;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.entity.AnemoBlade;
 import com.gim.entity.Energy;
 import com.gim.entity.Tornado;
 import com.gim.players.base.AscendInfo;
@@ -34,6 +35,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.phys.AABB;
@@ -42,6 +44,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import java.text.DecimalFormat;
@@ -59,7 +62,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
     private final Lazy<List<Elementals>> swirling = Lazy.of(() -> List.of(Elementals.HYDRO, Elementals.ELECTRO, Elementals.PYRO, Elementals.CRYO));
 
     private final Map<Integer, String> passiveTalents = new LinkedHashMap<>() {{
-        put(5, "gim.anemo_traveler.passive_skill_1");
+        put(6, "gim.anemo_traveler.passive_skill_1");
         put(15, "gim.anemo_traveler.passive_skill_2");
     }};
 
@@ -93,14 +96,13 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         1.5
                 ));
 
-        handleForgeEventForCurrentPlayer(LivingAttackEvent.class, x -> x.getSource().getEntity(), this::handleAttack);
         handleForgeEventForCurrentPlayer(LivingDeathEvent.class, x -> x.getSource().getEntity(), this::handleDeath);
     }
 
     private void handleDeath(LivingDeathEvent event, LivingEntity holder, IGenshinInfo genshinInfo) {
         GenshinEntityData genshinEntityData = genshinInfo.getPersonInfo(this);
         double skillLevel = genshinEntityData.getAttributes().getInstance(Attributes.skill_level).getValue();
-        if (skillLevel >= 14) {
+        if (skillLevel >= 15) {
             long lastSkillHealTime = genshinEntityData.getAdditional().getLong("LastSkillHealTime");
             // skill cooldown is 5 seconds
             int skillHealingCooldown = 5 * 20;
@@ -112,36 +114,31 @@ public class AnemoTraveler extends GenshinPlayerBase {
         }
     }
 
-    private void handleAttack(LivingAttackEvent event, LivingEntity holder, IGenshinInfo info) {
-        if (holder.getCombatTracker() instanceof GenshinCombatTracker) {
-            GenshinCombatTracker genshinCombatTracker = (GenshinCombatTracker) holder.getCombatTracker();
+    @Override
+    protected void handleAttackInRaw(LivingDamageEvent event, LivingEntity entity, IGenshinInfo info, int index) {
+        super.handleAttackInRaw(event, entity, info, index);
 
-            double skillLevel = info.getPersonInfo(this).getAttributes().getInstance(Attributes.skill_level).getValue();
+        // check for character data
+        GenshinEntityData data = info.getPersonInfo(this);
+        if (data == null)
+            return;
 
-            if (skillLevel >= 13) {
-                int minAttacksCount = 5;
+        int skillLevel = (int) GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.skill_level);
 
-                // 4 attacks should be done within 2 seconds
-                int earliestTime = holder.tickCount - 20 * 2;
+        switch (index) {
+            case 3 -> {
+                if (entity instanceof Player && !entity.getLevel().isClientSide()) {
+                    // TODO not working
+//                    ((Player) entity).jumpFromGround();
+//                    entity.setDeltaMovement(0, 1, 0);
+                }
+            }
+            case 4 -> {
+                int windBladeMinLevel = passiveTalents.keySet().stream().mapToInt(x -> x).min().orElse(0);
 
-                List<CombatEntry> entries = genshinCombatTracker.getAttacks()
-                        .filter(x -> x.getTime() >= earliestTime)
-                        .filter(x -> x.getSource() instanceof EntityDamageSource && "player".equals(x.getSource().msgId))
-                        .sorted((o1, o2) -> Integer.compare(o2.getTime(), o1.getTime()))
-                        .toList();
-
-
-                if (entries.size() >= minAttacksCount) {
-                    // removing previous ones
-                    entries.stream().skip(minAttacksCount)
-                            .collect(Collectors.toList()).stream().forEach(entries::remove);
-
-                    Set<DamageSource> sources = entries.stream().map(x -> x.getSource()).collect(Collectors.toSet());
-
-                    // adding anemo attack
-                    event.getEntity().hurt(Elementals.ANEMO.create(holder), event.getAmount() * 0.6f);
-                    // removing prev history
-                    genshinCombatTracker.removeAttacks(sources::contains);
+                if (!entity.getLevel().isClientSide() && skillLevel >= windBladeMinLevel) {
+                    AnemoBlade anemoBlade = new AnemoBlade(entity);
+                    entity.getLevel().addFreshEntity(anemoBlade);
                 }
             }
         }
@@ -222,7 +219,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
     }
 
     @Override
-    public TalentAscendInfo talentInfo(int levelRaw, GenshinEntityData data) {
+    public TalentAscendInfo talentInfo(int currentSkillLevel, GenshinEntityData data) {
         String openSymbol = "§a☑ ";
         String closedSymbol = "§c☒ ";
 
@@ -233,9 +230,9 @@ public class AnemoTraveler extends GenshinPlayerBase {
         DecimalFormat decimalFormat = new DecimalFormat("###.##%");
 
         // valid values
-        final int level = (int) Mth.clamp(levelRaw, 0, Attributes.skill_level.getMaxValue());
+        final int level = (int) Mth.clamp(currentSkillLevel, 0, Attributes.skill_level.getMaxValue());
 
-        // last star opened next 9 levels
+        // last star opened next 15 levels
         final double maxAvailableLevel = GenshinHeler.safeGetAttribute(data.getAttributes(), Attributes.constellations) >= 5
                 ? Attributes.skill_level.getMaxValue()
                 : Attributes.skill_level.getMaxValue() - 15;

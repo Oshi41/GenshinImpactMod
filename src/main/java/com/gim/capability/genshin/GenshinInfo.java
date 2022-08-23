@@ -92,6 +92,9 @@ public class GenshinInfo implements IGenshinInfo {
 
     @Override
     public GenshinEntityData getPersonInfo(IGenshinPlayer id) {
+        if (id == null)
+            return null;
+
         return allPlayers.get(id);
     }
 

@@ -46,6 +46,12 @@ public class Network {
                 .consumer(TextParticleMsg::consume)
                 .add();
 
+        playChannel.messageBuilder(AnimatePacket.class, 5)
+                .encoder(AnimatePacket::encode)
+                .decoder(AnimatePacket::decode)
+                .consumer(AnimatePacket::consume)
+                .add();
+
         return playChannel;
     }
 }

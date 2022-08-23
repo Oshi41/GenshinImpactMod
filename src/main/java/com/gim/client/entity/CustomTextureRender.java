@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.util.Lazy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,10 @@ public class CustomTextureRender<T extends Entity> extends EntityRenderer<T> {
     public CustomTextureRender(EntityRendererProvider.Context context, Function<T, ResourceLocation> supplier) {
         super(context);
         this.supplier = supplier;
+    }
+
+    public CustomTextureRender(EntityRendererProvider.Context context, Lazy<ResourceLocation> supplier) {
+        this(context, t -> supplier.get());
     }
 
     public CustomTextureRender(EntityRendererProvider.Context p_174008_) {

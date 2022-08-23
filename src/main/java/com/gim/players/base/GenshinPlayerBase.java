@@ -1,10 +1,12 @@
 package com.gim.players.base;
 
 import com.gim.GenshinHeler;
+import com.gim.GenshinImpactMod;
 import com.gim.attack.GenshinCombatTracker;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.networking.AnimatePacket;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.google.common.collect.HashBasedTable;
@@ -12,6 +14,8 @@ import com.google.common.collect.Table;
 import net.minecraft.CrashReport;
 import net.minecraft.ReportedException;
 import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -28,6 +32,7 @@ import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.apache.logging.log4j.util.TriConsumer;
 
@@ -37,7 +42,10 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlayer> implements IGenshinPlayer {
-
+    /**
+     * Name of Int value for current attack animation id
+     */
+    public static final String ANIMATE_STAGE_ID = "AnimateStage";
 
     protected BaseComponent name;
     protected Supplier<AttributeSupplier.Builder> builder;
@@ -104,16 +112,41 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
             attacks.clear();
         }
 
-        // record current attack
-        attacks.add(entity.tickCount);
+        // clear attacks from big delay
+        if (!attacks.isEmpty() && attacks.get(attacks.size() - 1) < entity.tickCount - (2 * 20)) {
+            attacks.clear();
+        }
 
         // index of current hit (row)
-        int rowIndex = attacks.size() - 1;
+        int attackIndex = attacks.size();
         // skill level for current character (column)
         int column = (int) Math.max(0, GenshinHeler.safeGetAttribute(entity, Attributes.skill_level));
-        if (getStrikes(genshinEntityData).contains(rowIndex, column)) {
-            event.setAmount((float) (event.getAmount() * getStrikes(genshinEntityData).get(rowIndex, column)));
+        if (getStrikes(genshinEntityData).contains(attackIndex, column)) {
+            event.setAmount((float) (event.getAmount() * getStrikes(genshinEntityData).get(attackIndex, column)));
+
+            // record current attack
+            attacks.add(entity.tickCount);
+
+            if (entity instanceof ServerPlayer) {
+                PacketDistributor.PacketTarget packetTarget = PacketDistributor.NEAR.with(PacketDistributor.TargetPoint.p(entity.getX(), entity.getY(), entity.getZ(), 16, entity.getLevel().dimension()));
+                AnimatePacket msg = new AnimatePacket(entity, attackIndex);
+                GenshinImpactMod.CHANNEL.send(packetTarget, msg);
+            }
+
+            handleAttackInRaw(event, entity, info, attackIndex);
         }
+    }
+
+    /**
+     * Called on attack strike
+     *
+     * @param event  - damage event
+     * @param entity - entity
+     * @param info   - genshin info
+     * @param index  - attack index
+     */
+    protected void handleAttackInRaw(LivingDamageEvent event, LivingEntity entity, IGenshinInfo info, int index) {
+
     }
 
     /**
@@ -244,6 +277,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
         GenshinEntityData data = info.getPersonInfo(this);
 
         if (data != null) {
+            // burst ticking
             if (data.getBurstTicksAnim() > 0) {
                 onBurstTick(holder, info, tracker, GenshinPhase.TICK);
                 data.setBurstTicksAnim(data.getBurstTicksAnim() - 1);
@@ -258,6 +292,7 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
                 }
             }
 
+            // skill ticking
             if (data.getSkillTicksAnim() > 0) {
                 onSkillTick(holder, info, tracker, GenshinPhase.TICK);
                 data.setSkillTicksAnim(data.getSkillTicksAnim() - 1);
@@ -270,6 +305,11 @@ public abstract class GenshinPlayerBase extends ForgeRegistryEntry<IGenshinPlaye
                     // recording skill attack history
                     tracker.recordAttack(new GenshinDamageSource(DamageSource.GENERIC, null).bySkill(this), 0, 0);
                 }
+            }
+
+            // remove current attacks strike stage info
+            if (!holder.swinging && data.getAdditional().contains(ANIMATE_STAGE_ID)) {
+                data.getAdditional().remove(ANIMATE_STAGE_ID);
             }
         }
     }

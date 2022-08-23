@@ -1,6 +1,7 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
+import com.gim.entity.AnemoBlade;
 import com.gim.entity.Energy;
 import com.gim.entity.Shield;
 import com.gim.entity.Tornado;
@@ -19,6 +20,7 @@ public class Entities {
     public static final EntityType<Tornado> tornado_entity_type = null;
 
     public static final EntityType<Energy> energy_type = null;
+    public static final EntityType<AnemoBlade> anemo_blade_type = null;
 
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
@@ -37,7 +39,12 @@ public class Entities {
                 registerType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.MISC)
                                 .sized(.5f, .5f)
                                 .fireImmune(),
-                        "energy_type")
+                        "energy_type"),
+
+                registerType(EntityType.Builder.<AnemoBlade>of(AnemoBlade::new, MobCategory.MISC)
+                                .sized(2.5f, 0.5f),
+                        "anemo_blade_type"
+                )
         );
     }
 

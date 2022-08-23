@@ -6,6 +6,7 @@ import com.gim.client.entity.EnergyRenderer;
 import com.gim.client.layers.IceRender;
 import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
+import com.gim.entity.AnemoBlade;
 import com.gim.entity.Shield;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -16,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -58,6 +60,8 @@ public class Renders {
 
         e.registerEntityRenderer(Entities.tornado_entity_type, TornadoRenderer::new);
         e.registerEntityRenderer(Entities.energy_type, EnergyRenderer::new);
+        e.registerEntityRenderer(Entities.anemo_blade_type,
+                c -> new CustomTextureRender<>(c, Lazy.of(() -> new ResourceLocation(GenshinImpactMod.ModID, "textures/entity/anemo_blade.png"))));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

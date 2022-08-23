@@ -92,7 +92,7 @@ public class SkillStationMenu extends GenshinIterableMenuBase implements SlotLis
             int skill = (int) GenshinHeler.safeGetAttribute(entityData.getAttributes(), Attributes.skill_level);
             if (skill >= 0) {
                 IGenshinPlayer genshinPlayer = entityData.getAssotiatedPlayer();
-                this.talentInfo = genshinPlayer.talentInfo(skill + 1, entityData);
+                this.talentInfo = genshinPlayer.talentInfo(skill, entityData);
             }
         }
     }
