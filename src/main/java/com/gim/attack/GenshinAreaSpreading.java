@@ -62,8 +62,7 @@ public class GenshinAreaSpreading {
         List<Entity> list = this.level.getEntities(null, new AABB(k1, i2, j2, l1, i1, j1));
         HashMap<Entity, Float> result = Maps.newHashMap();
 
-        for (int k2 = 0; k2 < list.size(); ++k2) {
-            Entity entity = list.get(k2);
+        for (Entity entity : list) {
             if (!entity.ignoreExplosion() && !Objects.equals(entity, this.entity)) {
                 double d12 = Math.sqrt(entity.distanceToSqr(this.center)) / (double) f2;
                 if (d12 <= 1.0D) {

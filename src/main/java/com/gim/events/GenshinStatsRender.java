@@ -37,8 +37,7 @@ public class GenshinStatsRender {
 
     @SubscribeEvent
     public static void onNameTagRender(RenderNameplateEvent event) {
-        if (event.getEntity() instanceof LivingEntity) {
-            LivingEntity livingEntity = (LivingEntity) event.getEntity();
+        if (event.getEntity() instanceof LivingEntity livingEntity) {
 
             AttributeInstance attributeInstance = livingEntity.getAttribute(Attributes.level);
             if (attributeInstance != null && attributeInstance.getValue() > 0) {

@@ -184,8 +184,7 @@ public class ShowDamage {
                 if (!entityLiving.getLevel().isClientSide()) {
                     ChatFormatting format = ChatFormatting.GRAY;
 
-                    if (event.getSource() instanceof GenshinDamageSource) {
-                        GenshinDamageSource genshinDamageSource = (GenshinDamageSource) event.getSource();
+                    if (event.getSource() instanceof GenshinDamageSource genshinDamageSource) {
 
                         if (genshinDamageSource.getElement() != null) {
                             format = genshinDamageSource.getElement().getChatColor();

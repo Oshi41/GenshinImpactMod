@@ -85,8 +85,7 @@ public class ArtifactProperties implements INBTSerializable<CompoundTag> {
         primal = GenshinHeler.safeGet(ArtifactStat.class, nbt.getString("Primal"));
 
         Tag raw = nbt.get("Stats");
-        if (raw instanceof ListTag) {
-            ListTag attributes = (ListTag) raw;
+        if (raw instanceof ListTag attributes) {
             attributes.stream()
                     .filter(x -> x instanceof CompoundTag)
                     .map(x -> ((CompoundTag) x))

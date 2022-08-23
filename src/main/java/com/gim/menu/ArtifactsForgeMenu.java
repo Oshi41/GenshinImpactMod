@@ -64,9 +64,7 @@ public class ArtifactsForgeMenu extends GenshinMenuBase {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        this.access.execute((p_39371_, p_39372_) -> {
-            this.clearContainer(player, own);
-        });
+        this.access.execute((p_39371_, p_39372_) -> this.clearContainer(player, own));
     }
 
     @Override

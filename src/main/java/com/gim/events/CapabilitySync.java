@@ -28,8 +28,7 @@ public class CapabilitySync {
     @SubscribeEvent
     public static void onJoin(EntityJoinWorldEvent e) {
         if (!e.getWorld().isClientSide()) {
-            if (e.getEntity() instanceof ServerPlayer) {
-                ServerPlayer livingEntity = (ServerPlayer) e.getEntity();
+            if (e.getEntity() instanceof ServerPlayer livingEntity) {
 
                 for (Capability cap : playerCaps) {
                     livingEntity.getCapability(cap).ifPresent(instance -> {

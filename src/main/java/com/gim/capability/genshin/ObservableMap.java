@@ -42,19 +42,15 @@ public class ObservableMap<K, V> extends AbstractMap<K, V> {
 
         if (observable != null) {
             if (observable instanceof ObservableMap) {
-                ((ObservableMap) observable).handle = true;
+                ((ObservableMap<?, ?>) observable).handle = true;
             }
 
             switch (operation) {
-                case "clear":
+                case "clear" -> {
                     observable.clear();
                     return;
-
-                case "put":
-                case "remove":
-                case "addAll":
-                case "retainAll":
-                case "removeAll":
+                }
+                case "put", "remove", "addAll", "retainAll", "removeAll" -> {
                     MapDifference<K, V> mapDifference = Maps.difference(inner, observable);
 
                     // removing not used keys
@@ -63,12 +59,12 @@ public class ObservableMap<K, V> extends AbstractMap<K, V> {
                     observable.putAll(mapDifference.entriesOnlyOnLeft());
                     // set new changes to map
                     mapDifference.entriesDiffering().forEach((k, vValueDifference) -> observable.put(k, vValueDifference.leftValue()));
-
                     return;
+                }
             }
 
             if (observable instanceof ObservableMap) {
-                ((ObservableMap) observable).handle = false;
+                ((ObservableMap<?, ?>) observable).handle = false;
                 BiConsumer consumer = ((ObservableMap) observable).callback;
                 if (consumer != null) {
                     consumer.accept(operation, this);

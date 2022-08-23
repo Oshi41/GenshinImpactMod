@@ -40,9 +40,9 @@ public class EnergyRenderer extends EntityRenderer<Energy> {
     public void render(Energy entity, float p_114600_, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int light) {
         poseStack.pushPose();
         int i = entity.getIcon();
-        float f = (float) (i % 4 * 16 + 0) / 64.0F;
+        float f = (float) (i % 4 * 16) / 64.0F;
         float f1 = (float) (i % 4 * 16 + 16) / 64.0F;
-        float f2 = (float) (i / 4 * 16 + 0) / 64.0F;
+        float f2 = (float) (i / 4 * 16) / 64.0F;
         float f3 = (float) (i / 4 * 16 + 16) / 64.0F;
         float f8 = ((float) entity.tickCount + partialTicks) / 2.0F;
         int red = (int) ((Mth.sin(f8 + 0.0F) + 1.0F) * 0.5F * 255.0F);

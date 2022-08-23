@@ -239,7 +239,7 @@ public class ConstellationScreen extends AbstractContainerScreen<ConstellationMe
         renderTooltip(p_97795_, x, y);
     }
 
-    public class StarInfo {
+    public static class StarInfo {
         public final int index;
         public final boolean isOpen;
         public final FormattedText text;

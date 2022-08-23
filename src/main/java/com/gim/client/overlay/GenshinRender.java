@@ -58,7 +58,7 @@ public class GenshinRender implements IIngameOverlay {
         Font font = Minecraft.getInstance().font;
 
         // longest character name length in pixels
-        Integer nameLength = info.currentStack().stream().map(x -> font.width(x.getName().getString())).max(Integer::compare).orElse(24);
+        int nameLength = info.currentStack().stream().map(x -> font.width(x.getName().getString())).max(Integer::compare).orElse(24);
 
         for (int i = 0; i < end; i++) {
             // current genshin character

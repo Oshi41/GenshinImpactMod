@@ -286,9 +286,7 @@ public class GenshinEntityData implements INBTSerializable<CompoundTag> {
 
                     if (!attrDiff.areEqual()) {
                         // we do not adding or removing attributes, only chanhing
-                        attrDiff.entriesDiffering().forEach((attribute, diff) -> {
-                            entity.getAttribute(attribute).replaceFrom(diff.leftValue());
-                        });
+                        attrDiff.entriesDiffering().forEach((attribute, diff) -> entity.getAttribute(attribute).replaceFrom(diff.leftValue()));
                     }
 
                     // subscribe again

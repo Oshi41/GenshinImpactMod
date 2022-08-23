@@ -96,9 +96,7 @@ public class GenshinScreenBase<T extends GenshinMenuBase> extends AbstractContai
         entityrenderdispatcher.overrideCameraOrientation(quaternion1);
         entityrenderdispatcher.setRenderShadow(false);
         MultiBufferSource.BufferSource multibuffersource$buffersource = Minecraft.getInstance().renderBuffers().bufferSource();
-        RenderSystem.runAsFancy(() -> {
-            render(p_98856_, GenshinClientHooks.getRenderer(character), 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, posestack1, multibuffersource$buffersource, 15728880);
-        });
+        RenderSystem.runAsFancy(() -> render(p_98856_, GenshinClientHooks.getRenderer(character), 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, posestack1, multibuffersource$buffersource, 15728880));
         multibuffersource$buffersource.endBatch();
         entityrenderdispatcher.setRenderShadow(true);
         p_98856_.yBodyRot = f2;

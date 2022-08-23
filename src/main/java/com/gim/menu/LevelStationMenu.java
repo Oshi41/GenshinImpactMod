@@ -191,8 +191,7 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
                         checked = false;
                     }
 
-                    if (checked && playerInv.player instanceof ServerPlayer) {
-                        ServerPlayer serverPlayer = (ServerPlayer) playerInv.player;
+                    if (checked && playerInv.player instanceof ServerPlayer serverPlayer) {
                         Stat<ResourceLocation> playTimeStat = Stats.CUSTOM.get(Stats.PLAY_TIME);
 
                         if (getForCurrent().getTicksTillLevel() > serverPlayer.getStats().getValue(playTimeStat)) {

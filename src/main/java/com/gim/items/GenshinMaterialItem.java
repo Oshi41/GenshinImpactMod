@@ -10,8 +10,7 @@ public class GenshinMaterialItem extends Item {
     public GenshinMaterialItem(Properties properties) {
         super(properties.tab(CreativeTabs.MATERIALS));
 
-        if (properties instanceof GenshinProperties) {
-            GenshinProperties genshinProperties = (GenshinProperties) properties;
+        if (properties instanceof GenshinProperties genshinProperties) {
 
             isFoil = genshinProperties.isFoil;
         }

@@ -84,8 +84,7 @@ public class GenshinHeler {
         float elementalResistance = 0;
 
         // some null checking
-        if (source.getEntity() instanceof LivingEntity) {
-            LivingEntity attacker = (LivingEntity) source.getEntity();
+        if (source.getEntity() instanceof LivingEntity attacker) {
 
             // find elemental from attack
             Elementals elemental = Arrays.stream(Elementals.values()).filter(x -> x.is(source)).findFirst().orElse(null);
@@ -165,13 +164,11 @@ public class GenshinHeler {
      * @return
      */
     public static boolean removeEffects(Entity e, MobEffect... effects) {
-        if (e instanceof LivingEntity
-                && e.getLevel() instanceof ServerLevel
+        if (e instanceof LivingEntity livingEntity
+                && e.getLevel() instanceof ServerLevel serverLevel
                 && effects != null
                 && effects.length > 0) {
             int count = 0;
-            LivingEntity livingEntity = (LivingEntity) e;
-            ServerLevel serverLevel = (ServerLevel) e.getLevel();
 
             for (MobEffect effect : effects) {
                 if (livingEntity.removeEffect(effect)) {
@@ -356,9 +353,7 @@ public class GenshinHeler {
                 CapabilityDispatcher dispatcher = (CapabilityDispatcher) capabilityManagerField.get(owner);
                 ICapabilityProvider[] caps = (ICapabilityProvider[]) capsField.get(dispatcher);
 
-                for (int i = 0; i < caps.length; i++) {
-                    ICapabilityProvider cap = caps[i];
-
+                for (ICapabilityProvider cap : caps) {
                     if (cap.getCapability(capability).isPresent()) {
                         return cap;
                     }

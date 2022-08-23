@@ -45,15 +45,14 @@ public class AdventureTests {
         for (int i = 0; i < 3; i++) {
 
             switch (i) {
-                case 1:
+                case 1 -> {
                     artifactsContainer.setItem(ArtifactSlotType.FLOWER.ordinal(), Items.adventure_flower.getDefaultInstance());
                     artifactsContainer.setItem(ArtifactSlotType.FEATHER.ordinal(), Items.adventure_feather.getDefaultInstance());
-                    break;
-
-                case 2:
+                }
+                case 2 -> {
                     artifactsContainer.setItem(ArtifactSlotType.CROWN.ordinal(), Items.adventure_crown.getDefaultInstance());
                     artifactsContainer.setItem(ArtifactSlotType.CUP.ordinal(), Items.adventure_cup.getDefaultInstance());
-                    break;
+                }
             }
 
             float maxHealth = serverPlayer.getMaxHealth();

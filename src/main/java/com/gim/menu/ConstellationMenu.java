@@ -38,11 +38,9 @@ public class ConstellationMenu extends GenshinIterableMenuBase {
             @Override
             public boolean mayPlace(ItemStack itemStack) {
                 // item should be ConstellationItem
-                if (!(itemStack.getItem() instanceof ConstellationItem)) {
+                if (!(itemStack.getItem() instanceof ConstellationItem constellationItem)) {
                     return false;
                 }
-
-                ConstellationItem constellationItem = (ConstellationItem) itemStack.getItem();
 
                 GenshinEntityData genshinEntityData = current();
                 // item star should be for character

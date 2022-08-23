@@ -222,13 +222,11 @@ public class ArtifactsTests {
 
                             if (!mapDifference.entriesInCommon().isEmpty()) {
                                 final StringBuilder builder = new StringBuilder();
-                                mapDifference.entriesInCommon().forEach((attribute, doubleValueDifference) -> {
-                                    builder.append(String.format("%s* [%s], [%s] didn't change",
-                                            e.getKey(),
-                                            rarity.ordinal() + 1,
-                                            new TranslatableComponent(attribute.getDescriptionId()).getString()
-                                    ));
-                                });
+                                mapDifference.entriesInCommon().forEach((attribute, doubleValueDifference) -> builder.append(String.format("%s* [%s], [%s] didn't change",
+                                        e.getKey(),
+                                        rarity.ordinal() + 1,
+                                        new TranslatableComponent(attribute.getDescriptionId()).getString()
+                                )));
 
                                 helper.fail(builder.toString());
                             }
@@ -239,13 +237,11 @@ public class ArtifactsTests {
                             if (!mapDifference.entriesDiffering().isEmpty()) {
                                 final StringBuilder builder = new StringBuilder();
 
-                                mapDifference.entriesDiffering().forEach((attribute, doubleValueDifference) -> {
-                                    builder.append(String.format("%s* [%s], [%s] didn't apply on player",
-                                            e.getKey(),
-                                            rarity.ordinal() + 1,
-                                            new TranslatableComponent(attribute.getDescriptionId()).getString()
-                                    ));
-                                });
+                                mapDifference.entriesDiffering().forEach((attribute, doubleValueDifference) -> builder.append(String.format("%s* [%s], [%s] didn't apply on player",
+                                        e.getKey(),
+                                        rarity.ordinal() + 1,
+                                        new TranslatableComponent(attribute.getDescriptionId()).getString()
+                                )));
 
                                 helper.fail(builder.toString());
                             }

@@ -62,12 +62,11 @@ public enum Elementals {
     public GenshinDamageSource create(@Nullable Entity attacker) {
         DamageSource raw = transform.apply(new GenshinDamageSource(transform.apply(new DamageSource(id)), attacker));
 
-        if (!(raw instanceof GenshinDamageSource)) {
+        if (!(raw instanceof GenshinDamageSource result)) {
             String msg = String.format("Transformer for %s enum must return same type of DamageSource!", getClass().getName());
             throw new ReportedException(CrashReport.forThrowable(new Exception(msg), msg));
         }
 
-        GenshinDamageSource result = (GenshinDamageSource) raw;
         result.withElement(this);
         return result;
     }

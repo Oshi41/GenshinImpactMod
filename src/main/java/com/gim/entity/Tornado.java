@@ -166,8 +166,7 @@ public class Tornado extends Projectile {
         }
 
         // trying to perform elemental reactions
-        if (Objects.equals(element, Elementals.ANEMO) && entity instanceof LivingEntity) {
-            LivingEntity living = (LivingEntity) entity;
+        if (Objects.equals(element, Elementals.ANEMO) && entity instanceof LivingEntity living) {
             for (Elementals e : SPREADING) {
                 // perform elemental infusion
                 if (e.is(living)) {

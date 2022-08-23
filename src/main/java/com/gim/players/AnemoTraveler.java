@@ -157,8 +157,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
     @Override
     public void onStarAdded(LivingEntity holder, IGenshinInfo info, int currentStarCount) {
         switch (currentStarCount) {
-
-            case 2:
+            case 2 -> {
                 GenshinEntityData entityData = info.getPersonInfo(this);
                 if (entityData != null) {
                     AttributeInstance instance = entityData.getAttributes().getInstance(Attributes.recharge_bonus);
@@ -166,8 +165,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         instance.addPermanentModifier(new AttributeModifier(RECHARGE_MODIFIER, "anemo_traveler_recharge", 1.16, AttributeModifier.Operation.MULTIPLY_TOTAL));
                     }
                 }
-                break;
-
+            }
         }
     }
 

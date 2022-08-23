@@ -35,7 +35,7 @@ public class LevelScaling {
     @SubscribeEvent
     public static void onEntityAdded(EntityJoinWorldEvent e) {
         // setting level for all living entities but players
-        if (!(e.getEntity() instanceof LivingEntity) || e.getEntity() instanceof Player) {
+        if (!(e.getEntity() instanceof LivingEntity livingEntity) || e.getEntity() instanceof Player) {
             return;
         }
 
@@ -55,7 +55,6 @@ public class LevelScaling {
         float diff = (e.getWorld().getRandom().nextFloat() - 1) * 4;
 
         int entityLevel = (int) Math.max(1, currentWorldLevel + diff);
-        LivingEntity livingEntity = (LivingEntity) e.getEntity();
 
         if (scaleLevel(livingEntity::getAttribute, entityLevel)) {
 
