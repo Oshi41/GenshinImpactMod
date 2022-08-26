@@ -1,13 +1,11 @@
 package com.gim.registry;
 
 import com.gim.GenshinImpactMod;
-import com.gim.entity.AnemoBlade;
-import com.gim.entity.Energy;
-import com.gim.entity.Shield;
-import com.gim.entity.Tornado;
+import com.gim.entity.*;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ObjectHolder;
@@ -16,11 +14,12 @@ import net.minecraftforge.registries.ObjectHolder;
 @ObjectHolder(GenshinImpactMod.ModID)
 public class Entities {
 
-    public static final EntityType<Shield> shield_entity_type = null;
-    public static final EntityType<Tornado> tornado_entity_type = null;
+    public static final EntityType<Shield> shield = null;
+    public static final EntityType<Tornado> tornado = null;
 
-    public static final EntityType<Energy> energy_type = null;
-    public static final EntityType<AnemoBlade> anemo_blade_type = null;
+    public static final EntityType<Energy> energy_orb = null;
+    public static final EntityType<AnemoBlade> anemo_blade = null;
+    public static final EntityType<ParametricTransformer> parametric_transformer = null;
 
     @SubscribeEvent
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
@@ -30,22 +29,32 @@ public class Entities {
                                 .fireImmune()
                                 .sized(.5f, .5f)
                                 .clientTrackingRange(4),
-                        "shield_entity_type"),
+                        "shield"),
 
                 registerType(EntityType.Builder.<Tornado>of(Tornado::new, MobCategory.MISC)
                                 .sized(2, 5),
-                        "tornado_entity_type"),
+                        "tornado"),
 
                 registerType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.MISC)
                                 .sized(.5f, .5f)
                                 .fireImmune(),
-                        "energy_type"),
+                        "energy_orb"),
 
                 registerType(EntityType.Builder.<AnemoBlade>of(AnemoBlade::new, MobCategory.MISC)
                                 .sized(2.5f, 0.5f),
-                        "anemo_blade_type"
+                        "anemo_blade"
+                ),
+
+                registerType(EntityType.Builder.<ParametricTransformer>of(ParametricTransformer::new, MobCategory.MISC)
+                                .sized(1, 1),
+                        "parametric_transformer"
                 )
         );
+    }
+
+    @SubscribeEvent
+    public static void registerEntityAttributes(EntityAttributeCreationEvent event) {
+        event.put(parametric_transformer, ParametricTransformer.createAttributes().build());
     }
 
     /**

@@ -45,7 +45,7 @@ public class Tornado extends Projectile {
     }
 
     public Tornado(Entity owner, float yHeadRot, int maxLiveTime, Elementals source) {
-        this(Entities.tornado_entity_type, owner.getLevel());
+        this(Entities.tornado, owner.getLevel());
         liveTime = maxLiveTime;
         withElement(source);
         setOwner(owner);

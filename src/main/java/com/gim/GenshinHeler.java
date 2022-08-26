@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
@@ -24,6 +25,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.*;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
@@ -459,5 +463,24 @@ public class GenshinHeler {
         } else {
             return entity.hasEffect(MobEffects.DIG_SLOWDOWN) ? 6 + (1 + entity.getEffect(MobEffects.DIG_SLOWDOWN).getAmplifier()) * 2 : 6;
         }
+    }
+
+    public static RecipeManager getRecipeManager(LivingEntity entity) {
+        if (entity == null)
+            return null;
+
+        MinecraftServer server = entity.getLevel().isClientSide()
+                ? clientServer()
+                : entity.getLevel().getServer();
+
+        if (server == null)
+            return null;
+
+        return server.getRecipeManager();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static MinecraftServer clientServer() {
+        return net.minecraft.client.Minecraft.getInstance().getSingleplayerServer();
     }
 }

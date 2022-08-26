@@ -4,6 +4,10 @@ import com.gim.capability.genshin.IGenshinInfo;
 import com.gim.players.base.IGenshinPlayer;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Registries;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,7 +23,7 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.FakePlayer;
 
-import java.util.UUID;
+import java.util.*;
 
 public class TestHelper {
 
@@ -101,5 +105,86 @@ public class TestHelper {
      */
     public static Boolean isBitPresented(int mask, int bitIndex) {
         return (mask & 1 << bitIndex) == (1 << bitIndex);
+    }
+
+    /**
+     * Generates wrong data from original json element
+     * Can be used from test data
+     *
+     * @param wrong   - all wrong json elements
+     * @param correct - correct one
+     * @param exclude - excliding properties
+     */
+    public static void generateWrongData(List<JsonElement> wrong, JsonElement correct, String... exclude) {
+        if (correct.isJsonObject()) {
+            JsonObject jsonObject = correct.getAsJsonObject();
+
+            for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+                for (String val : generateWrongStrings(entry.getKey())) {
+                    JsonObject copy = jsonObject.deepCopy();
+                    copy.remove(entry.getKey());
+                    copy.add(val, entry.getValue());
+                    wrong.add(copy);
+                }
+
+
+                // exclude properties
+                if (Arrays.stream(exclude).noneMatch(x -> Objects.equals(x, entry.getKey()))) {
+                    ArrayList<JsonElement> wrongVals = new ArrayList<>();
+                    generateWrongData(wrongVals, entry.getValue(), exclude);
+
+                    for (JsonElement wrongElement : wrongVals) {
+                        JsonObject copy = jsonObject.deepCopy();
+                        copy.add(entry.getKey(), wrongElement);
+                        wrong.add(copy);
+                    }
+                }
+            }
+        }
+
+        // change all primitive values
+        if (correct.isJsonPrimitive()) {
+            JsonPrimitive primitive = correct.getAsJsonPrimitive();
+
+            if (!primitive.isBoolean()) {
+                wrong.add(new JsonPrimitive(false));
+            }
+
+            if (!primitive.isString()) {
+                wrong.add(new JsonPrimitive("Some string"));
+            }
+
+            if (!primitive.isNumber()) {
+                wrong.add(new JsonPrimitive(123.547f));
+            }
+        }
+
+        if (correct.isJsonArray()) {
+            JsonArray array = correct.getAsJsonArray();
+
+            for (int i = 0; i < array.size(); i++) {
+                JsonElement element = array.get(i);
+                ArrayList<JsonElement> wrongs = new ArrayList<>();
+                generateWrongData(wrongs, element, exclude);
+
+                for (JsonElement incorrect : wrongs) {
+                    JsonArray copy = array.deepCopy();
+                    copy.set(i, incorrect);
+                    wrong.add(copy);
+                }
+            }
+        }
+    }
+
+    /**
+     * Generates wrong strings: with/without symbol and replaced
+     */
+    private static List<String> generateWrongStrings(String origin) {
+        return List.of(
+                origin + "1",
+                origin.substring(1),
+                origin.substring(0, origin.length() - 1),
+                '試' + origin.substring(1)
+        );
     }
 }

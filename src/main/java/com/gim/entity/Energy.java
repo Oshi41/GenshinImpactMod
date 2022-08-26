@@ -44,7 +44,7 @@ public class Energy extends Entity implements IEntityAdditionalSpawnData {
     }
 
     public Energy(Entity owner, Entity victim, int energy, Elementals elementals) {
-        super(Entities.energy_type, owner.getLevel());
+        super(Entities.energy_orb, owner.getLevel());
 
         following = owner;
         this.energy = energy;

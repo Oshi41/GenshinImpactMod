@@ -145,6 +145,6 @@ public class AnemoTravelerTests {
         }
 
         // checking if tornado entity was spawned
-        helper.runAfterDelay(AnemoTraveler.BURST_ANIM_TIME + 1, () -> helper.assertEntityPresent(Entities.tornado_entity_type, new BlockPos(3,3,3), 7));
+        helper.runAfterDelay(AnemoTraveler.BURST_ANIM_TIME + 1, () -> helper.assertEntityPresent(Entities.tornado, new BlockPos(3,3,3), 7));
     }
 }

@@ -3,27 +3,21 @@ package com.gim.entity;
 import com.gim.attack.GenshinDamageSource;
 import com.gim.registry.Elementals;
 import com.gim.registry.Entities;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class AnemoBlade extends ThrowableProjectile {
     private double attack;
 
     public AnemoBlade(LivingEntity entity) {
-        this(Entities.anemo_blade_type, entity.getLevel());
+        this(Entities.anemo_blade, entity.getLevel());
         attack = entity.getAttributeValue(Attributes.ATTACK_DAMAGE);
 
         Vec3 lookAngle = entity.getLookAngle();

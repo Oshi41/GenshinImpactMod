@@ -1,0 +1,36 @@
+{
+  "type": "gim:parametric_transformer",
+  "amount": 1,
+  "damage": 5,
+  "results": [
+    {
+      "item": "gim:brilliant_large"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:iron_block"
+    },
+    {
+      "item": "minecraft:gold_block"
+    },
+    {
+      "item": "minecraft:copper_block"
+    },
+    {
+      "item": "minecraft:netherite_block"
+    },
+    {
+      "item": "minecraft:coal_block"
+    },
+    {
+      "item": "minecraft:diamond_block"
+    },
+    {
+      "item": "minecraft:emerald_block"
+    },
+    {
+      "item": "minecraft:axolotl_bucket"
+    }
+  ]
+}

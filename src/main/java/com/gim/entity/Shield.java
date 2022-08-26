@@ -39,7 +39,7 @@ public class Shield extends Entity implements IEntityAdditionalSpawnData {
     }
 
     public Shield(Entity source, Elementals elemental, int hp, double effectivity, int duration) {
-        this(Entities.shield_entity_type, source.getLevel());
+        this(Entities.shield, source.getLevel());
         this.elemental = elemental;
         this.hp = hp;
         this.effectivity = effectivity;

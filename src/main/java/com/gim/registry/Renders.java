@@ -6,7 +6,6 @@ import com.gim.client.entity.EnergyRenderer;
 import com.gim.client.layers.IceRender;
 import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
-import com.gim.entity.AnemoBlade;
 import com.gim.entity.Shield;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -36,7 +35,7 @@ public class Renders {
         //////////////////////
         // ENTITIES
         //////////////////////
-        e.registerEntityRenderer(Entities.shield_entity_type, c -> new CustomTextureRender<>(c) {
+        e.registerEntityRenderer(Entities.shield, c -> new CustomTextureRender<>(c) {
             @Override
             public ResourceLocation getTextureLocation(Shield e) {
                 return switch (e.getElemental()) {
@@ -58,10 +57,13 @@ public class Renders {
             }
         });
 
-        e.registerEntityRenderer(Entities.tornado_entity_type, TornadoRenderer::new);
-        e.registerEntityRenderer(Entities.energy_type, EnergyRenderer::new);
-        e.registerEntityRenderer(Entities.anemo_blade_type,
+        e.registerEntityRenderer(Entities.tornado, TornadoRenderer::new);
+        e.registerEntityRenderer(Entities.energy_orb, EnergyRenderer::new);
+        e.registerEntityRenderer(Entities.anemo_blade,
                 c -> new CustomTextureRender<>(c, Lazy.of(() -> new ResourceLocation(GenshinImpactMod.ModID, "textures/entity/anemo_blade.png"))));
+
+        e.registerEntityRenderer(Entities.parametric_transformer,
+                c -> new CustomTextureRender<>(c, Lazy.of(() -> new ResourceLocation(GenshinImpactMod.ModID, "textures/entity/parametric_transformer.png"))));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

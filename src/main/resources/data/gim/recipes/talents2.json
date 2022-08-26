@@ -1,0 +1,36 @@
+{
+  "type": "gim:parametric_transformer",
+  "amount": 1,
+  "damage": 5,
+  "results": [
+    {
+      "item": "gim:freedom_scroll_2"
+    },
+    {
+      "item": "gim:resistance_scroll_2"
+    },
+    {
+      "item": "gim:ballad_scroll_2"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:golden_apple"
+    },
+    {
+      "item": "minecraft:enchanted_golden_apple"
+    },
+    {
+      "item": "minecraft:glistering_melon_slice"
+    },
+    {
+      "item": "minecraft:golden_carrot"
+    },
+    {
+      "item": "minecraft:poisonous_potato"
+    },
+    {
+      "item": "gim:wind_astra"
+    }
+  ]
+}

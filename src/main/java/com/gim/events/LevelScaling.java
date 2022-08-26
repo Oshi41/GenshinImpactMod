@@ -39,7 +39,7 @@ public class LevelScaling {
             return;
         }
 
-        Integer levelUpInMuntes = GenshinImpactMod.CONFIG.getKey().levelUpTime.get();
+        Integer levelUpInMuntes = GenshinImpactMod.CONFIG.getKey().levelUpTimeMin.get();
         long gameTime = e.getWorld().getGameTime();
         long ticks = levelUpInMuntes * 60 * 20;
         long currentWorldLevel = gameTime / ticks;

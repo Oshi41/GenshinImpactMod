@@ -5,6 +5,7 @@ import com.gim.artifacts.base.ArtifactSlotType;
 import com.gim.items.ArtefactItem;
 import com.gim.items.ConstellationItem;
 import com.gim.items.GenshinMaterialItem;
+import com.gim.items.ParametricTransformerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraftforge.common.util.Lazy;
@@ -41,6 +42,8 @@ public class Items {
     public static final ArtefactItem adventure_crown = null;
     public static final ArtefactItem adventure_feather = null;
     public static final ArtefactItem adventure_flower = null;
+
+    public static final ParametricTransformerItem parametric_transformer = null;
 
     @SubscribeEvent
     public static void register(RegistryEvent.Register<Item> event) {
@@ -79,7 +82,9 @@ public class Items {
                 new GenshinMaterialItem(new Item.Properties().setNoRepair().rarity(Rarity.EPIC))
                         .setRegistryName(GenshinImpactMod.ModID, "crown"),
                 new GenshinMaterialItem(new Item.Properties().setNoRepair().rarity(Rarity.EPIC))
-                        .setRegistryName(GenshinImpactMod.ModID, "dragon_claw")
+                        .setRegistryName(GenshinImpactMod.ModID, "dragon_claw"),
+
+                new ParametricTransformerItem().setRegistryName(GenshinImpactMod.ModID, "parametric_transformer")
         );
 
         event.getRegistry().registerAll(createSet("adventure"));

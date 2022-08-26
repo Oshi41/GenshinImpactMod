@@ -72,6 +72,7 @@
   "genshin.constellations": "Constellation level",
   "genshin.set_bonus": "Set bonus:",
   "gim.upgrade": "Upgrade",
+  "gim.start": "Start",
   "block.gim.artifacts_forge": "Artifacts forge",
   "gim.crafting.artifacts_forge": "Artifacts forge",
   "gim.level": "%s level",
@@ -119,5 +120,9 @@
   "gim.configgui.indicateReactions": "Should Genshin Impact Mod render name of elemental reactions occured? Usually it's very informative!",
   "gim.configgui.levelUpTime": "Time (int minutes) which causes world level increase. After server world exist this amount of time, it's level increases by one.",
   "gim.configgui.levelScaling": "Multiplier for entity on max level for scaling attributes: attack/defence/HP. For example, entity on max level is 5x bigger than on 1 level",
-  "gim.configgui.maxLevelAttackMultiplier": "Multiplier for entity on max level for scaling attack damage. For example, entity attack on max level is 5x bigger than on 1 level"
+  "gim.configgui.maxLevelAttackMultiplier": "Multiplier for entity on max level for scaling attack damage. For example, entity attack on max level is 5x bigger than on 1 level",
+  "item.gim.crown": "Crown",
+  "item.gim.dragon_claw": "Dragon Claw",
+  "item.gim.parametric_transformer": "Parametric Transformer",
+  "gim.gui.parametric_transformer": "Parametric Transformer"
 }

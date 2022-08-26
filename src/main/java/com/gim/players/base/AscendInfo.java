@@ -23,7 +23,7 @@ public class AscendInfo {
     public AscendInfo(@Nullable AttributeMap map, int level, int playerLevels, @Nullable Attribute specialAttribute, @Nullable Component add, ItemStack... materials) {
         this.playerLevels = playerLevels;
         // based on world level up time but 10 times faster
-        ticksTillLevel = (level + 1) * GenshinImpactMod.CONFIG.getKey().levelUpTime.get() * 60L * 24 / 10;
+        ticksTillLevel = (level + 1) * GenshinImpactMod.CONFIG.getKey().levelUpTimeMin.get() * 60L * 24 / 10;
 
         // all characters increases this stat
         List<Attribute> stats = new ArrayList<>(LevelScaling.SCALING_MODIFIERS.get().keySet());

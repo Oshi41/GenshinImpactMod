@@ -1,0 +1,36 @@
+{
+  "type": "gim:parametric_transformer",
+  "amount": 1,
+  "damage": 10,
+  "results": [
+    {
+      "item": "gim:brilliant"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:iron_ingot"
+    },
+    {
+      "item": "minecraft:gold_ingot"
+    },
+    {
+      "item": "minecraft:copper_ingot"
+    },
+    {
+      "item": "minecraft:netherite_ingot"
+    },
+    {
+      "item": "minecraft:coal"
+    },
+    {
+      "item": "minecraft:diamond"
+    },
+    {
+      "item": "minecraft:emerald"
+    },
+    {
+      "item": "minecraft:axolotl_bucket"
+    }
+  ]
+}
