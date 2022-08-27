@@ -105,9 +105,6 @@ public class ParametricTransformerMenuTests {
                 }
             }
 
-            Set<Item> fastSearch = allPossible.stream().map(x -> x.getItem()).collect(Collectors.toSet());
-            Set<Item> other = ForgeRegistries.ITEMS.getValues().stream().filter(x -> !fastSearch.contains(x)).collect(Collectors.toSet());
-
             // clear container
             transformerMenu.slots.get(0).container.clearContent();
 
@@ -123,18 +120,28 @@ public class ParametricTransformerMenuTests {
             // clear container
             transformerMenu.slots.get(0).container.clearContent();
 
-            // inserting at first slot
-            transformerMenu.getSlot(0).set(allPossible.get(0));
-            allPossible.remove(0);
+            // TODO
+            // 1) Check any set of items and check safe insert
+            // 2) Calculate items that cannot insert for current recipe(s)
 
-            // checking for current recipe
-            for (ItemStack stack : allPossible) {
-                for (int i = 0; i < 9; i++) {
-                    if (!transformerMenu.getSlot(i).mayPlace(stack)) {
-                        helper.fail(String.format("[WITH RECIPE %s] Transformer menu can't insert %s in %s slot", recipe.getId(), stack.getDisplayName().getString(), i));
-                    }
-                }
-            }
+//            for (int i = 0; i < allPossible.size(); i++) {
+//                ItemStack origin = allPossible.get(i);
+//            }
+//
+//            // inserting at first slot
+//            transformerMenu.getSlot(0).set(allPossible.get(0));
+//            allPossible.remove(0);
+//
+//
+//
+//            // checking for current recipe
+//            for (ItemStack stack : allPossible) {
+//                for (int i = 0; i < 9; i++) {
+//                    if (!transformerMenu.getSlot(i).mayPlace(stack)) {
+//                        helper.fail(String.format("[WITH RECIPE %s] Transformer menu can't insert %s in %s slot", recipe.getId(), stack.getDisplayName().getString(), i));
+//                    }
+//                }
+//            }
 
             // TODO
             // detect which one item we should not place
