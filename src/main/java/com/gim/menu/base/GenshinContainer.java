@@ -105,7 +105,9 @@ public class GenshinContainer implements Container, INBTSerializable<CompoundTag
     @Override
     public void clearContent() {
         for (int i = 0; i < items.size(); i++) {
-            setItem(i, ItemStack.EMPTY);
+            // remove not null elements
+            if (!getItem(i).isEmpty())
+                setItem(i, ItemStack.EMPTY);
         }
     }
 

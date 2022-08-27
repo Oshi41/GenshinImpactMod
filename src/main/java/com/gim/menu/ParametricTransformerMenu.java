@@ -17,12 +17,17 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ParametricTransformerMenu extends GenshinMenuBase {
     private final GenshinContainer container = new GenshinContainer(9);
     private final ContainerData data = new SimpleContainerData(1);
-    private ParametricTransformerRecipe recipe;
+    private final Map<ParametricTransformerRecipe, Integer> recipes = new HashMap<>();
 
     protected ParametricTransformerMenu(@Nullable MenuType<?> menuType, int containerID, Inventory playerInv, ContainerLevelAccess access) {
         super(menuType, containerID, playerInv, access);
@@ -37,46 +42,61 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
 
                 @Override
                 public boolean mayPlace(ItemStack stack) {
-                    return recipe != null
-                            ? recipe.possibleCatalyst(stack)
-                            : from(stack, playerInv.player) != null;
+                    if (recipes.isEmpty()) {
+                        // acceptable by any transformer recipe
+                        return GenshinHeler.getRecipeManager(playerInv.player).getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
+                                .stream()
+                                .anyMatch(x -> x.isAcceptableAsCatalyst(stack));
+                    } else {
+                        //  can current recipes accept this item
+                        return recipes.keySet().stream().anyMatch(x -> x.isAcceptableAsCatalyst(stack));
+                    }
                 }
 
                 @Override
                 public void setChanged() {
                     super.setChanged();
 
-                    // current recipe
-                    if (this.container.isEmpty()) {
-                        recipe = null;
-                    } else if (recipe == null) {
-                        // iterating through all items
-                        for (int i = 0; i < container.getContainerSize(); i++) {
-                            ItemStack item = container.getItem(i);
-                            // find first not null
-                            if (!item.isEmpty()) {
-                                // searching recipe
-                                recipe = from(item, playerInv.player);
-                                break;
-                            }
+                    // clear saved recipes
+                    recipes.clear();
+
+                    // no items inside
+                    if (container.isEmpty()) {
+                        setEnergy(0);
+                        return;
+                    }
+
+                    // iterating through all transformer recipes
+                    for (ParametricTransformerRecipe recipe : GenshinHeler.getRecipeManager(playerInv.player).getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)) {
+                        int energy = recipe.getEnergy(container, playerInv.player.getLevel());
+
+                        // if contains any energy we should store it
+                        if (energy > 0) {
+                            recipes.put(recipe, energy);
                         }
                     }
 
-                    int energy = 0;
-
-                    // calculating energy
-                    for (int i = 0; i < container.getContainerSize(); i++) {
-                        ItemStack stack = container.getItem(i);
-                        if (!stack.isEmpty()) {
-                            energy += stack.getCount() * (stack.getItem().getRarity(stack).ordinal() + 1);
-                        }
-                    }
-
+                    // find max energy for some recipe
+                    int energy = recipes.values().stream().max(Integer::compareTo).orElse(0);
                     setEnergy(energy);
+
+                    // need to left only one recipe cause we can apply transformation
+                    if (energy >= 150) {
+                        // find all recipes with max energies
+                        List<ParametricTransformerRecipe> accepted = recipes.entrySet().stream().filter(x -> x.getValue() == energy).map(Map.Entry::getKey).toList();
+                        // founded recipe by random index
+                        int index = playerInv.player.getLevel().getRandom().nextInt(accepted.size());
+                        ParametricTransformerRecipe recipe = accepted.get(index);
+
+                        // left only one recipe
+                        recipes.clear();
+                        recipes.put(recipe, energy);
+                    }
                 }
             });
         }
 
+        container.addListener((int slotId, ItemStack prev, ItemStack current) -> getSlot(slotId).setChanged());
         drawPlayersSlots(8, 84);
     }
 
@@ -101,7 +121,7 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
 
     @Override
     public boolean clickMenuButton(Player player, int index) {
-        if (index == 0 && getEnergy() >= 150 && recipe != null) {
+        if (index == 0 && getEnergy() >= 150 && recipes.size() == 1) {
             access.execute((level, blockPos) -> {
                 // remove parametric transformer
                 player.getMainHandItem().shrink(1);
@@ -110,7 +130,7 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
                 container.clearContent();
 
                 // placing entity in world
-                level.addFreshEntity(new ParametricTransformer(player, recipe));
+                level.addFreshEntity(new ParametricTransformer(player, recipes.keySet().iterator().next()));
                 removed(player);
             });
 
@@ -131,9 +151,27 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
         data.set(0, val);
     }
 
-    @Nullable
-    public ParametricTransformerRecipe getCurrentRecipe() {
-        return recipe;
+    /**
+     * Possible catalysts
+     *
+     * @param offset - how many items we should skip
+     * @param take   - how many items we should take
+     * @return - items to render
+     */
+    public List<ItemStack> getPossibleCatalysts(int offset, int take) {
+
+        Stream<ParametricTransformerRecipe> stream = recipes.isEmpty()
+                // choose all possible recipes
+                ? GenshinHeler.getRecipeManager(playerInv.player).getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER).stream()
+                // choosing only possible recipes
+                : recipes.keySet().stream();
+
+        // retrieving possible catalysts
+        return stream.flatMap(x -> x.getIngredients().stream())
+                .flatMap(x -> Arrays.stream(x.getItems()))
+                .skip(offset)
+                .limit(take)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -142,17 +180,17 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
      * @param stack  - catalyst
      * @param entity - holder entity
      */
-    public static ParametricTransformerRecipe from(ItemStack stack, LivingEntity entity) {
+    @NotNull
+    public static List<ParametricTransformerRecipe> from(ItemStack stack, LivingEntity entity) {
         RecipeManager recipeManager = GenshinHeler.getRecipeManager(entity);
         if (recipeManager == null)
-            return null;
+            return List.of();
 
-        ParametricTransformerRecipe result = recipeManager.getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
+        List<ParametricTransformerRecipe> recipes = recipeManager.getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
                 .stream()
-                .filter(x -> x.possibleCatalyst(stack))
-                .findFirst()
-                .orElse(null);
+                .filter(x -> x.isAcceptableAsCatalyst(stack))
+                .toList();
 
-        return result;
+        return recipes;
     }
 }

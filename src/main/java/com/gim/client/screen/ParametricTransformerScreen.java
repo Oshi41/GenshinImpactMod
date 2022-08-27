@@ -25,11 +25,8 @@ import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class ParametricTransformerScreen extends GenshinScreenBase<ParametricTransformerMenu> {
-    private String recipeName;
-    private List<ItemStack> allItems = null;
-    private int index = -1;
-
-    private final ArrayList<ItemStack> toShow = new ArrayList<>(9);
+    private int offset = 0;
+    private List<ItemStack> toShow = List.of();
 
     public ParametricTransformerScreen(ParametricTransformerMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component, new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/parametric_transformer/parametric_transformer.png"));
@@ -59,45 +56,24 @@ public class ParametricTransformerScreen extends GenshinScreenBase<ParametricTra
     }
 
     private void updateItems() {
-        ParametricTransformerRecipe currentRecipe = getMenu().getCurrentRecipe();
-        String currentRecipeName = currentRecipe == null
-                ? null
-                : currentRecipe.getId().toString();
+        // 9
+        int size = getMenu().getSlot(0).container.getContainerSize();
 
-        // need to fill all possible items
-        if (allItems == null || allItems.isEmpty() || !Objects.equals(currentRecipeName, recipeName)) {
-            // save new recipe name
-            recipeName = currentRecipeName;
-
-            // filling all possible items
-            if (currentRecipe != null) {
-                allItems = currentRecipe.getIngredients().stream().flatMap(x -> Arrays.stream(x.getItems())).collect(Collectors.toList());
-            } else {
-                allItems = GenshinHeler.getRecipeManager(getMinecraft().player)
-                        .getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
-                        .stream()
-                        .flatMap(x -> x.getIngredients().stream())
-                        .flatMap(x -> Arrays.stream(x.getItems()))
-                        .collect(Collectors.toList());
-            }
+        if (!getMinecraft().isPaused() && getMinecraft().player.tickCount % 20 == 0) {
+            offset += size;
         }
 
-        // showing next 9 items
-        if (allItems != null && allItems.isEmpty() && !getMinecraft().isPaused() && (getMinecraft().player.tickCount & 20) == 0) {
-            int correctedIndex = this.index;
+        // find by offset
+        List<ItemStack> stacks = getMenu().getPossibleCatalysts(offset, size);
 
-            for (int i = 0; i < 9; i++) {
-                correctedIndex++;
-                correctedIndex = Math.max(0, correctedIndex);
-                if (correctedIndex >= allItems.size()) {
-                    correctedIndex = 0;
-                }
-
-                toShow.set(i, allItems.get(correctedIndex));
-            }
-
-            this.index = correctedIndex;
+        // find less than needed amount
+        if (stacks.size() < size) {
+            offset = 0;
+            // making second request from start
+            stacks.addAll(getMenu().getPossibleCatalysts(offset, size - stacks.size()));
         }
+
+        toShow = stacks;
     }
 
     @Override

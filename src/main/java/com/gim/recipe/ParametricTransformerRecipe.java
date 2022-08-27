@@ -12,7 +12,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.JsonUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -46,16 +45,26 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
 
     @Override
     public boolean matches(Container container, Level level) {
+        return getEnergy(container, level) >= 150;
+    }
 
-        List<ItemStack> applied = new ArrayList<>();
+    /**
+     * Returns energy for current recipe
+     *
+     * @param container - current container
+     * @param level     - current level
+     */
+    public int getEnergy(Container container, Level level) {
+        int energy = 0;
 
         for (int i = 0; i < container.getContainerSize(); i++) {
-            if (possibleCatalyst(container.getItem(i)))
-                applied.add(container.getItem(i).copy());
+            ItemStack item = container.getItem(i);
+            if (!item.isEmpty() && isAcceptableAsCatalyst(item)) {
+                energy += (item.getRarity().ordinal() + 1) * item.getCount();
+            }
         }
 
-        int sum = applied.stream().mapToInt(x -> x.getCount() * (x.getItem().getRarity(x).ordinal() + 1)).sum();
-        return sum >= 150;
+        return energy;
     }
 
     @Override
@@ -79,7 +88,7 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
      * @param stack - catalyst
      * @return
      */
-    public boolean possibleCatalyst(ItemStack stack) {
+    public boolean isAcceptableAsCatalyst(ItemStack stack) {
         return getIngredients().stream().anyMatch(x -> x.test(stack));
     }
 
