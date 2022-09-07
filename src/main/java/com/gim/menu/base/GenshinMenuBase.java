@@ -11,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class GenshinMenuBase extends AbstractContainerMenu implements ContainerListener {
     protected final Inventory playerInv;
     protected final ContainerLevelAccess access;
-    private int firstPlayerSlot;
-    private int lastPlayerSlot;
+    protected int firstPlayerSlot;
+    protected int lastPlayerSlot;
 
     protected GenshinMenuBase(@Nullable MenuType<?> menuType, int containerID, Inventory playerInv, ContainerLevelAccess access) {
         super(menuType, containerID);

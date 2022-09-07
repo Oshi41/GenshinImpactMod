@@ -13,20 +13,21 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
 public class ParametricTransformerScreen extends GenshinScreenBase<ParametricTransformerMenu> {
+    private final int pageSize;
     private int offset = 0;
-    private List<ItemStack> toShow = List.of();
+    private final List<ItemStack> toShow = new ArrayList<>();
 
     public ParametricTransformerScreen(ParametricTransformerMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component, new ResourceLocation(GenshinImpactMod.ModID, "textures/gui/parametric_transformer/parametric_transformer.png"));
@@ -36,6 +37,22 @@ public class ParametricTransformerScreen extends GenshinScreenBase<ParametricTra
 
         this.imageWidth = 173;
         this.imageHeight = 163;
+
+        RecipeManager recipeManager = GenshinHeler.getRecipeManager(inventory.player);
+        if (recipeManager != null) {
+
+            // fill all possible items to show them inside GUI
+            List<ItemStack> allItems = recipeManager.getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
+                    .stream()
+                    .flatMap(x -> x.getAllCatalysts().stream().map(ItemStack::getItem))
+                    .map(Item::getDefaultInstance)
+                    .toList();
+
+            toShow.addAll(allItems);
+        }
+
+        // current page size is a size of container
+        pageSize = getMenu().slots.get(0).container.getContainerSize();
     }
 
     @Override
@@ -55,31 +72,34 @@ public class ParametricTransformerScreen extends GenshinScreenBase<ParametricTra
         });
     }
 
-    private void updateItems() {
-        // 9
-        int size = getMenu().getSlot(0).container.getContainerSize();
+    @Override
+    protected void containerTick() {
+        // every 3 seconds change items view
+        if (!getMinecraft().isPaused() && getMinecraft().player.tickCount % 15 == 0) {
 
-        if (!getMinecraft().isPaused() && getMinecraft().player.tickCount % 20 == 0) {
-            offset += size;
+            int xStart = this.leftPos + 8;
+            int xEnd = xStart + 16 + pageSize * 18;
+
+            int yStart = ((this.height - this.imageHeight) / 2) + 17;
+            int yEnd = yStart + 16;
+
+            // skip offsetting as we hover on items
+            if (xStart <= this.xMouse && this.xMouse <= xEnd
+                    &&
+                    yStart <= this.yMouse && this.yMouse <= yEnd) {
+                return;
+            }
+
+            offset += 1;
+            if (offset >= toShow.size()) {
+                offset = 0;
+            }
         }
-
-        // find by offset
-        List<ItemStack> stacks = getMenu().getPossibleCatalysts(offset, size);
-
-        // find less than needed amount
-        if (stacks.size() < size) {
-            offset = 0;
-            // making second request from start
-            stacks.addAll(getMenu().getPossibleCatalysts(offset, size - stacks.size()));
-        }
-
-        toShow = stacks;
     }
 
     @Override
-    protected void renderBg(PoseStack p_97787_, float p_97788_, int p_97789_, int p_97790_) {
-        super.renderBg(p_97787_, p_97788_, p_97789_, p_97790_);
-        updateItems();
+    protected void renderBg(PoseStack poseStack, float p_97788_, int mouseX, int mouseY) {
+        super.renderBg(poseStack, p_97788_, mouseX, mouseY);
 
         int i = this.leftPos;
         int j = (this.height - this.imageHeight) / 2;
@@ -87,17 +107,71 @@ public class ParametricTransformerScreen extends GenshinScreenBase<ParametricTra
         TextComponent component = new TextComponent(String.format("%s / %s", getMenu().getEnergy(), 150));
 
         // draw name
-        drawCenteredString(p_97787_, getMinecraft().font, component, i + 140, j + 55, -1);
+        drawCenteredString(poseStack, getMinecraft().font, component, i + 140, j + 55, -1);
 
-        for (int k = 0; k < toShow.size(); k++) {
-            int y = 17;
-            int x = 8 + k * 18;
+        int index = 0;
 
-            ItemStack itemStack = toShow.get(k);
+        for (ItemStack stack : getCurrentList()) {
+            int x = i + 8 + index * 18;
+            int y = j + 17;
 
             // draw items and it's count
-            this.itemRenderer.renderAndDecorateItem(itemStack, x, y);
-            this.itemRenderer.renderGuiItemDecorations(minecraft.font, itemStack, x, y);
+            this.itemRenderer.renderAndDecorateItem(stack, x, y);
+            this.itemRenderer.renderGuiItemDecorations(minecraft.font, stack, x, y);
+
+            // should render at the last order to hover everything
+            if (x <= mouseX && mouseX <= x + 16
+                    &&
+                    y <= mouseY && mouseY <= y + 16) {
+                // render tooltip for star
+                renderTooltip(poseStack, stack, mouseX, mouseY);
+            }
+
+            index++;
         }
+    }
+
+    private Iterable<ItemStack> getCurrentList() {
+
+        Iterator<ItemStack> iterator = new Iterator<>() {
+            int index = 0;
+
+            /**
+             * Return always valid index
+             * @param i - possible index
+             */
+            private int fixIndex(int i) {
+                int total = ParametricTransformerScreen.this.toShow.size();
+
+                if (i >= total) {
+                    return i % total;
+                }
+
+                return i;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return this.index < ParametricTransformerScreen.this.pageSize
+                        && !ParametricTransformerScreen.this.toShow.isEmpty();
+            }
+
+            @Override
+            public ItemStack next() {
+                int currentIndex = fixIndex(index + ParametricTransformerScreen.this.offset);
+                index++;
+
+                try {
+                    return ParametricTransformerScreen.this.toShow.get(currentIndex);
+                } catch (Exception e) {
+                    GenshinImpactMod.LOGGER.warn(e);
+                    return toShow.get(0);
+                }
+
+            }
+        };
+
+
+        return () -> iterator;
     }
 }

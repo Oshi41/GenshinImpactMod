@@ -7,89 +7,95 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
+/**
+ * Parametric Transformer Recipe.
+ * <p>
+ * Contains possible ingredients and possible results.
+ * During processing algorithm selects getAmount() of items randomly selected from results.
+ * Random should be applied to day of month, so it should give predictable results
+ * Quality affects recipe probability by 3 times rarer by level. It was made for more valuable recipes
+ * Damage means how much damage Parametric Transformer Entity receive per each elemental attack
+ */
 public class ParametricTransformerRecipe implements Recipe<Container> {
-    private final ResourceLocation id;
-    private final NonNullList<Ingredient> ingredients;
-    private NonNullList<Ingredient> results;
-    private int amount;
-    private int elementalDamage;
+
+    // region Static
 
     /**
-     * recipe for parametric transformer
-     *
-     * @param id              - recipe id
-     * @param ingredients     - possible ingredients
-     * @param results         - possible results
-     * @param amount          - how much stacks we should take from possible results
-     * @param elementalDamage - how much damage deals elemental attack. Usually it's 5, so we need 20 elemental hits to finish process.
-     *                        1 value causes hard process (100 attacks) and 100 means finishing with one punch
-     *                        Possible values [1, 100]
+     * Min recipe energy to start transforming
      */
-    public ParametricTransformerRecipe(ResourceLocation id, NonNullList<Ingredient> ingredients, NonNullList<Ingredient> results, int amount, int elementalDamage) {
-        this.id = id;
-        this.ingredients = ingredients;
-        this.results = results;
-        this.amount = amount;
-        this.elementalDamage = Mth.clamp(elementalDamage, 1, 100);
+    public static final int RECIPE_ENERGY = 150;
+
+
+    /**
+     * Helping method to calculate energy from item
+     *
+     * @param stack - catalyst
+     */
+    public static int getEnergy(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) {
+            return 0;
+        }
+
+        return stack.getCount() * (1 + stack.getRarity().ordinal());
     }
+
+    // endregion
+
+    // region fields and getters
+
+    private final ResourceLocation id;
+    private final NonNullList<Ingredient> ingredients;
+    private final NonNullList<Ingredient> results;
+    private final int amount;
+    private final int damage;
+    private final int quality;
+
+    /**
+     * Amount of items possibly can be obtained from recipe results
+     */
+    public int getAmount() {
+        return amount;
+    }
+
+    /**
+     * Get amount of damage Parametric Transformer Entity receive from elemental damage source
+     */
+    public int getDamage() {
+        return damage;
+    }
+
+    /**
+     * Recipe quality.
+     * Bigger quality chooses 3 times rarer by level
+     */
+    public int getQuality() {
+        return quality;
+    }
+
+    // endregion
+
+    // region Overrides
 
     @Override
     public boolean matches(Container container, Level level) {
-        return getEnergy(container, level) >= 150;
-    }
-
-    /**
-     * Returns energy for current recipe
-     *
-     * @param container - current container
-     * @param level     - current level
-     */
-    public int getEnergy(Container container, Level level) {
-        int energy = 0;
-
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            ItemStack item = container.getItem(i);
-            if (!item.isEmpty() && isAcceptableAsCatalyst(item)) {
-                energy += (item.getRarity().ordinal() + 1) * item.getCount();
-            }
-        }
-
-        return energy;
+        return getRecipeEnergy(container, level) > 0;
     }
 
     @Override
     public ItemStack assemble(Container p_44001_) {
-        return getResultItem();
-    }
-
-    @Override
-    public NonNullList<Ingredient> getIngredients() {
-        return ingredients;
-    }
-
-    @Override
-    public NonNullList<ItemStack> getRemainingItems(Container p_44004_) {
-        return Recipe.super.getRemainingItems(p_44004_);
-    }
-
-    /**
-     * Checks for possible catalyst
-     *
-     * @param stack - catalyst
-     * @return
-     */
-    public boolean isAcceptableAsCatalyst(ItemStack stack) {
-        return getIngredients().stream().anyMatch(x -> x.test(stack));
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -98,15 +104,13 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ItemStack getResultItem() {
-        return ItemStack.EMPTY;
+    public NonNullList<Ingredient> getIngredients() {
+        return ingredients;
     }
 
-    /**
-     * All possible results. Same instances but new list
-     */
-    public List<ItemStack> getResultItems() {
-        return results.stream().flatMap(x -> Arrays.stream(x.getItems())).collect(Collectors.toList());
+    @Override
+    public ItemStack getResultItem() {
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -124,37 +128,86 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
         return Recipes.Types.PARAMETRIC_TRANSFORMER;
     }
 
+    // endregion
+
     /**
-     * Amount of needed elemental damage
+     * Gets energy for current recipe
      *
-     * @return
+     * @param container - current container
+     * @param level     - current level
      */
-    public int getElementalDamage() {
-        return elementalDamage;
-    }
+    public int getRecipeEnergy(Container container, Level level) {
+        int energy = 0;
 
-    /**
-     * Returns result for recipe
-     */
-    public List<ItemStack> randomResultForDay() {
-        ArrayList<ItemStack> result = new ArrayList<>();
-
-        if (amount > 0) {
-            List<ItemStack> stacks = results.stream().flatMap(x -> Arrays.stream(x.getItems())).collect(Collectors.toList());
-
-            if (!stacks.isEmpty()) {
-                // random based on day of month
-                Random random = new Random(Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-
-                for (int i = 0; i < amount && !stacks.isEmpty(); i++) {
-                    int index = random.nextInt(stacks.size());
-                    result.add(stacks.get(index).copy());
-                    stacks.remove(index);
-                }
+        // iterate through all container items
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            ItemStack item = container.getItem(i);
+            if (match(item)) {
+                energy += getEnergy(item);
             }
         }
 
+        return energy;
+    }
+
+    /**
+     * generates random items from recipe
+     * Ideally should return predictable results if we use random with same seed
+     */
+    public List<ItemStack> getRandomItems(Random random) {
+        ArrayList<ItemStack> result = new ArrayList<>();
+
+        // all possible result items
+        List<ItemStack> itemStacks = getAllCatalysts();
+        // max items here
+        int max = getAmount();
+
+        while (max > 0 && !itemStacks.isEmpty()) {
+            // find random index
+            int index = random.nextInt(itemStacks.size());
+            // add as result item
+            result.add(itemStacks.get(index).copy());
+
+            // remove this item and decreasing amount
+            itemStacks.remove(index);
+            max -= 1;
+        }
+
         return result;
+    }
+
+    /**
+     * If provided stack accepted by current recips
+     *
+     * @param stack - current stack
+     */
+    public boolean match(ItemStack stack) {
+        for (Ingredient ingredient : getIngredients()) {
+            if (ingredient.test(stack)) {
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+    /**
+     * All possible catalysts for recipe
+     */
+    public List<ItemStack> getAllCatalysts() {
+        List<ItemStack> itemStacks = getIngredients().stream().flatMap(x -> Arrays.stream(x.getItems())).collect(Collectors.toList());
+        return itemStacks;
+    }
+
+    public ParametricTransformerRecipe(ResourceLocation id, NonNullList<Ingredient> ingredients, NonNullList<Ingredient> results, int amount, int damage, int quality) {
+
+        this.id = id;
+        this.ingredients = ingredients;
+        this.results = results;
+        this.amount = amount;
+        this.damage = damage;
+        this.quality = quality;
     }
 
     public static class ParametricTransformerRecipeSerializer extends net.minecraftforge.registries.ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<ParametricTransformerRecipe> {
@@ -165,7 +218,8 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
             NonNullList<Ingredient> results = itemsFromJson(GsonHelper.getAsJsonArray(jsonObject, "results"));
             int amount = GsonHelper.getAsInt(jsonObject, "amount");
             int damage = GsonHelper.getAsInt(jsonObject, "damage");
-            return new ParametricTransformerRecipe(location, ingredients, results, amount, damage);
+            int quality = GsonHelper.getAsInt(jsonObject, "quality");
+            return new ParametricTransformerRecipe(location, ingredients, results, amount, damage, quality);
         }
 
         private static NonNullList<Ingredient> itemsFromJson(JsonArray p_44276_) {
@@ -186,6 +240,7 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
         public ParametricTransformerRecipe fromNetwork(ResourceLocation location, FriendlyByteBuf buf) {
             int amount = buf.readInt();
             int damage = buf.readInt();
+            int quality = buf.readInt();
 
             NonNullList<Ingredient> ingredients = NonNullList.createWithCapacity(buf.readInt());
             NonNullList<Ingredient> results = NonNullList.createWithCapacity(buf.readInt());
@@ -193,13 +248,14 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
             ingredients.replaceAll(ignored -> Ingredient.fromNetwork(buf));
             results.replaceAll(ignored -> Ingredient.fromNetwork(buf));
 
-            return new ParametricTransformerRecipe(location, ingredients, results, amount, damage);
+            return new ParametricTransformerRecipe(location, ingredients, results, amount, damage, quality);
         }
 
         @Override
         public void toNetwork(FriendlyByteBuf buf, ParametricTransformerRecipe recipe) {
-            buf.writeInt(recipe.amount);
-            buf.writeInt(recipe.elementalDamage);
+            buf.writeInt(recipe.getAmount());
+            buf.writeInt(recipe.getDamage());
+            buf.writeInt(recipe.getQuality());
 
             buf.writeInt(recipe.ingredients.size());
             buf.writeInt(recipe.results.size());

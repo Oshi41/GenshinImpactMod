@@ -10,24 +10,22 @@ import com.gim.registry.Menus;
 import com.gim.registry.Recipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.util.Mth;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ParametricTransformerMenu extends GenshinMenuBase {
+
     private final GenshinContainer container = new GenshinContainer(9);
     private final ContainerData data = new SimpleContainerData(1);
-    private final Map<ParametricTransformerRecipe, Integer> recipes = new HashMap<>();
 
     protected ParametricTransformerMenu(@Nullable MenuType<?> menuType, int containerID, Inventory playerInv, ContainerLevelAccess access) {
         super(menuType, containerID, playerInv, access);
@@ -42,56 +40,42 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
 
                 @Override
                 public boolean mayPlace(ItemStack stack) {
-                    if (recipes.isEmpty()) {
-                        // acceptable by any transformer recipe
-                        return GenshinHeler.getRecipeManager(playerInv.player).getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
-                                .stream()
-                                .anyMatch(x -> x.isAcceptableAsCatalyst(stack));
-                    } else {
-                        //  can current recipes accept this item
-                        return recipes.keySet().stream().anyMatch(x -> x.isAcceptableAsCatalyst(stack));
-                    }
+                    return getEnergy() < ParametricTransformerRecipe.RECIPE_ENERGY && accepted(stack);
                 }
 
                 @Override
                 public void setChanged() {
                     super.setChanged();
 
-                    // clear saved recipes
-                    recipes.clear();
+                    int energy = 0;
 
-                    // no items inside
-                    if (container.isEmpty()) {
-                        setEnergy(0);
-                        return;
+                    for (int i = 0; i < container.getContainerSize(); i++) {
+                        energy += ParametricTransformerRecipe.getEnergy(container.getItem(i));
                     }
 
-                    // iterating through all transformer recipes
-                    for (ParametricTransformerRecipe recipe : GenshinHeler.getRecipeManager(playerInv.player).getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)) {
-                        int energy = recipe.getEnergy(container, playerInv.player.getLevel());
+                    setEnergy(energy);
+                }
 
-                        // if contains any energy we should store it
-                        if (energy > 0) {
-                            recipes.put(recipe, energy);
+                @Override
+                public int getMaxStackSize(ItemStack stack) {
+                    int totalEnergy = getEnergy() + ParametricTransformerRecipe.getEnergy(stack);
+                    // if energy overflows
+                    if (totalEnergy > ParametricTransformerRecipe.RECIPE_ENERGY) {
+                        int perItem = ParametricTransformerRecipe.getEnergy(stack) / stack.getCount();
+                        int overflow = totalEnergy - ParametricTransformerRecipe.RECIPE_ENERGY;
+
+                        // if actually overflow
+                        // so trying to put useless items
+                        if (overflow > perItem) {
+                            int reduce = (int) Math.floor(overflow / (double) perItem);
+                            int count = Math.max(0, stack.getCount() - reduce);
+
+                            // returning min of stack size
+                            return Math.min(count, super.getMaxStackSize());
                         }
                     }
 
-                    // find max energy for some recipe
-                    int energy = recipes.values().stream().max(Integer::compareTo).orElse(0);
-                    setEnergy(energy);
-
-                    // need to left only one recipe cause we can apply transformation
-                    if (energy >= 150) {
-                        // find all recipes with max energies
-                        List<ParametricTransformerRecipe> accepted = recipes.entrySet().stream().filter(x -> x.getValue() == energy).map(Map.Entry::getKey).toList();
-                        // founded recipe by random index
-                        int index = playerInv.player.getLevel().getRandom().nextInt(accepted.size());
-                        ParametricTransformerRecipe recipe = accepted.get(index);
-
-                        // left only one recipe
-                        recipes.clear();
-                        recipes.put(recipe, energy);
-                    }
+                    return super.getMaxStackSize(stack);
                 }
             });
         }
@@ -108,6 +92,26 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
         this(Menus.parametric_transformer, containerID, playerInv, ContainerLevelAccess.NULL);
     }
 
+    /**
+     * Is stack accepted by current recipe
+     *
+     * @param stack - current stack
+     */
+    private boolean accepted(ItemStack stack) {
+        if (stack != null && !stack.isEmpty()) {
+            RecipeManager recipeManager = GenshinHeler.getRecipeManager(this.playerInv.player);
+            if (recipeManager != null) {
+                for (ParametricTransformerRecipe recipe : recipeManager.getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)) {
+                    if (recipe.match(stack)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     @Override
     public boolean stillValid(Player player) {
         return player.getMainHandItem().getItem() instanceof ParametricTransformerItem
@@ -121,8 +125,11 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
 
     @Override
     public boolean clickMenuButton(Player player, int index) {
-        if (index == 0 && getEnergy() >= 150 && recipes.size() == 1) {
+        if (index == 0 && getEnergy() >= ParametricTransformerRecipe.RECIPE_ENERGY) {
             access.execute((level, blockPos) -> {
+                // items for current roll
+                Tuple<List<ItemStack>, Integer> result = generateRandomResult(Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+
                 // remove parametric transformer
                 player.getMainHandItem().shrink(1);
 
@@ -130,7 +137,7 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
                 container.clearContent();
 
                 // placing entity in world
-                level.addFreshEntity(new ParametricTransformer(player, recipes.keySet().iterator().next()));
+                level.addFreshEntity(new ParametricTransformer(player, result.getA(), result.getB()));
                 removed(player);
             });
 
@@ -141,56 +148,122 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
     }
 
     /**
+     * Generates random items for current ran
+     *
+     * @param day - day of month
+     * @return - tuple: 1) generated items, 2) damage for Parameter Transformer entity
+     */
+    private Tuple<List<ItemStack>, Integer> generateRandomResult(int day) {
+        Map<ParametricTransformerRecipe, Integer> recipeMap = new HashMap<>();
+        ArrayList<ItemStack> result = new ArrayList<>();
+        int damage = 5;
+
+        // correcting value
+        day = Mth.clamp(day, 1, 31);
+
+        // obtaining recipe manager
+        RecipeManager recipeManager = GenshinHeler.getRecipeManager(this.playerInv.player);
+        if (recipeManager != null) {
+            // find all possible recipes
+            for (ParametricTransformerRecipe recipe : recipeManager.getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)) {
+                // recipe energy value
+                int value = recipe.getRecipeEnergy(this.container, this.playerInv.player.getLevel());
+                if (value > 0) {
+                    // if can apply current recipe
+                    if (recipe.getQuality() > 0) {
+                        // every level quality lower possibility by 3 times
+                        value /= recipe.getQuality() * 3;
+                    }
+
+                    recipeMap.put(recipe, value);
+                }
+            }
+        }
+
+        // if find any recipes
+        if (!recipeMap.isEmpty()) {
+            Random random = new Random(day);
+            // 5-10 rolls
+            int rollAmount = (int) GenshinHeler.getRandomNormalDistrib(random, 5, 10);
+
+            // executing current amount of rolls
+            for (int i = 0; i < rollAmount; i++) {
+                ParametricTransformerRecipe recipe = GenshinHeler.selectRandomly(recipeMap, random);
+                result.addAll(recipe.getRandomItems(random));
+            }
+
+            // calculates damage. The most suitable recipe affects more to damage
+            damage = recipeMap.entrySet().stream().mapToInt(x -> x.getValue() * x.getKey().getDamage()).sum() / recipeMap.values().stream().mapToInt(x -> x).sum();
+        }
+
+        return new Tuple<>(result, damage);
+    }
+
+    /**
      * Current energy
      */
     public int getEnergy() {
         return data.get(0);
     }
 
+    @Override
+    protected boolean moveItemStackTo(ItemStack stack, int start, int end, boolean flag) {
+
+        if (start < end && end <= firstPlayerSlot) {
+            int finalEnergy = getEnergy() + ParametricTransformerRecipe.getEnergy(stack);
+            // overflowing
+            if (finalEnergy > ParametricTransformerRecipe.RECIPE_ENERGY) {
+                // actual overflow
+                int overflow = finalEnergy - ParametricTransformerRecipe.RECIPE_ENERGY;
+                // energy per item
+                int perItem = ParametricTransformerRecipe.getEnergy(stack) / stack.getCount();
+                // if overflow is same or bigger than energy item
+                // means we'll actually put useless item(s)
+                if (overflow >= perItem) {
+                    // how much item count I should reduce
+                    int reduce = (int) Math.floor(overflow / (double) perItem);
+                    if (reduce > 0) {
+
+                        // actually can't put any item
+                        if (reduce >= stack.getCount()) {
+                            return false;
+                        }
+
+                        // final count for stack we'll transfer
+                        int finalCount = stack.getCount() - reduce;
+
+                        // creating stack copy
+                        ItemStack copy = stack.copy();
+                        // change it's count to min possible to rich max energy
+                        copy.setCount(finalCount);
+                        // perform moving
+                        super.moveItemStackTo(copy, start, end, flag);
+
+                        // moved all items
+                        if (copy.isEmpty()) {
+                            // reuse variable, no it means final slot count
+
+                            // final count for return stack will be initial size without transfered stack size
+                            finalCount = stack.getCount() - finalCount;
+                        } else {
+                            finalCount = stack.getCount() - finalCount + copy.getCount();
+                        }
+
+                        // if actually should change stack count
+                        if (finalCount != stack.getCount()) {
+                            stack.setCount(finalCount);
+                        }
+
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return super.moveItemStackTo(stack, start, end, flag);
+    }
+
     public void setEnergy(int val) {
         data.set(0, val);
-    }
-
-    /**
-     * Possible catalysts
-     *
-     * @param offset - how many items we should skip
-     * @param take   - how many items we should take
-     * @return - items to render
-     */
-    public List<ItemStack> getPossibleCatalysts(int offset, int take) {
-
-        Stream<ParametricTransformerRecipe> stream = recipes.isEmpty()
-                // choose all possible recipes
-                ? GenshinHeler.getRecipeManager(playerInv.player).getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER).stream()
-                // choosing only possible recipes
-                : recipes.keySet().stream();
-
-        // retrieving possible catalysts
-        return stream.flatMap(x -> x.getIngredients().stream())
-                .flatMap(x -> Arrays.stream(x.getItems()))
-                .skip(offset)
-                .limit(take)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Searches transformer recipe from stack
-     *
-     * @param stack  - catalyst
-     * @param entity - holder entity
-     */
-    @NotNull
-    public static List<ParametricTransformerRecipe> from(ItemStack stack, LivingEntity entity) {
-        RecipeManager recipeManager = GenshinHeler.getRecipeManager(entity);
-        if (recipeManager == null)
-            return List.of();
-
-        List<ParametricTransformerRecipe> recipes = recipeManager.getAllRecipesFor(Recipes.Types.PARAMETRIC_TRANSFORMER)
-                .stream()
-                .filter(x -> x.isAcceptableAsCatalyst(stack))
-                .toList();
-
-        return recipes;
     }
 }

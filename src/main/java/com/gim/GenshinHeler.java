@@ -5,17 +5,19 @@ import com.gim.capability.shield.IShield;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,6 +28,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.*;
@@ -482,5 +485,183 @@ public class GenshinHeler {
     @OnlyIn(Dist.CLIENT)
     private static MinecraftServer clientServer() {
         return net.minecraft.client.Minecraft.getInstance().getSingleplayerServer();
+    }
+
+    /**
+     * Returns random value inside the min and max values
+     * Uses normal distribution that means min value chooses more often than max
+     * inner calculation was made that last value chance approximately 1.05%
+     *
+     * @param random - current random
+     * @param min    - min inclusive
+     * @param max    - max inclusive
+     * @return - random number inside diapason
+     * @throws IllegalArgumentException
+     */
+    public static double getRandomNormalDistrib(Random random, double min, double max) {
+        if (random == null) {
+            throw new IllegalArgumentException("Random is null!");
+        }
+
+        if (min == max) {
+            throw new IllegalArgumentException("Max and min parameter cannot be same number!");
+        }
+
+        double mean = Math.min(min, max);
+        // some calculated value
+        // can visualize here https://homepage.divms.uiowa.edu/~mbognar/applets/normal.html
+        // so the last value is about 1.05% of chance
+        double sd = (Math.max(min, max) - mean) / 4 * 1.3;
+
+        // using only 'half' of normal distribution graphic
+        double result = Math.abs(random.nextGaussian() * sd) + mean;
+        return Mth.clamp(result, min, max);
+    }
+
+    /**
+     * Randomly select keys based on own probability chance.
+     *
+     * @param map    - probability map. Contains key and probability number strictly more zero. Resulting chance is calculated
+     *               by probability number / sum of all probability numbers inside map
+     * @param random - random number
+     * @param <T>    - any key type
+     */
+    public static <T> T selectRandomly(Map<T, Integer> map, Random random) {
+        if (map == null || map.isEmpty() || random == null) {
+            throw new IllegalArgumentException(random == null ? "random is null" : "map is null or empty");
+        }
+
+
+        // storing intervals for key
+        // intervals work as probability distribution.
+        // random need to hit the interval for key to be selected
+        Table<T, Integer, Integer> table = HashBasedTable.create();
+        int total = 0;
+
+        for (Map.Entry<T, Integer> entry : map.entrySet()) {
+            if (entry.getValue() < 1) {
+                GenshinImpactMod.LOGGER.debug("Skip wrong key with probability: " + entry.getValue() + " for key " + entry.getKey().toString());
+                continue;
+            }
+
+            table.put(entry.getKey(), total, total + entry.getValue());
+            total += entry.getValue();
+        }
+
+        if (table.isEmpty() || total < 1) {
+            throw new IllegalArgumentException("Seems like there is no valid possibility table. Check for negative or zero possibility values");
+        }
+
+        // choosing random number
+        int hit = random.nextInt(total);
+
+        // iterating through all table cells
+        for (Table.Cell<T, Integer, Integer> cell : table.cellSet()) {
+            // hit point should be inside interval
+            if (cell.getColumnKey() <= hit && hit <= cell.getValue()) {
+                return cell.getRowKey();
+            }
+        }
+
+        GenshinImpactMod.LOGGER.debug("Seems like we didn't find any range. Workaround: just select value from original map");
+        return map.keySet().stream().findFirst().orElse(null);
+    }
+
+    /**
+     * Saving items inside list tag
+     *
+     * @param stacks - saved stacks. Do not saving empty stacks
+     * @return
+     */
+    public static ListTag save(Collection<ItemStack> stacks) {
+        ListTag result = new ListTag();
+
+        if (stacks != null) {
+            for (ItemStack itemStack : stacks) {
+                if (itemStack.isEmpty()) continue;
+
+                result.add(itemStack.save(new CompoundTag()));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Loading items from raw Tag. Loading only not empty stacks
+     *
+     * @param items  - Items tag. Should be ListTag type
+     * @param stacks - array where want to load
+     */
+    public static void load(Tag items, Collection<ItemStack> stacks) {
+        if (items instanceof ListTag && stacks != null) {
+            // clear prev values
+            stacks.clear();
+
+            for (Tag tag : ((ListTag) items)) {
+                if (tag instanceof CompoundTag) {
+                    ItemStack stack = ItemStack.of((CompoundTag) tag);
+
+                    // adding non empty stack
+                    if (!stack.isEmpty()) {
+                        stacks.add(stack);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Saving owner inside tag
+     *
+     * @param entity - owner
+     * @param tag    - tag compound
+     */
+    public static void save(Entity entity, CompoundTag tag) {
+        if (entity != null && tag != null) {
+            tag.putInt("OwnerID", entity.getId());
+            tag.putUUID("OwnerUUID", entity.getUUID());
+        }
+    }
+
+    /**
+     * Loading owner from tag
+     *
+     * @param tag   - compound tag
+     * @param level - current level
+     */
+    @Nullable
+    public static <T extends Entity> T load(CompoundTag tag, Level level) {
+        Entity result = null;
+
+        if (tag != null && level != null) {
+            if (tag.contains("OwnerID")) {
+                result = level.getEntity(tag.getInt("OwnerID"));
+            }
+
+            if (tag.hasUUID("OwnerUUID")) {
+                UUID uuid = tag.getUUID("OwnerUUID");
+
+                // wrong UUID entity
+                if (result != null && result.getUUID() != uuid) {
+                    result = null;
+                }
+
+                if (result == null && level.getServer() != null) {
+                    result = level.getServer().getPlayerList().getPlayer(uuid);
+                }
+            }
+        }
+
+        if (result == null)
+            return null;
+
+        try {
+            return (T) result;
+        } catch (Exception e) {
+            GenshinImpactMod.LOGGER.warn("GenshinHeler.load(CompoundTag, Level)");
+            GenshinImpactMod.LOGGER.warn(e);
+            return null;
+        }
     }
 }

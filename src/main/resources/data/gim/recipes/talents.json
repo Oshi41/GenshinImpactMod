@@ -2,6 +2,7 @@
   "type": "gim:parametric_transformer",
   "amount": 6,
   "damage": 10,
+  "quality": 0,
   "results": [
     {
       "item": "gim:freedom_scroll"

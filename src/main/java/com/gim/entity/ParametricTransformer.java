@@ -1,13 +1,11 @@
 package com.gim.entity;
 
+import com.gim.GenshinHeler;
 import com.gim.attack.GenshinDamageSource;
-import com.gim.recipe.ParametricTransformerRecipe;
 import com.gim.registry.Entities;
-import com.gim.registry.Items;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -17,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
-import java.util.UUID;
 
 public class ParametricTransformer extends LivingEntity {
     private static final String OwnerName = "Owner";
@@ -25,21 +22,26 @@ public class ParametricTransformer extends LivingEntity {
     private final NonNullList<ItemStack> stacks = NonNullList.create();
 
     /**
+     * damage for current process
+     */
+    private int damage;
+
+    /**
      * Current parametric owner
      */
     private LivingEntity owner;
-
-    private ParametricTransformerRecipe recipe;
 
     public ParametricTransformer(EntityType<? extends LivingEntity> type, Level level) {
         super(type, level);
         setCustomNameVisible(true);
     }
 
-    public ParametricTransformer(LivingEntity owner, ParametricTransformerRecipe recipe) {
+    public ParametricTransformer(LivingEntity owner, List<ItemStack> items, int damage) {
         this(Entities.parametric_transformer, owner.getLevel());
         this.owner = owner;
-        this.recipe = recipe;
+        this.stacks.addAll(items);
+        this.damage = damage;
+
         updateName();
     }
 
@@ -80,15 +82,16 @@ public class ParametricTransformer extends LivingEntity {
 
     @Override
     protected void actuallyHurt(DamageSource source, float amount) {
-        if (isInvulnerableTo(source) || recipe == null)
+        if (isInvulnerableTo(source))
             return;
 
-        amount = recipe.getElementalDamage();
-        super.actuallyHurt(source, amount);
-
+        super.actuallyHurt(source, damage);
         updateName();
     }
 
+    /**
+     * Name contains amount of health percentage
+     */
     private void updateName() {
         int amount = (int) (getMaxHealth() - getHealth());
         setCustomName(new TextComponent(amount + "%"));
@@ -97,42 +100,17 @@ public class ParametricTransformer extends LivingEntity {
     @Override
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-
-        if (tag.contains(OwnerName)) {
-            int id = tag.getInt(OwnerName);
-            Entity entity = getLevel().getEntity(id);
-            if (entity instanceof LivingEntity) {
-                this.owner = (LivingEntity) entity;
-            }
-        }
-
-        if (owner != null && tag.contains(OwnerNameId)) {
-            UUID uuid = tag.getUUID(OwnerNameId);
-            if (uuid != owner.getUUID()) {
-                // wrong owner
-                owner = null;
-            }
-        }
-
-        if (getLevel().getServer() != null) {
-            ResourceLocation location = new ResourceLocation(tag.getString("Recipe"));
-            getLevel().getServer().getRecipeManager().byKey(location).ifPresent(r -> {
-                if (r instanceof ParametricTransformerRecipe) {
-                    this.recipe = (ParametricTransformerRecipe) r;
-                }
-            });
-        }
+        damage = tag.getInt("Damage");
+        GenshinHeler.load(tag.get("Items"), stacks);
+        owner = GenshinHeler.load(tag, getLevel());
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
-        if (owner != null) {
-            tag.putInt(OwnerName, owner.getId());
-            tag.putUUID(OwnerNameId, owner.getUUID());
-        }
-
-        tag.putString("Recipe", recipe != null ? recipe.getId().toString() : "");
+        tag.putInt("Damage", damage);
+        tag.put("Items", GenshinHeler.save(stacks));
+        GenshinHeler.save(owner, tag);
     }
 
     @Override
@@ -140,7 +118,7 @@ public class ParametricTransformer extends LivingEntity {
         if (!isRemoved() && !dead) {
             this.dead = true;
 
-            if (owner instanceof Player && recipe != null) {
+            if (owner instanceof Player && stacks != null && !stacks.isEmpty()) {
                 awardOwner((Player) owner);
             }
 
@@ -154,10 +132,7 @@ public class ParametricTransformer extends LivingEntity {
      * @param owner - placer
      */
     private void awardOwner(Player owner) {
-        List<ItemStack> result = recipe.randomResultForDay();
-        result.add(Items.parametric_transformer.getDefaultInstance());
-
-        for (ItemStack stack : result) {
+        for (ItemStack stack : stacks) {
             owner.getInventory().placeItemBackInInventory(stack);
         }
     }

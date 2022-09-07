@@ -2,6 +2,7 @@
   "type": "gim:parametric_transformer",
   "amount": 1,
   "damage": 10,
+  "quality": 0,
   "results": [
     {
       "item": "gim:brilliant"
