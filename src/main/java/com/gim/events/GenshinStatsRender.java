@@ -35,6 +35,7 @@ import java.util.List;
 public class GenshinStatsRender {
     private final static int packedLight = LightTexture.pack(15, 15);
 
+
     @SubscribeEvent
     public static void onNameTagRender(RenderNameplateEvent event) {
         if (event.getEntity() instanceof LivingEntity livingEntity) {

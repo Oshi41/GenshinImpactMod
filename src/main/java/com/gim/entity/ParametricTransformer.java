@@ -2,10 +2,14 @@ package com.gim.entity;
 
 import com.gim.GenshinHeler;
 import com.gim.attack.GenshinDamageSource;
+import com.gim.items.ParametricTransformerItem;
 import com.gim.registry.Entities;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -36,12 +40,13 @@ public class ParametricTransformer extends LivingEntity {
         setCustomNameVisible(true);
     }
 
-    public ParametricTransformer(LivingEntity owner, List<ItemStack> items, int damage) {
+    public ParametricTransformer(LivingEntity owner, List<ItemStack> items, int damage, BlockPos blockPos) {
         this(Entities.parametric_transformer, owner.getLevel());
         this.owner = owner;
         this.stacks.addAll(items);
         this.damage = damage;
 
+        setPos(blockPos.getX(), blockPos.getY(), blockPos.getZ());
         updateName();
     }
 
@@ -74,10 +79,20 @@ public class ParametricTransformer extends LivingEntity {
 
     @Override
     public boolean isInvulnerableTo(DamageSource damageSource) {
+        // if already invulnerable
         if (super.isInvulnerableTo(damageSource))
             return true;
 
-        return damageSource instanceof GenshinDamageSource && ((GenshinDamageSource) damageSource).getElement() != null;
+        // special condition - out of  the world
+        if (damageSource == DamageSource.OUT_OF_WORLD)
+            return false;
+
+        // if not a genshin damage source
+        if (!(damageSource instanceof GenshinDamageSource genshinDamageSource))
+            return true;
+
+        // if no element presented
+        return genshinDamageSource.getElement() == null;
     }
 
     @Override
@@ -132,8 +147,22 @@ public class ParametricTransformer extends LivingEntity {
      * @param owner - placer
      */
     private void awardOwner(Player owner) {
+        // already used last one
+        if (!(ParametricTransformerItem.canUse(owner))) {
+            return;
+        }
+
+        // awarding player
         for (ItemStack stack : stacks) {
             owner.getInventory().placeItemBackInInventory(stack);
         }
+
+        // save last usage
+        ParametricTransformerItem.saveUsage(owner);
+    }
+
+    @Override
+    public void push(double p_20286_, double p_20287_, double p_20288_) {
+        // super.push(p_20286_, p_20287_, p_20288_);
     }
 }

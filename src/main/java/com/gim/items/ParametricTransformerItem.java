@@ -3,7 +3,7 @@ package com.gim.items;
 import com.gim.GenshinImpactMod;
 import com.gim.menu.ParametricTransformerMenu;
 import com.gim.registry.CreativeTabs;
-import com.gim.registry.Menus;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -12,13 +12,15 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.Vanishable;
 import net.minecraft.world.item.context.UseOnContext;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.time.Duration;
 
 public class ParametricTransformerItem extends Item implements Vanishable {
     private static final String LastUseTimeName = "LastUsedTime";
@@ -35,33 +37,35 @@ public class ParametricTransformerItem extends Item implements Vanishable {
      * Ticks till next usage
      *
      * @param entity - holder
-     * @param stack  - transformer item
      */
-    public int tickToNext(LivingEntity entity, ItemStack stack) {
+    public static boolean canUse(LivingEntity entity) {
         // obviousely it works only on server
-        if (entity != null && stack != null && stack.getItem() instanceof ParametricTransformerItem && entity.getLevel().getServer() != null) {
-            // getting persistant entity data
-            CompoundTag tag = entity.getPersistentData();
+        if (entity == null || entity.getLevel().getServer() == null)
+            return false;
 
-            // first ever
-            if (!tag.contains(LastUseTimeName)){
-                return 0;
-            }
+        // getting persistant entity data
+        CompoundTag tag = entity.getPersistentData();
+        // first use
+        if (!tag.contains(LastUseTimeName))
+            return true;
 
-            // checking last use data
-            int lastTickCount = tag.getInt(LastUseTimeName);
-            // config based value
-            int delayTicks = GenshinImpactMod.CONFIG.getKey().parametricTranformerDelayMin.get() * 60 * 20;
-            // calculating next possible time
-            int nextPossibleTime = lastTickCount + delayTicks;
-            // retrieving current time
-            int currentTime = entity.getLevel().getServer().getTickCount();
-            // returning ticks to wait or 0 if we can use
-            return Math.max(0, nextPossibleTime - currentTime);
-        }
+        int lastUse = tag.getInt(LastUseTimeName);
+        // config based value
+        int delayTicks = GenshinImpactMod.CONFIG.getKey().parametricTranformerDelayMin.get() * 60 * 20;
+        // next use
+        int nextUse = lastUse + delayTicks;
+        // next possible use
+        int current = delayTicks + entity.getLevel().getServer().getTickCount();
 
-        // error value less 0
-        return -1;
+        // can use
+        if (nextUse <= current)
+            return true;
+
+        // calculating next duration
+        String date = DurationFormatUtils.formatDuration((nextUse - current) * 50L, "d:HH:ss");
+        TranslatableComponent component = new TranslatableComponent("gim.chat.parametric_transformer.already_used", date);
+        entity.sendMessage(component, Util.NIL_UUID);
+        return false;
     }
 
     /**
@@ -70,7 +74,7 @@ public class ParametricTransformerItem extends Item implements Vanishable {
      * @param entity - server side entity
      * @return - success of operation
      */
-    public boolean saveUsage(LivingEntity entity) {
+    public static boolean saveUsage(LivingEntity entity) {
         if (entity != null && entity.getLevel().getServer() != null) {
             CompoundTag tag = entity.getPersistentData();
             tag.putInt(LastUseTimeName, entity.getLevel().getServer().getTickCount());
@@ -85,9 +89,9 @@ public class ParametricTransformerItem extends Item implements Vanishable {
         ItemStack heldItem = context.getItemInHand();
         Player player = context.getPlayer();
         if (heldItem.getItem() instanceof ParametricTransformerItem && !context.isInside() && player != null) {
-            // can place entity and successfully spawned parametric transformer
-            if (tickToNext(player, heldItem) == 0 && openGUI(player, context.getClickedPos())) {
-                return InteractionResult.SUCCESS;
+
+            if (!canUse(player) || openGUI(player, context.getClickedPos().relative(context.getClickedFace()))) {
+                return InteractionResult.CONSUME;
             }
         }
 

@@ -124,5 +124,7 @@
   "item.gim.crown": "Crown",
   "item.gim.dragon_claw": "Dragon Claw",
   "item.gim.parametric_transformer": "Parametric Transformer",
-  "gim.gui.parametric_transformer": "Parametric Transformer"
+  "gim.gui.parametric_transformer": "Parametric Transformer",
+  "entity.gim.hilichurl": "Hilichurl",
+  "gim.chat.parametric_transformer.already_used": "You cam use Parametric transformer through %s"
 }

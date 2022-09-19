@@ -6,8 +6,10 @@ import com.gim.items.ParametricTransformerItem;
 import com.gim.menu.base.GenshinContainer;
 import com.gim.menu.base.GenshinMenuBase;
 import com.gim.recipe.ParametricTransformerRecipe;
+import com.gim.registry.Items;
 import com.gim.registry.Menus;
 import com.gim.registry.Recipes;
+import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
@@ -136,8 +138,8 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
                 // clear all catalysts
                 container.clearContent();
 
-                // placing entity in world
-                level.addFreshEntity(new ParametricTransformer(player, result.getA(), result.getB()));
+                // placing entity in word
+                level.addFreshEntity(new ParametricTransformer(player, result.getA(), result.getB(), blockPos));
                 removed(player);
             });
 
@@ -155,7 +157,7 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
      */
     private Tuple<List<ItemStack>, Integer> generateRandomResult(int day) {
         Map<ParametricTransformerRecipe, Integer> recipeMap = new HashMap<>();
-        ArrayList<ItemStack> result = new ArrayList<>();
+        List<ItemStack> result = Lists.newArrayList(Items.parametric_transformer.getDefaultInstance());
         int damage = 5;
 
         // correcting value

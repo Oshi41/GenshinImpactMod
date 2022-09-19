@@ -158,7 +158,7 @@ public class ParametricTransformerRecipe implements Recipe<Container> {
         ArrayList<ItemStack> result = new ArrayList<>();
 
         // all possible result items
-        List<ItemStack> itemStacks = getAllCatalysts();
+        List<ItemStack> itemStacks = getIngredients().stream().flatMap(x -> Arrays.stream(x.getItems())).collect(Collectors.toList());
         // max items here
         int max = getAmount();
 

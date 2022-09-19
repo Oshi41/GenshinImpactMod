@@ -350,7 +350,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
     protected void onSkillTick(LivingEntity holder, IGenshinInfo info, GenshinCombatTracker tracker, GenshinPhase phase) {
         double skillAdditive = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.skill_level)) / Attributes.skill_level.getMaxValue() * 1.5;
         double starCount = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.constellations));
-        double range = 0;
+        double range = 1;
 
         if (starCount > 0) {
             range += 5 + skillAdditive;
@@ -372,8 +372,8 @@ public class AnemoTraveler extends GenshinPlayerBase {
                     List<Entity> entities = getAffectedEntities(holder, range);
 
                     for (Entity entity : entities) {
-                        Vec3 movement = center.subtract(entity.position()).normalize();
-                        entity.setDeltaMovement(movement.scale(1 / 6f + skillAdditive));
+                        Vec3 movement = center.subtract(entity.position()).normalize().scale(1 / 6f + skillAdditive);
+                        entity.push(movement.x, movement.y, movement.z);
                     }
                 } else {
                     for (int i = 0; i < 10; ++i) {
@@ -433,7 +433,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
                     List<Entity> entities = getAffectedEntities(holder, range);
 
                     for (Entity entity : entities) {
-                        Vec3 movement = holder.getLookAngle().multiply(2, 2, 2).subtract(entity.position()).normalize().scale(1.2f + skillAdditive);
+                        Vec3 movement = holder.getLookAngle().normalize();
                         entity.push(movement.x, movement.y, movement.z);
                     }
                 }

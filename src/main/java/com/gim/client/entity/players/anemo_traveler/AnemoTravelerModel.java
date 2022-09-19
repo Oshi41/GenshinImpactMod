@@ -4,6 +4,7 @@ import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.capability.genshin.GenshinEntityData;
 import com.gim.capability.genshin.IGenshinInfo;
+import com.gim.client.GenshinClientHooks;
 import com.gim.players.AnemoTraveler;
 import com.gim.players.base.GenshinPlayerBase;
 import com.gim.registry.Capabilities;
@@ -95,29 +96,29 @@ class AnemoTravelerModel extends PlayerModel<AbstractClientPlayer> {
         // TODO left-oriented arm
         switch (attackStage) {
             case 0 -> {
-                rotatePart(player, rightArm, -26, 18, 23, -125.4f, -24, 12);
-                rotatePart(player, leftLeg, 45, 0.19f, -15);
-                rotatePart(player, rightLeg, -27, 3.5f, 12);
+                GenshinClientHooks.rotatePart(player, rightArm, -26, 18, 23, -125.4f, -24, 12);
+                GenshinClientHooks.rotatePart(player, leftLeg, 0, 0, 0, 45, 0.19f, -15);
+                GenshinClientHooks.rotatePart(player, rightLeg, 0, 0, 0, -27, 3.5f, 12);
             }
             case 1 -> {
-                rotatePart(player, rightArm, -115, -5, 90, -17, -5, 90);
-                rotatePart(player, leftLeg, 32.5f, 0, 0);
-                rotatePart(player, rightLeg, -40, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightArm, -115, -5, 90, -17, -5, 90);
+                GenshinClientHooks.rotatePart(player, leftLeg, 0, 0, 0, 32.5f, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightLeg, 0, 0, 0, -40, 0, 0);
             }
             case 2 -> {
-                rotatePart(player, rightArm, -146, 31, -21, -36, -33, -27);
-                rotatePart(player, leftLeg, -28.5f, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightArm, -146, 31, -21, -36, -33, -27);
+                GenshinClientHooks.rotatePart(player, leftLeg, 0, 0, 0, -28.5f, 0, 0);
             }
             case 3 -> {
-                rotatePart(player, rightArm, -116, -39, -2, -25, 6, 37);
-                rotatePart(player, rightLeg, -37, 0, 0);
-                rotatePart(player, rightLeg, 40, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightArm, -116, -39, -2, -25, 6, 37);
+                GenshinClientHooks.rotatePart(player, rightLeg, 0, 0, 0, -37, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightLeg, 0, 0, 0, 40, 0, 0);
             }
             case 4 -> {
-                rotatePart(player, head, 17.5f, 0, 0);
-                rotatePart(player, rightLeg, 27.5f, 0, 0);
-                rotatePart(player, leftLeg, -37.5f, 0, 0);
-                rotatePart(player, rightArm, -115, 5, 90, 40, 7.7f, 72);
+                GenshinClientHooks.rotatePart(player, head, 0, 0, 0, 17.5f, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightLeg, 0, 0, 0, 27.5f, 0, 0);
+                GenshinClientHooks.rotatePart(player, leftLeg, 0, 0, 0, -37.5f, 0, 0);
+                GenshinClientHooks.rotatePart(player, rightArm, -115, 5, 90, 40, 7.7f, 72);
             }
         }
 
@@ -126,27 +127,6 @@ class AnemoTravelerModel extends PlayerModel<AbstractClientPlayer> {
 
         this.leftSleeve.copyFrom(this.leftArm);
         this.rightSleeve.copyFrom(this.rightArm);
-    }
-
-    private void rotatePart(LivingEntity entity, ModelPart part, float x, float y, float z) {
-        rotatePart(entity, part, 0, 0, 0, x, y, z);
-    }
-
-    private void rotatePart(LivingEntity entity, ModelPart part,
-                            float xStart, float yStart, float zStart,
-                            float xEnd, float yEnd, float zEnd) {
-        float swingTime = entity.swingTime;
-        int maxSwingTime = GenshinHeler.getCurrentSwingDuration(entity) - 1;
-        float percentage = swingTime / maxSwingTime;
-        float x = (xEnd - xStart) * percentage + xStart;
-        float y = (yEnd - yStart) * percentage + yStart;
-        float z = (zEnd - zStart) * percentage + zStart;
-
-        x = (float) Math.toRadians(x);
-        y = (float) Math.toRadians(y);
-        z = (float) Math.toRadians(z);
-
-        part.setRotation(x, y, z);
     }
 
     /**

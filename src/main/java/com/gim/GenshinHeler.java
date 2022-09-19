@@ -2,6 +2,7 @@ package com.gim;
 
 import com.gim.attack.GenshinDamageSource;
 import com.gim.capability.shield.IShield;
+import com.gim.entity.ICustomSwing;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
@@ -11,10 +12,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
+import net.minecraft.network.syncher.EntityDataSerializer;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -43,6 +47,41 @@ import java.util.*;
 import java.util.List;
 
 public class GenshinHeler {
+
+    /**
+     * Serializer for flags
+     */
+    public static final EntityDataSerializer<BitSet> BIT_SET = new EntityDataSerializer<>() {
+        @Override
+        public void write(FriendlyByteBuf byteBuf, BitSet bitSet) {
+            byte[] bytes = bitSet.toByteArray();
+
+            byteBuf.writeByte(bytes.length);
+            for (byte b : bytes) {
+                byteBuf.writeByte(b);
+            }
+        }
+
+        @Override
+        public BitSet read(FriendlyByteBuf byteBuf) {
+            byte[] bytes = new byte[byteBuf.readByte()];
+
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = byteBuf.readByte();
+            }
+
+            return BitSet.valueOf(bytes);
+        }
+
+        @Override
+        public BitSet copy(BitSet bitSet) {
+            return BitSet.valueOf(bitSet.toByteArray());
+        }
+    };
+
+    static {
+        EntityDataSerializers.registerSerializer(BIT_SET);
+    }
 
     /**
      * Returns elemental majesty bonus
@@ -461,6 +500,10 @@ public class GenshinHeler {
      * @param entity - for this entity
      */
     public static int getCurrentSwingDuration(LivingEntity entity) {
+        if (entity instanceof ICustomSwing) {
+            return ((ICustomSwing) entity).getCurrentSwingDuration();
+        }
+
         if (MobEffectUtil.hasDigSpeed(entity)) {
             return 6 - (1 + MobEffectUtil.getDigSpeedAmplification(entity));
         } else {

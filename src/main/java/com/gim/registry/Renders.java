@@ -3,6 +3,7 @@ package com.gim.registry;
 import com.gim.GenshinImpactMod;
 import com.gim.client.entity.CustomTextureRender;
 import com.gim.client.entity.EnergyRenderer;
+import com.gim.client.entity.hilichurlian.hilichurl.HilichurlRenderer;
 import com.gim.client.layers.IceRender;
 import com.gim.client.layers.ShieldLayerRender;
 import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -64,6 +66,9 @@ public class Renders {
 
         e.registerEntityRenderer(Entities.parametric_transformer,
                 c -> new CustomTextureRender<>(c, Lazy.of(() -> new ResourceLocation(GenshinImpactMod.ModID, "textures/entity/parametric_transformer.png"))));
+
+        e.registerEntityRenderer(Entities.hilichurl, HilichurlRenderer::new);
+        e.registerEntityRenderer(Entities.throwable_item, ThrownItemRenderer::new);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
