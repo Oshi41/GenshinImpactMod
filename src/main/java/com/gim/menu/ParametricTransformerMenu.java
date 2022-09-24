@@ -190,7 +190,7 @@ public class ParametricTransformerMenu extends GenshinMenuBase {
 
             // executing current amount of rolls
             for (int i = 0; i < rollAmount; i++) {
-                ParametricTransformerRecipe recipe = GenshinHeler.selectRandomly(recipeMap, random);
+                ParametricTransformerRecipe recipe = GenshinHeler.selectWeighted(recipeMap, random);
                 result.addAll(recipe.getRandomItems(random));
             }
 

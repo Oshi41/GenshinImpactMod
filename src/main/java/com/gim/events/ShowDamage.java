@@ -195,7 +195,8 @@ public class ShowDamage {
                         }
                     }
 
-                    TextComponent component = new TextComponent("" + Math.abs(Math.round(event.getAmount())));
+                    // rounding damage to min decimal
+                    TextComponent component = new TextComponent("" + Math.abs(Math.floor(event.getAmount())));
 
                     Style style = component.getStyle().applyFormat(format);
                     if (cryticalHits.remove(event.getSource().getEntity())) {

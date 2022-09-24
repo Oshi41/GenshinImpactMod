@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 @GameTestHolder(GenshinImpactMod.ModID)
 public class ParametricTransformerMenuTests {
-
     @CustomGameTest(timeoutTicks = 10, setupTicks = 1)
     public void parametricTransformer_checkAllRecipes(GameTestHelper helper) {
         ServerPlayer player = TestHelper.createFakePlayer(helper, false);
@@ -119,46 +118,8 @@ public class ParametricTransformerMenuTests {
 
             // clear container
             transformerMenu.slots.get(0).container.clearContent();
-
-            // TODO
-            // 1) Check any set of items and check safe insert
-            // 2) Calculate items that cannot insert for current recipe(s)
-
-//            for (int i = 0; i < allPossible.size(); i++) {
-//                ItemStack origin = allPossible.get(i);
-//            }
-//
-//            // inserting at first slot
-//            transformerMenu.getSlot(0).set(allPossible.get(0));
-//            allPossible.remove(0);
-//
-//
-//
-//            // checking for current recipe
-//            for (ItemStack stack : allPossible) {
-//                for (int i = 0; i < 9; i++) {
-//                    if (!transformerMenu.getSlot(i).mayPlace(stack)) {
-//                        helper.fail(String.format("[WITH RECIPE %s] Transformer menu can't insert %s in %s slot", recipe.getId(), stack.getDisplayName().getString(), i));
-//                    }
-//                }
-//            }
-
-            // TODO
-            // detect which one item we should not place
-
-//            // checking all other items
-//            for (Item item : other) {
-//                for (int i = 0; i < 9; i++) {
-//                    if (transformerMenu.getSlot(i).mayPlace(item.getDefaultInstance())) {
-//                        helper.fail(String.format("[WITH RECIPE %s] Transformer menu can insert %s in %s slot, but actually should not!",
-//                                recipe.getId(),
-//                                item.getDefaultInstance().getDisplayName().getString(),
-//                                i));
-//                    }
-//                }
-//            }
         }
 
-
+        // TODO check for menu closing
     }
 }

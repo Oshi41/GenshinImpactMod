@@ -5,40 +5,72 @@ import com.gim.menu.ParametricTransformerMenu;
 import com.gim.registry.CreativeTabs;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.Vanishable;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
 
 public class ParametricTransformerItem extends Item implements Vanishable {
     private static final String LastUseTimeName = "LastUsedTime";
+    private static final String CreativeName = "Creative";
 
     public ParametricTransformerItem() {
         super(new Properties()
                 .rarity(Rarity.EPIC)
                 .stacksTo(1)
-                .tab(CreativeTabs.MATERIALS)
+                .tab(CreativeTabs.GENSHIN)
                 .setNoRepair());
     }
 
+    @Override
+    public void fillItemCategory(CreativeModeTab tab, NonNullList<ItemStack> stacks) {
+        if (!allowdedIn(tab))
+            return;
+
+        // regular
+        ItemStack source = getDefaultInstance();
+        stacks.add(source.copy());
+
+        // creative
+        source.getOrCreateTag().putBoolean(CreativeName, true);
+        stacks.add(source.copy());
+    }
+
     /**
-     * Ticks till next usage
+     * Calculating if we can use parametric transformer
      *
-     * @param entity - holder
+     * @param entity - player
      */
     public static boolean canUse(LivingEntity entity) {
+        return canUse(entity, false, false);
+    }
+
+    /**
+     * Calculating if we can use parametric transformer
+     *
+     * @param entity       - player
+     * @param creativeItem - is parametric transformer creative
+     * @param silent       - send msg to player?
+     */
+    private static boolean canUse(LivingEntity entity, boolean creativeItem, boolean silent) {
         // obviousely it works only on server
         if (entity == null || entity.getLevel().getServer() == null)
             return false;
@@ -55,16 +87,25 @@ public class ParametricTransformerItem extends Item implements Vanishable {
         // next use
         int nextUse = lastUse + delayTicks;
         // next possible use
-        int current = delayTicks + entity.getLevel().getServer().getTickCount();
+        int current = entity.getLevel().getServer().getTickCount();
 
         // can use
         if (nextUse <= current)
             return true;
+        else if (creativeItem) {
+            // changing last use item
+            tag.putInt(LastUseTimeName, current - delayTicks);
+            // creative always available
+            return true;
+        }
 
-        // calculating next duration
-        String date = DurationFormatUtils.formatDuration((nextUse - current) * 50L, "d:HH:ss");
-        TranslatableComponent component = new TranslatableComponent("gim.chat.parametric_transformer.already_used", date);
-        entity.sendMessage(component, Util.NIL_UUID);
+        if (!silent) {
+            // calculating next duration
+            String date = DurationFormatUtils.formatDuration((nextUse - current) * 50L, "d:HH:mm:ss");
+            TranslatableComponent component = new TranslatableComponent("gim.chat.parametric_transformer.already_used", date);
+            entity.sendMessage(component, Util.NIL_UUID);
+        }
+
         return false;
     }
 
@@ -85,13 +126,38 @@ public class ParametricTransformerItem extends Item implements Vanishable {
     }
 
     @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> components, TooltipFlag p_41424_) {
+        super.appendHoverText(stack, level, components, p_41424_);
+
+        if (!stack.hasTag())
+            return;
+
+        if (stack.getTag().getBoolean(CreativeName)) {
+            components.add(new TranslatableComponent("gim.chat.creative"));
+        }
+    }
+
+    @Override
+    public boolean isFoil(ItemStack stack) {
+        return super.isFoil(stack) || stack.getOrCreateTag().getBoolean(CreativeName);
+    }
+
+    @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
         ItemStack heldItem = context.getItemInHand();
         Player player = context.getPlayer();
         if (heldItem.getItem() instanceof ParametricTransformerItem && !context.isInside() && player != null) {
+            BlockPos position = context.getClickedPos().relative(context.getClickedFace());
+            boolean isCreative = heldItem.getOrCreateTag().getBoolean(CreativeName);
 
-            if (!canUse(player) || openGUI(player, context.getClickedPos().relative(context.getClickedFace()))) {
+            // If we can't use item
+            if (!canUse(context.getPlayer(), isCreative, false)) {
                 return InteractionResult.CONSUME;
+            }
+
+            // if GUI was opened
+            if (openGUI(context.getPlayer(), position)) {
+                return InteractionResult.SUCCESS;
             }
         }
 
@@ -99,13 +165,9 @@ public class ParametricTransformerItem extends Item implements Vanishable {
     }
 
     protected boolean openGUI(Player owner, BlockPos pos) {
-        if (owner != null && pos != null) {
-            owner.openMenu(new SimpleMenuProvider(
-                    (int containerID, Inventory playerInv, Player player) -> new ParametricTransformerMenu(containerID, playerInv, pos),
-                    new TranslatableComponent("gim.gui.parametric_transformer")));
-            return true;
-        }
-
-        return false;
+        return owner.openMenu(new SimpleMenuProvider(
+                        (int containerID, Inventory playerInv, Player player) -> new ParametricTransformerMenu(containerID, playerInv, pos),
+                        new TranslatableComponent("gim.gui.parametric_transformer")))
+                .isPresent();
     }
 }

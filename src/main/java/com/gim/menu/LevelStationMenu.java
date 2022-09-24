@@ -126,7 +126,7 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
                     AttributeMap map = genshinEntityData.getAttributes();
 
                     // scaling level
-                    if (LevelScaling.scaleLevel(map::getInstance, (float) (map.getValue(Attributes.level) + 1))) {
+                    if (LevelScaling.scaleLevel(map::getInstance, (float) (map.getValue(Attributes.level) + 1), null)) {
                         genshinEntityData.setHealth(player, (float) map.getValue(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH));
                     }
 
@@ -143,8 +143,8 @@ public class LevelStationMenu extends GenshinIterableMenuBase implements SlotLis
     }
 
     @Override
-    public void removed(Player p_38940_) {
-        super.removed(p_38940_);
+    public void removed(Player player) {
+        super.removed(player);
 
         // removing all items
         this.access.execute((p_39371_, p_39372_) -> this.clearContainer(playerInv.player, own));

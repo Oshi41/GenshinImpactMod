@@ -14,5 +14,6 @@ public class Screens {
         MenuScreens.register(Menus.level_station, LevelStationScreen::new);
         MenuScreens.register(Menus.skill_station, SkillStationScreen::new);
         MenuScreens.register(Menus.parametric_transformer, ParametricTransformerScreen::new);
+        MenuScreens.register(Menus.wish, WishMenuScreen::new);
     }
 }

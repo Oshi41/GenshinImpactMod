@@ -6,8 +6,11 @@ import com.gim.items.ArtefactItem;
 import com.gim.items.ConstellationItem;
 import com.gim.items.GenshinMaterialItem;
 import com.gim.items.ParametricTransformerItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -44,6 +47,7 @@ public class Items {
     public static final ArtefactItem adventure_flower = null;
 
     public static final ParametricTransformerItem parametric_transformer = null;
+    public static final Item wish = null;
 
     @SubscribeEvent
     public static void register(RegistryEvent.Register<Item> event) {
@@ -84,7 +88,13 @@ public class Items {
                 new GenshinMaterialItem(new Item.Properties().setNoRepair().rarity(Rarity.EPIC))
                         .setRegistryName(GenshinImpactMod.ModID, "dragon_claw"),
 
-                new ParametricTransformerItem().setRegistryName(GenshinImpactMod.ModID, "parametric_transformer")
+                new ParametricTransformerItem().setRegistryName(GenshinImpactMod.ModID, "parametric_transformer"),
+                new ForgeSpawnEggItem(() -> Entities.hilichurl, 15582019, 5843472,
+                        new Item.Properties().tab(CreativeModeTab.TAB_MISC))
+                        .setRegistryName(GenshinImpactMod.ModID, "hilichurl_egg"),
+
+                new GenshinMaterialItem(new Item.Properties().setNoRepair().rarity(Rarity.EPIC))
+                        .setRegistryName(GenshinImpactMod.ModID, "wish")
         );
 
         event.getRegistry().registerAll(createSet("adventure"));

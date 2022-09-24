@@ -1,18 +1,23 @@
 package com.gim.events;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.registry.Attributes;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -33,51 +38,29 @@ public class LevelScaling {
     ));
 
     @SubscribeEvent
-    public static void onEntityAdded(EntityJoinWorldEvent e) {
-        // setting level for all living entities but players
-        if (!(e.getEntity() instanceof LivingEntity livingEntity) || e.getEntity() instanceof Player) {
+    public static void onSpecialSpawn(LivingSpawnEvent.SpecialSpawn e) {
+        // check type
+        if (!(e.getEntity() instanceof LivingEntity livingEntity) || !GenshinHeler.acceptGenshinEffects(e.getEntity()))
             return;
-        }
 
-        Integer levelUpInMuntes = GenshinImpactMod.CONFIG.getKey().levelUpTimeMin.get();
-        long gameTime = e.getWorld().getGameTime();
-        long ticks = levelUpInMuntes * 60 * 20;
-        long currentWorldLevel = gameTime / ticks;
-
-        // DEBUG
-        currentWorldLevel = 20;
-
-
-        if (currentWorldLevel < 1) {
+        // find nearest player
+        LevelAccessor world = e.getWorld();
+        // !!! possible bottleneck !!!
+        Player nearestPlayer = world.getNearestPlayer(e.getEntity(), 16);
+        if (nearestPlayer == null)
             return;
-        }
 
-        float diff = (e.getWorld().getRandom().nextFloat() - 1) * 4;
+        // getting player level
+        double level = GenshinHeler.safeGetAttribute(nearestPlayer, Attributes.level);
+        if (level < 1)
+            return;
 
-        int entityLevel = (int) Math.max(1, currentWorldLevel + diff);
+        // level can be 15% lower and 5% higher than player level
+        double nextLevel = Math.ceil(level - (e.getWorld().getRandom().nextDouble(20) - 5) / 100 * level);
+        if (nextLevel < 1)
+            return;
 
-        if (scaleLevel(livingEntity::getAttribute, entityLevel)) {
-
-            AttributeInstance attributeInstance = livingEntity.getAttribute(Attributes.defence);
-            // minimum defence value for entities
-            double minDefenceValue = Math.sqrt(livingEntity.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).getBaseValue())
-                    * entityLevel;
-
-            // adding defence values
-            if (attributeInstance.getBaseValue() < minDefenceValue) {
-                attributeInstance.setBaseValue(minDefenceValue);
-            }
-
-            // if contains armor attributes
-            AttributeInstance armorAttr = livingEntity.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR);
-            if (armorAttr != null && armorAttr.getBaseValue() > 0) {
-                // scaling up the defence value
-                attributeInstance.setBaseValue(attributeInstance.getBaseValue() + armorAttr.getBaseValue());
-            }
-
-            // setting  health up to maximum
-            livingEntity.setHealth(livingEntity.getMaxHealth());
-        }
+        scaleLevel(livingEntity::getAttribute, nextLevel, livingEntity);
     }
 
     /**
@@ -87,7 +70,7 @@ public class LevelScaling {
      * @param level        - entity level
      * @return - success of operation
      */
-    public static boolean scaleLevel(Function<Attribute, AttributeInstance> getAttribute, float level) {
+    public static boolean scaleLevel(Function<Attribute, AttributeInstance> getAttribute, double level, @Nullable LivingEntity livingEntity) {
         if (getAttribute == null || level < 0)
             return false;
 
@@ -113,10 +96,41 @@ public class LevelScaling {
             addModifier(attributeInstance, entry.getValue(), "level_scaling." + lastName, level);
         }
 
+        if (livingEntity != null) {
+            attributeInstance = livingEntity.getAttribute(Attributes.defence);
+            // minimum defence value for entities
+            double minDefenceValue = Math.sqrt(livingEntity.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH).getBaseValue())
+                    * level;
+
+            // adding defence values
+            if (attributeInstance.getBaseValue() < minDefenceValue) {
+                attributeInstance.setBaseValue(minDefenceValue);
+            }
+
+            // if contains armor attributes
+            AttributeInstance armorAttr = livingEntity.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR);
+            if (armorAttr != null && armorAttr.getBaseValue() > 0) {
+                // scaling up the defence value
+                attributeInstance.setBaseValue(attributeInstance.getBaseValue() + armorAttr.getBaseValue());
+            }
+
+            // setting  health up to maximum
+            livingEntity.setHealth(livingEntity.getMaxHealth());
+        }
+
         return true;
     }
 
-    private static boolean addModifier(AttributeInstance instance, UUID id, String name, float level) {
+    /**
+     * Safe adding modifier
+     * uses MULTIPLY_BASE operation
+     *
+     * @param instance - attribute instance
+     * @param id       - modifier unique ID
+     * @param name     - modifier name
+     * @param level    - modifier level
+     */
+    private static boolean addModifier(AttributeInstance instance, UUID id, String name, double level) {
         if (instance != null) {
             instance.removeModifier(id);
             double value = Math.pow(GenshinImpactMod.CONFIG.getKey().levelScaling.get(), level / Attributes.level.getMaxValue());

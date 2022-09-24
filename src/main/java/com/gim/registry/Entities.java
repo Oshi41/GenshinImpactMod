@@ -1,5 +1,6 @@
 package com.gim.registry;
 
+import com.gim.GenshinHeler;
 import com.gim.GenshinImpactMod;
 import com.gim.entity.*;
 import com.gim.entity.hilichurlian.Hilichurl;
@@ -28,27 +29,27 @@ public class Entities {
     public static void registerEntities(RegistryEvent.Register<EntityType<?>> event) {
         event.getRegistry().registerAll(
 
-                registerType(EntityType.Builder.<Shield>of(Shield::new, MobCategory.MISC)
+                registerNonGenshinType(EntityType.Builder.<Shield>of(Shield::new, MobCategory.MISC)
                                 .fireImmune()
                                 .sized(.5f, .5f)
                                 .clientTrackingRange(4),
                         "shield"),
 
-                registerType(EntityType.Builder.<Tornado>of(Tornado::new, MobCategory.MISC)
+                registerNonGenshinType(EntityType.Builder.<Tornado>of(Tornado::new, MobCategory.MISC)
                                 .sized(2, 5),
                         "tornado"),
 
-                registerType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.MISC)
+                registerNonGenshinType(EntityType.Builder.<Energy>of(Energy::new, MobCategory.MISC)
                                 .sized(.5f, .5f)
                                 .fireImmune(),
                         "energy_orb"),
 
-                registerType(EntityType.Builder.<AnemoBlade>of(AnemoBlade::new, MobCategory.MISC)
+                registerNonGenshinType(EntityType.Builder.<AnemoBlade>of(AnemoBlade::new, MobCategory.MISC)
                                 .sized(2.5f, 0.5f),
                         "anemo_blade"
                 ),
 
-                registerType(EntityType.Builder.<ParametricTransformer>of(ParametricTransformer::new, MobCategory.MISC)
+                registerNonGenshinType(EntityType.Builder.<ParametricTransformer>of(ParametricTransformer::new, MobCategory.MISC)
                                 .sized(1, 1),
                         "parametric_transformer"
                 ),
@@ -58,7 +59,7 @@ public class Entities {
                         "hilichurl"
                 ),
 
-                registerType(EntityType.Builder.<ThrowableItem>of(ThrowableItem::new, MobCategory.MISC)
+                registerNonGenshinType(EntityType.Builder.<ThrowableItem>of(ThrowableItem::new, MobCategory.MISC)
                                 .sized(0.3f, 0.3f),
                         "throwable_item"
                 )
@@ -80,5 +81,13 @@ public class Entities {
     private static EntityType registerType(EntityType.Builder builder, String name) {
         return (EntityType) builder.build(name)
                 .setRegistryName(GenshinImpactMod.ModID, name);
+    }
+
+    private static EntityType registerNonGenshinType(EntityType.Builder builder, String name) {
+        EntityType result = (EntityType) builder.build(name)
+                .setRegistryName(GenshinImpactMod.ModID, name);
+
+        GenshinHeler.FORBIDDEN.add(result);
+        return result;
     }
 }

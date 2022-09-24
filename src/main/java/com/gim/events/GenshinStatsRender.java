@@ -57,7 +57,8 @@ public class GenshinStatsRender {
                 List<Component> contents = new ArrayList<>();
                 contents.add(0, event.getContent());
                 contents.add(0, new TranslatableComponent("gim.level", entityLevel).withStyle(chatFormatting));
-                contents.add(0, new TextComponent(((int) livingEntity.getHealth()) + "/" + ((int) livingEntity.getMaxHealth())));
+                // showing health with max nearest decimal value. Preventing from 0 HP as alive entity
+                contents.add(0, new TextComponent(((int) Math.ceil(livingEntity.getHealth())) + "/" + ((int) Math.ceil(livingEntity.getMaxHealth()))));
 
                 double heightOffset = 0.5;
                 double offsetStep = 0.25;

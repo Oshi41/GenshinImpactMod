@@ -126,5 +126,9 @@
   "item.gim.parametric_transformer": "Parametric Transformer",
   "gim.gui.parametric_transformer": "Parametric Transformer",
   "entity.gim.hilichurl": "Hilichurl",
-  "gim.chat.parametric_transformer.already_used": "You cam use Parametric transformer through %s"
+  "gim.chat.parametric_transformer.already_used": "You can use Parametric transformer through %s",
+  "itemGroup.gim.main": "Genshin items",
+  "gim.chat.creative": "Creative",
+  "item.gim.wish": "Wish",
+  "block.gim.anemo_arhont_statue": "Anemo Arhont statue"
 }

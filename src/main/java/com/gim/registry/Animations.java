@@ -1,5 +1,6 @@
 package com.gim.registry;
 
+import com.gim.GenshinImpactMod;
 import com.gim.players.base.IGenshinPlayer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +20,16 @@ public class Animations {
     public static void onAtlasLoading(TextureStitchEvent.Pre event) {
         TextureAtlas atlas = event.getAtlas();
         if (atlas.location().equals(InventoryMenu.BLOCK_ATLAS)) {
+
+            for (int i = 3; i <= 5; i++) {
+                ResourceLocation id = new ResourceLocation(
+                        GenshinImpactMod.ModID,
+                        String.format("wishes/%s", i)
+                );
+
+                event.addSprite(id);
+            }
+
             IForgeRegistry<IGenshinPlayer> registry = Registries.characters();
 
             if (registry != null) {

@@ -18,6 +18,7 @@ public class Menus {
     public static final MenuType<LevelStationMenu> level_station = null;
     public static final MenuType<SkillStationMenu> skill_station = null;
     public static final MenuType<ParametricTransformerMenu> parametric_transformer = null;
+    public static final MenuType<WishMenu> wish = null;
 
     @SubscribeEvent
     public static void register(RegistryEvent.Register<MenuType<?>> event) {
@@ -38,7 +39,10 @@ public class Menus {
                         .setRegistryName(GenshinImpactMod.ModID, "skill_station"),
 
                 IForgeMenuType.create(ParametricTransformerMenu::new)
-                        .setRegistryName(GenshinImpactMod.ModID, "parametric_transformer")
+                        .setRegistryName(GenshinImpactMod.ModID, "parametric_transformer"),
+
+                IForgeMenuType.create(WishMenu::new)
+                        .setRegistryName(GenshinImpactMod.ModID, "wish")
         );
     }
 }

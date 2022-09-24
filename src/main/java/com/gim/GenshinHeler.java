@@ -6,6 +6,7 @@ import com.gim.entity.ICustomSwing;
 import com.gim.registry.Attributes;
 import com.gim.registry.Capabilities;
 import com.gim.registry.Elementals;
+import com.gim.registry.Entities;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.ChatFormatting;
@@ -28,6 +29,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.item.ItemStack;
@@ -36,6 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.*;
+import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -78,6 +81,11 @@ public class GenshinHeler {
             return BitSet.valueOf(bitSet.toByteArray());
         }
     };
+
+    /**
+     * Set of entities forbidden to apply genshin elemental statuses or attribute scaling
+     */
+    public static final Set<EntityType> FORBIDDEN = new HashSet<>();
 
     static {
         EntityDataSerializers.registerSerializer(BIT_SET);
@@ -569,26 +577,25 @@ public class GenshinHeler {
      * @param random - random number
      * @param <T>    - any key type
      */
-    public static <T> T selectRandomly(Map<T, Integer> map, Random random) {
+    public static <T, T1 extends Number> T selectWeighted(Map<T, T1> map, Random random) {
         if (map == null || map.isEmpty() || random == null) {
             throw new IllegalArgumentException(random == null ? "random is null" : "map is null or empty");
         }
 
-
         // storing intervals for key
         // intervals work as probability distribution.
         // random need to hit the interval for key to be selected
-        Table<T, Integer, Integer> table = HashBasedTable.create();
-        int total = 0;
+        Table<T, Double, Double> table = HashBasedTable.create();
+        double total = 0;
 
-        for (Map.Entry<T, Integer> entry : map.entrySet()) {
-            if (entry.getValue() < 1) {
+        for (Map.Entry<T, T1> entry : map.entrySet()) {
+            if (entry.getValue().doubleValue() < 1) {
                 GenshinImpactMod.LOGGER.debug("Skip wrong key with probability: " + entry.getValue() + " for key " + entry.getKey().toString());
                 continue;
             }
 
-            table.put(entry.getKey(), total, total + entry.getValue());
-            total += entry.getValue();
+            table.put(entry.getKey(), total, total + entry.getValue().doubleValue());
+            total += entry.getValue().doubleValue();
         }
 
         if (table.isEmpty() || total < 1) {
@@ -596,10 +603,10 @@ public class GenshinHeler {
         }
 
         // choosing random number
-        int hit = random.nextInt(total);
+        double hit = random.nextDouble(total + Double.MIN_NORMAL);
 
         // iterating through all table cells
-        for (Table.Cell<T, Integer, Integer> cell : table.cellSet()) {
+        for (Table.Cell<T, Double, Double> cell : table.cellSet()) {
             // hit point should be inside interval
             if (cell.getColumnKey() <= hit && hit <= cell.getValue()) {
                 return cell.getRowKey();
@@ -706,5 +713,39 @@ public class GenshinHeler {
             GenshinImpactMod.LOGGER.warn(e);
             return null;
         }
+    }
+
+    /**
+     * Can this entity type accept attribute scaling and applying genshin attributes
+     *
+     * @param type - entity type
+     */
+    public static boolean acceptGenshinEffects(EntityType type) {
+        // type is not an LivingEntity
+        if (type == null || !DefaultAttributes.hasSupplier(type))
+            return false;
+
+        return !FORBIDDEN.contains(type);
+    }
+
+    /**
+     * Can this entity type accept attribute scaling and applying genshin attributes
+     *
+     * @param e - entity
+     */
+    public static boolean acceptGenshinEffects(Entity e) {
+        return acceptGenshinEffects(e.getType());
+    }
+
+    /**
+     * check if number belongs range [min, max]
+     *
+     * @param num          - number
+     * @param minInclusive - min inclusive
+     * @param maxInclusive - max inclusive
+     */
+    public static boolean between(Number num, Number minInclusive, Number maxInclusive) {
+        return minInclusive.doubleValue() <= num.doubleValue()
+                && num.doubleValue() <= maxInclusive.doubleValue();
     }
 }

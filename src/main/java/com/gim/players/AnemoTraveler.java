@@ -26,6 +26,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.EntityDamageSource;
@@ -352,6 +353,7 @@ public class AnemoTraveler extends GenshinPlayerBase {
         double starCount = Math.max(0, GenshinHeler.safeGetAttribute(holder, Attributes.constellations));
         double range = 1;
 
+        // constellation adds damage radius
         if (starCount > 0) {
             range += 5 + skillAdditive;
         }
@@ -375,6 +377,13 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         Vec3 movement = center.subtract(entity.position()).normalize().scale(1 / 6f + skillAdditive);
                         entity.push(movement.x, movement.y, movement.z);
                     }
+
+                    // periodical damage
+                    if (info.getPersonInfo(this).getSkillTicksAnim() % (SKILL_ANIM_TIME / 2) == SKILL_ANIM_TIME / 4) {
+                        // perform intermediate attacks
+                        skillDamage(holder, 1, starCount, 0.5);
+                    }
+
                 } else {
                     for (int i = 0; i < 10; ++i) {
                         double d0 = holder.getX() + (holder.getLevel().getRandom().nextDouble() - 0.5) * 3;
@@ -403,21 +412,8 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 if (holder.getLevel().isClientSide()) {
                     holder.getLevel().addParticle(ParticleTypes.EXPLOSION, holder.getX() + 0.5D, holder.getY() + 1, holder.getZ() + 0.5D, 0.0D, 0.0D, 0.0D);
                 } else {
-                    Elementals elemental = getElemental();
-
-                    List<LivingEntity> affectedEntities = getAffectedEntities(holder, range).stream().filter(x -> x instanceof LivingEntity)
-                            .map(x -> ((LivingEntity) x)).toList();
-
-                    elemental = swirling.get().stream().filter(x -> affectedEntities.stream().anyMatch(x::is)).findFirst().orElse(elemental);
-
-
-                    // area explosion
-                    GenshinDamageSource source = elemental.create(holder).bySkill(this);
-                    Vec3 vector = holder.getEyePosition().add(holder.getLookAngle().normalize().scale(2));
-                    GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder, vector, source, ((float) range),
-                            (diameter, attackPercent) -> this.createDamage(diameter, attackPercent, GenshinHeler.safeGetAttribute(holder, Attributes.skill_level), starCount,
-                                    GenshinHeler.safeGetAttribute(holder, net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)));
-                    Map<Entity, Float> entityFloatMap = spreading.explode();
+                    Tuple<Map<Entity, Float>, Elementals> tuple = skillDamage(holder, range, starCount, 1);
+                    Map<Entity, Float> entityFloatMap = tuple.getA();
 
                     // need to spawn energy orbs
                     if (entityFloatMap.size() > 0) {
@@ -426,12 +422,13 @@ public class AnemoTraveler extends GenshinPlayerBase {
                         Entity entity = entityFloatMap.keySet().stream().findFirst().orElse(null);
                         for (int i = 0; i < count; i++) {
                             // adding energy in world
-                            holder.getLevel().addFreshEntity(new Energy(holder, entity, 1, elemental));
+                            holder.getLevel().addFreshEntity(new Energy(holder, entity, 1, tuple.getB()));
                         }
                     }
 
                     List<Entity> entities = getAffectedEntities(holder, range);
 
+                    // pushing entities
                     for (Entity entity : entities) {
                         Vec3 movement = holder.getLookAngle().normalize();
                         entity.push(movement.x, movement.y, movement.z);
@@ -439,6 +436,46 @@ public class AnemoTraveler extends GenshinPlayerBase {
                 }
                 break;
         }
+    }
+
+    /**
+     * Perform skill damage
+     *
+     * @param holder           - attacking player
+     * @param range            - attacking range
+     * @param starCount        - constellation count
+     * @param attackMultiplier - possible attacl multiplier
+     * @return - affected entities
+     */
+    private Tuple<Map<Entity, Float>, Elementals> skillDamage(LivingEntity holder, double range, double starCount, double attackMultiplier) {
+        // find current elemental
+        Elementals elemental = getElemental();
+
+        // find affected entities
+        List<LivingEntity> affectedEntities = getAffectedEntities(holder, range).stream().filter(x -> x instanceof LivingEntity)
+                .map(x -> ((LivingEntity) x)).toList();
+
+        // find possible swirling elemental
+        elemental = swirling.get().stream().filter(x -> affectedEntities.stream().anyMatch(x::is)).findFirst().orElse(elemental);
+
+
+        // area explosion
+        GenshinDamageSource source = elemental.create(holder).bySkill(this);
+        // look vec
+        Vec3 vector = holder.getEyePosition().add(holder.getLookAngle().normalize().scale(2));
+        // explosion
+        GenshinAreaSpreading spreading = new GenshinAreaSpreading(holder, vector, source, ((float) range),
+                (diameter, attackPercent) -> this.createDamage(
+                        diameter,
+                        attackPercent * attackMultiplier,
+                        GenshinHeler.safeGetAttribute(holder, Attributes.skill_level),
+                        starCount,
+                        GenshinHeler.safeGetAttribute(holder, net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
+                )
+        );
+        // perform explosion
+        Map<Entity, Float> entityFloatMap = spreading.explode();
+        return new Tuple<>(entityFloatMap, elemental);
     }
 
     /**

@@ -4,10 +4,12 @@ import com.gim.GenshinImpactMod;
 import com.gim.client.entity.CustomTextureRender;
 import com.gim.client.entity.EnergyRenderer;
 import com.gim.client.entity.hilichurlian.hilichurl.HilichurlRenderer;
+import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
 import com.gim.client.layers.IceRender;
 import com.gim.client.layers.ShieldLayerRender;
-import com.gim.client.entity.players.anemo_traveler.TornadoRenderer;
 import com.gim.entity.Shield;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -15,6 +17,7 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -29,7 +32,7 @@ import java.util.stream.Collectors;
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class Renders {
-
+    public static final Multimap<RenderType, Block> RENDER_MAP = HashMultimap.create();
 
     @SubscribeEvent
     public static void registerEntityRenders(EntityRenderersEvent.RegisterRenderers e) {
@@ -107,6 +110,7 @@ public class Renders {
      * Customize blocks to use neede render type
      */
     public static void setCustomBlockRender() {
-        List.of(Blocks.wind_astra).forEach(x -> ItemBlockRenderTypes.setRenderLayer(x, RenderType.cutout()));
+        RENDER_MAP.forEach((renderType, block) -> ItemBlockRenderTypes.setRenderLayer(block, renderType));
+        RENDER_MAP.clear();
     }
 }

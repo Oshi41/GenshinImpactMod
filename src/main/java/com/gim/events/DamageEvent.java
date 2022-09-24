@@ -5,9 +5,12 @@ import com.gim.GenshinImpactMod;
 import com.gim.registry.Attributes;
 import com.gim.registry.ElementalReactions;
 import com.gim.registry.Elementals;
+import com.gim.registry.Entities;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
@@ -37,7 +40,8 @@ public class DamageEvent {
                 || event.getSource() == null
                 || event.isCanceled()
                 // performing only on client side
-                || event.getEntityLiving().getLevel().isClientSide()) {
+                || event.getEntityLiving().getLevel().isClientSide()
+                || !GenshinHeler.acceptGenshinEffects(event.getEntityLiving())) {
             return;
         }
 
